@@ -171,45 +171,32 @@ public class SenseiMapper extends MapReduceBase implements Mapper<Object, Object
 		String metadataFileName = conf.get(SenseiJobConfig.SCHEMA_FILE_URL);
 		
 		Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
-		if (localFiles != null) {
-		  for (int i = 0; i < localFiles.length; i++) {
-			  String strFileName = localFiles[i].toString();
-			  if (strFileName.contains(conf.get(SenseiJobConfig.SCHEMA_FILE_URL))) {
-				  metadataFileName = strFileName;
-				  break;
-			  }
-		  }
+		if (localFiles == null || localFiles.length != 1) {
+		  throw new IOException("DistributedCache is empty or has wrong length.");
 		}
 		
-		if (metadataFileName != null && metadataFileName.length() > 0) {
-			_schema_uri = "file:///" + metadataFileName;
+		_schema_uri = "file:///" + localFiles[0].toString();
 
-			if (_defaultInterpreter == null) {
-				
-				logger.info("schema file is:" + _schema_uri);
-				URL url = new URL(_schema_uri);
-				URLConnection conn = url.openConnection();
-				conn.connect();
+		if (_defaultInterpreter == null) {
 
-				File xmlSchema = new File(url.toURI());
-				if (!xmlSchema.exists()) {
-					throw new ConfigurationException(
-							"schema not file");
-				}
-				DocumentBuilderFactory dbf = DocumentBuilderFactory
-						.newInstance();
-				dbf.setIgnoringComments(true);
-				DocumentBuilder db = dbf.newDocumentBuilder();
-				org.w3c.dom.Document schemaXml = db
-						.parse(xmlSchema);
-				schemaXml.getDocumentElement().normalize();
-				JSONObject schemaData = SchemaConverter
-						.convert(schemaXml);
+		  logger.info("schema file is:" + _schema_uri);
+      URL url = new URL(_schema_uri);
+      URLConnection conn = url.openConnection();
+      conn.connect();
 
-				SenseiSchema schema = SenseiSchema.build(schemaData);
-				_defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
-			}
-		}
-	}
+      File xmlSchema = new File(url.toURI());
+      if (!xmlSchema.exists()) {
+        throw new ConfigurationException("schema not file");
+      }
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setIgnoringComments(true);
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      org.w3c.dom.Document schemaXml = db.parse(xmlSchema);
+      schemaXml.getDocumentElement().normalize();
+      JSONObject schemaData = SchemaConverter.convert(schemaXml);
 
+      SenseiSchema schema = SenseiSchema.build(schemaData);
+      _defaultInterpreter = new DefaultJsonSchemaInterpreter(schema);
+    }
+  }
 }

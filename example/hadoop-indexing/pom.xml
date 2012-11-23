@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>com.senseidb</groupId>
 	<artifactId>sensei-example-hadoop</artifactId>
 	<packaging>jar</packaging>
@@ -21,10 +21,10 @@
 						<descriptor>jar-with-dependencies.xml</descriptor>
 					</descriptors>
 					<archive>
-            <manifest>
-              <mainClass>com.senseidb.indexing.hadoop.demo.CarDemo</mainClass>
-            </manifest>
-          </archive>
+						<manifest>
+							<mainClass>com.senseidb.indexing.hadoop.demo.CarDemo</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 				<executions>
 					<execution>
@@ -36,7 +36,7 @@
 					</execution>
 				</executions>
 			</plugin>
-		
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -47,14 +47,14 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-			<plugin> 
-                <groupId>com.github.maven-hadoop.plugin</groupId>
-                <artifactId>maven-hadoop-plugin</artifactId>
-                <version>0.20.1</version>
-                <configuration>
-                  <hadoopHome>${env.HADOOP_HOME}</hadoopHome>
-                </configuration>
-            </plugin>
+			<plugin>
+				<groupId>com.github.maven-hadoop.plugin</groupId>
+				<artifactId>maven-hadoop-plugin</artifactId>
+				<version>0.20.1</version>
+				<configuration>
+					<hadoopHome>${env.HADOOP_HOME}</hadoopHome>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -62,19 +62,14 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
-		  <groupId>com.senseidb</groupId>
-		  <artifactId>sensei-hadoop-indexing</artifactId>
-		  <version>${project.version}</version>
+			<groupId>com.senseidb</groupId>
+			<artifactId>sensei-hadoop-indexing</artifactId>
+			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-		    <groupId>org.apache.hadoop</groupId>
-		    <artifactId>hadoop-core</artifactId>
-		    <version>0.20.204.0</version>
-		</dependency>
-		
+
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
