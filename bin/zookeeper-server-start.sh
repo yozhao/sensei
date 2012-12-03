@@ -12,6 +12,10 @@ do
   CLASSPATH=$CLASSPATH:$file
 done
 
+if [ -z "$ZK_OPTS" ]; then
+  ZK_OPTS="-Dlog4j.configuration=file:$base_dir/resources/zk-log4j.properties"
+fi
+
 if [ -z "$JAVA_HOME" ]; then
   JAVA="java"
 else
@@ -19,4 +23,4 @@ else
 fi
 
 
-$JAVA -cp $CLASSPATH org.apache.zookeeper.server.quorum.QuorumPeerMain $@
+$JAVA $ZK_OPTS -cp $CLASSPATH org.apache.zookeeper.server.quorum.QuorumPeerMain $@
