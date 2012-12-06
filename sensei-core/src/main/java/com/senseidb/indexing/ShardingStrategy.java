@@ -42,7 +42,7 @@ public interface ShardingStrategy {
         uid = Long.parseLong(dataObj.getString(_field));
       else
         uid = Long.parseLong(event.getString(_field));
-      return (int)(uid % maxShardId);
+      return (int)(Math.abs(uid) % maxShardId);
     }
   }
 }
