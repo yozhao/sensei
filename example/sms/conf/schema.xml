@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://javasoze.github.com/sensei/schema/sensei-schema.xsd">
+
+	<!-- valid types: uid - only 1 column can be of type uid int - integer short 
+		- short char - character long - long float - float double - double string 
+		- string (default) date - date, format string must be provided text - searchable -->
+
+	<table uid="id">
+		<column name="userId" type="int" />
+		<column name="msgId" type="string" />
+		<column name="bindId" type="long" />
+		<column name="msgType" type="int" />
+		<column name="localTime" type="long" />
+		<column name="msgFolder" type="int" />
+		<!-- attributes: indexed,store,termvector are only used when type is text -->
+		<column name="contents" type="text" index="ANALYZED" />
+	</table>
+
+	<facets>
+	<!-- facet name="userId" type="simple" / -->
+	</facets>
+
+</schema>
