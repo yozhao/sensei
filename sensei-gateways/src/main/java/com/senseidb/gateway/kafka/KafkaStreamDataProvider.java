@@ -10,9 +10,10 @@ import java.util.Properties;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaMessageStream;
+import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.Message;
+import kafka.message.MessageAndMetadata;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -72,16 +73,16 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       return null;
     }
 
-    Message msg = _consumerIterator.next();
+    MessageAndMetadata<Message> msgAndmeta = _consumerIterator.next();
     if (logger.isDebugEnabled()){
-      logger.debug("got new message: "+msg);
+      logger.debug("got new message: " + msgAndmeta.message());
     }
     long version = System.currentTimeMillis();
     
     JSONObject data;
     try {
-      int size = msg.payloadSize();
-      ByteBuffer byteBuffer = msg.payload();
+      int size = msgAndmeta.message().payloadSize();
+      ByteBuffer byteBuffer = msgAndmeta.message().payload();
       byte[] bytes = new byte[size];
       byteBuffer.get(bytes,0,size);
       data = _dataConverter.filter(new DataPacket(bytes,0,size));
@@ -112,11 +113,11 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
     topicCountMap.put(_topic, 1);
-    Map<String, List<KafkaMessageStream<Message>>> topicMessageStreams =
+    Map<String, List<KafkaStream<Message>>> topicMessageStreams =
         _consumerConnector.createMessageStreams(topicCountMap);
-    List<KafkaMessageStream<Message>> streams = topicMessageStreams.get(_topic);
-    KafkaMessageStream<Message> kafkaMessageStream = streams.iterator().next();
-    _consumerIterator = kafkaMessageStream.iterator();
+    List<KafkaStream<Message>> streams = topicMessageStreams.get(_topic);
+    KafkaStream<Message> KafkaStream = streams.iterator().next();
+    _consumerIterator = KafkaStream.iterator();
 
     super.start();
     _started = true;
