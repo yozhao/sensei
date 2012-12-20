@@ -12,13 +12,10 @@
 		<column name="bindId" type="long" />
 		<column name="msgType" type="int" />
 		<column name="localTime" type="long" />
+		<column name="msgAddress" type="string" />
 		<column name="msgFolder" type="int" />
 		<!-- attributes: indexed,store,termvector are only used when type is text -->
 		<column name="contents" type="text" index="ANALYZED" />
 	</table>
-
-	<facets>
-	<!-- facet name="userId" type="simple" / -->
-	</facets>
 
 </schema>
