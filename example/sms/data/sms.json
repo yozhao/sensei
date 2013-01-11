@@ -1,9 +1,0 @@
-{"id":0,"userId":100001,"msgId":"12211_2323421_12231_2330","bindId":1234567,"msgType":0,"localTime":12345678,"msgFolder":0,"contents":"hello 你好你来自哪里?"}
-{"id":1,"userId":100002,"msgId":"12211_2323421_12231_2331","bindId":1234568,"msgType":0,"localTime":12345679,"msgFolder":1,"contents":"xiaomi kaka 小米移动通讯有限公司!"}
-{"id":-1,"userId":100002,"msgId":"12211_2323421_12231_2332","bindId":1234568,"msgType":0,"localTime":12345700,"msgFolder":1,"contents":"xiaomi msg test 小米移动通讯有限公司"}
-{"id":2,"userId":100003,"msgId":"12211_2323421_12231_2333","bindId":1234569,"msgType":1,"localTime":123456323,"msgFolder":0,"contents":"Hi dude test 最近怎么样?"}
-{"id":-2,"userId":100003,"msgId":"12211_2323421_12231_2334","bindId":1234569,"msgType":1,"localTime":12345678,"msgFolder":0,"contents":"dude test 很好很强大!"}
-{"id":3,"userId":100004,"msgId":"12211_2323421_12231_2335","bindId":1234570,"msgType":1,"localTime":12345678,"msgFolder":0,"contents":"张三说的确实在理"}
-{"id":4,"userId":100004,"msgId":"12211_2323421_12231_2336","bindId":1234571,"msgType":1,"localTime":12345679,"msgFolder":0,"contents":"IKAnalyzer是一个开源的,基于 java 语言开发的轻量级的中文分词工具包。2006年12从月推出1.0 版开始, IKAnalyzer已经推出了 3 个大版本"}
-{"id":-3,"userId":100004,"msgId":"12211_2323421_12231_2337","bindId":1234572,"msgType":1,"localTime":12345690,"msgFolder":0,"contents":"公路局正在治理解放大道路面积水问题"}
-
