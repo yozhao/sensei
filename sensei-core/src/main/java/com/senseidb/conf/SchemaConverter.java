@@ -31,21 +31,20 @@ public class SchemaConverter
       Element tableElem = (Element) tables.item(0);
       tableObj.put("uid", tableElem.getAttribute("uid"));
       String deleteField = tableElem.getAttribute("delete-field");
-      if (deleteField != null)
+      if (deleteField != null && deleteField.length() > 0)
         tableObj.put("delete-field", deleteField);
 
       String skipField = tableElem.getAttribute("skip-field");
-      if (skipField != null)
+      if (skipField != null && skipField.length() > 0)
         tableObj.put("skip-field", skipField);
 
       String srcDataStore = tableElem.getAttribute("src-data-store");
-      if (srcDataStore != null)
+      if (srcDataStore != null && srcDataStore.length() > 0)
         tableObj.put("src-data-store", srcDataStore);
 
       String srcDatafield = tableElem.getAttribute("src-data-field");
-      if (srcDatafield == null || srcDatafield.length() == 0)
-        srcDatafield = "src_data";
-      tableObj.put("src-data-field", srcDatafield);
+      if (srcDatafield != null && srcDatafield.length() > 0)
+        tableObj.put("src-data-field", srcDatafield);
 
       String compress = tableElem.getAttribute("compress-src-data");
       if (compress != null && "false".equals(compress))
@@ -94,21 +93,20 @@ public class SchemaConverter
             columnObj.put("format", f);
 
           String idxString = column.getAttribute("index");
-          if (idxString != null)
+          if (idxString != null && idxString.length() > 0)
           {
             columnObj.put("index", idxString);
           }
           String storeString = column.getAttribute("store");
-          if (storeString != null)
+          if (storeString != null && storeString.length() > 0)
           {
             columnObj.put("store", storeString);
           }
           String tvString = column.getAttribute("termvector");
-          if (tvString != null)
+          if (tvString != null && tvString.length() > 0)
           {
             columnObj.put("termvector", tvString);
           }
-
         }
         catch (Exception e)
         {
@@ -133,7 +131,7 @@ public class SchemaConverter
         facetObj.put("name", facet.getAttribute("name"));
         facetObj.put("type", facet.getAttribute("type"));
         String depends = facet.getAttribute("depends");
-        if (depends!=null){
+        if (depends != null && depends.length() > 0){
           String[] dependsList = depends.split(",");
           JSONArray dependsArr = new JSONArray();
           for (String dependName : dependsList)
@@ -148,11 +146,11 @@ public class SchemaConverter
           facetObj.put("depends", dependsArr);
         }
         String column = facet.getAttribute("column");
-        if (column!=null && column.length() > 0){
+        if (column != null && column.length() > 0){
           facetObj.put("column", column);
         }
         String dynamic = facet.getAttribute("dynamic");
-        if (dynamic!=null){
+        if (dynamic != null && dynamic.length() > 0){
           facetObj.put("dynamic",dynamic);
         }
 
