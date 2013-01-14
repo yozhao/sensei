@@ -35,15 +35,18 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
   private final String _zookeeperUrl;
   private final String _oldSinceKey;
-  private final Boolean _rewind;
+  private final boolean _rewind;
   private final int _kafkaSoTimeout;
   private volatile boolean _started = false;
   private final DataSourceFilter<DataPacket> _dataConverter;
   private volatile Map<String, Long> _partitionOffsetMap = new TreeMap<String, Long>();
+  
+  private static long _startTime = 0;
+  private static int count = 0;
 
   public MiKafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
                                  String consumerGroupId,String topic, String oldSinceKey,
-                                 DataSourceFilter<DataPacket> dataConverter, Boolean rewind){
+                                 DataSourceFilter<DataPacket> dataConverter, boolean rewind){
     super(versionComparator);
     _consumerGroupId = consumerGroupId;
     _topic = topic;
@@ -102,6 +105,11 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
       for (Map.Entry<String, Long> entry : _partitionOffsetMap.entrySet()) {
         version += ";" + entry.getKey() + ":" + entry.getValue().toString();
       }
+      ++count;
+      if (count % 50000 == 0) {
+        System.out.println("Count = " + count + " QPS: " + count*1000.0/(System.currentTimeMillis() - _startTime));
+      }
+        
       return new DataEvent<JSONObject>(data, version);
     } catch (Exception e) {
       logger.error(e.getMessage(),e);
@@ -163,6 +171,7 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
 
     super.start();
     _started = true;
+    _startTime = System.currentTimeMillis();
   }
 
   @Override

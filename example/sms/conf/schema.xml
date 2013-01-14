@@ -8,14 +8,15 @@
 
 	<table uid="id">
 		<column name="userId" type="int" />
-		<column name="msgId" type="string" />
-		<column name="bindId" type="long" />
-		<column name="msgType" type="int" />
-		<column name="localTime" type="long" />
-		<column name="msgAddress" type="string" />
-		<column name="msgFolder" type="int" />
-		<!-- attributes: indexed,store,termvector are only used when type is text -->
-		<column name="contents" type="text" index="ANALYZED" />
+		<column name="msgTime" type="long" />
+		<column name="msgAdd" type="string" />
+		<column name="msgType" type="short" />
+		<column name="msgId" type="string" store="YES" />
+		<!-- attributes: indexed, termvector are only used when type is text -->
+		<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" />
 	</table>
 
+    <facets>
+		<facet name="msgTime" type="simple" />
+	</facets>
 </schema>

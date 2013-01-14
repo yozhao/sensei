@@ -30,7 +30,7 @@ public class MiKafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
     String rewindStr = config.get("kafka.rewind");
     int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
     int batchsize = Integer.parseInt(config.get("kafka.batchsize"));
-    Boolean rewind = rewindStr != null ? Boolean.parseBoolean(rewindStr) : false;
+    boolean rewind = rewindStr != null ? Boolean.parseBoolean(rewindStr) : false;
 
     if (dataFilter==null){
       String type = config.get("kafka.msg.type");
