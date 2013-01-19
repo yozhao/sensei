@@ -41,10 +41,10 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
       Set<Integer> partitions) throws Exception
   {
 
-	       final String url = config.get("jdbc.url");
-	       final String username = config.get("jdbc.username");
-	       final String password = config.get("jdbc.password");
-	       final String driver = config.get("jdbc.driver");
+	     final String url = config.get("jdbc.url");
+	     final String username = config.get("jdbc.username");
+	     final String password = config.get("jdbc.password");
+	     final String driver = config.get("jdbc.driver");
          final String adaptor = config.get("jdbc.adaptor");
 
          final SenseiJDBCAdaptor senseiAdaptor =
@@ -56,6 +56,7 @@ public class JdbcDataProviderBuilder extends SenseiGateway<ResultSet>{
            throw new ConfigurationException("adaptor not found: " + adaptor);
 	       }
 
+	       senseiAdaptor.setPartitions(partitions);
 
 		   JDBCConnectionFactory connFactory = new JDBCConnectionFactory() {
 

@@ -164,7 +164,7 @@ public class SenseiSchema {
         try {
               String n = column.getString("name");
               String t = column.getString("type");
-              String frm = column.optString("from");
+              String frm = column.optString("from", "");
               String storeString = column.optString("store", "");
 
               FieldDefinition fdef = new FieldDefinition();
