@@ -230,20 +230,27 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   protected List<RESULT> doCall(final REQUEST req) throws ExecutionException {
     List<RESULT> resultList = new ArrayList<RESULT>();
-    ResponseIterator<RESULT> responseIterator =
-        buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req), new RequestBuilder<Integer, REQUEST>() {
-          private int count = 0;
-          @Override
-          public REQUEST apply(Node node, Set<Integer> nodePartitions) {
-            // TODO: Cloning is yucky per http://www.artima.com/intv/bloch13.html
-            REQUEST clone = (REQUEST) (((SenseiRequest) req).clone());
-            
-            clone.setPartitions(nodePartitions);
 
-            REQUEST customizedRequest = customizeRequest(clone);
-            return customizedRequest;
-          }
-        }, _serializer));
+    RequestBuilder<Integer, REQUEST> requestBuilder = new RequestBuilder<Integer, REQUEST>() {
+      @Override
+      public REQUEST apply(Node node, Set<Integer> nodePartitions) {
+        // TODO: Cloning is yucky per http://www.artima.com/intv/bloch13.html
+        REQUEST clone = (REQUEST) (((SenseiRequest) req).clone());
+        clone.setPartitions(nodePartitions);
+        REQUEST customizedRequest = customizeRequest(clone);
+        return customizedRequest;
+      }
+    };
+
+    ResponseIterator<RESULT> responseIterator = null;
+    Set<Integer> partitions = req.getPartitions();    
+    if (partitions != null && partitions.size() > 0) {
+      responseIterator = buildIterator(_networkClient.sendRequestToPartitions(getRouteParam(req),
+        req.getPartitions(), requestBuilder, _serializer));
+    } else {
+      responseIterator = buildIterator(_networkClient.sendRequestToOneReplica(getRouteParam(req),
+        requestBuilder, _serializer));
+    }
 
     while(responseIterator.hasNext()) {
       resultList.add(responseIterator.next());
