@@ -455,7 +455,7 @@ public class DefaultJsonSchemaInterpreter extends
 
       @Override
       public boolean isStorable() {
-        return true;
+        return false;
       }
 
     };
