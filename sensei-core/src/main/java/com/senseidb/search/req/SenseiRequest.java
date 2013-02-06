@@ -43,6 +43,7 @@ private long   tid           =          -1;
   private boolean _fetchStoredFields;
   private boolean _origFetchStoredFields;
   private boolean _fetchStoredValue;
+  private boolean _fetchNodeInfo;
   private Map<String,FacetHandlerInitializerParam> _facetInitParamMap;
   private Set<Integer> _partitions;
   private boolean _showExplanation;
@@ -52,9 +53,10 @@ private long   tid           =          -1;
 	private String[] _groupByMulti;
   private int _maxPerGroup;
   private Set<String> _termVectorsToFetch;
-  private List<String> _selectList; // Select list (mostly used in BQL) 
+  private List<String> _selectList; // Select list (mostly used in BQL)
   private SenseiMapReduce mapReduceFunction;
   private List<SenseiError> errors;
+
   
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
@@ -63,6 +65,7 @@ private long   tid           =          -1;
     _facetSpecMap=new HashMap<String,FacetSpec>();
     _fetchStoredFields = false;
     _fetchStoredValue = false;
+    _fetchNodeInfo = false;
     _partitions = null;
     _showExplanation = false;
     _routeParam = null;
@@ -265,6 +268,14 @@ private long   tid           =          -1;
   
   public void setFetchStoredValue(boolean fetchStoredValue){
     _fetchStoredValue = fetchStoredValue;
+  }
+  
+  public boolean isFetchNodeInfo(){
+    return _fetchNodeInfo;
+  }
+  
+  public void setFetchNodeInfo(boolean fetchNodeInfo){
+    _fetchNodeInfo = fetchNodeInfo;
   }
 
   /**
@@ -469,7 +480,8 @@ private long   tid           =          -1;
       buf.append("group by: ").append(_groupBy).append('\n');
     buf.append("max per group: ").append(_maxPerGroup).append('\n');
     buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
-    buf.append("fetch stored value: ").append(_fetchStoredValue);
+    buf.append("fetch stored value: ").append(_fetchStoredValue).append('\n');
+    buf.append("fetch node info: ").append(_fetchNodeInfo);
     return buf.toString();
   }
 

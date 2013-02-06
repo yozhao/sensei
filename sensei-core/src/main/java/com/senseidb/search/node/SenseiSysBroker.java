@@ -1,10 +1,6 @@
 package com.senseidb.search.node;
 
-import com.linkedin.norbert.javacompat.network.RequestBuilder;
-import com.linkedin.norbert.network.ResponseIterator;
-import com.linkedin.norbert.network.common.TimeoutIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +25,7 @@ import com.senseidb.cluster.routing.RoutingInfo;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.impl.SysSenseiCoreServiceImpl;
+import com.senseidb.util.NetUtil;
 
 public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo>
 {
@@ -81,11 +78,41 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   @Override
   protected List<SenseiSystemInfo> doCall(final SenseiRequest req) throws ExecutionException {
     final List<SenseiSystemInfo> resultList = new ArrayList<SenseiSystemInfo>();
-    List<Future<SenseiSystemInfo>> futures = new ArrayList<Future<SenseiSystemInfo>>(_nodes.size());
-    for(Node n : _nodes)
+
+    List<Future<SenseiSystemInfo>> futures = new ArrayList<Future<SenseiSystemInfo>>();
+    // Only send request to local node
+    if(req.isFetchNodeInfo())
     {
-      futures.add(_networkClient.sendRequestToNode(req, n, _serializer));
+      String localAddr = null;
+      try
+      {
+        localAddr = NetUtil.getHostAddress();
+      }
+      catch(Exception e)
+      {
+        logger.error("Failed to get host address", e);
+      }
+      
+      for(Node n : _nodes)
+      {
+        if(n.getUrl().contains(localAddr))
+        {
+          futures = new ArrayList<Future<SenseiSystemInfo>>(1);
+          futures.add(_networkClient.sendRequestToNode(req, n, _serializer));
+          break;
+        }
+      }
     }
+    else
+    {
+      futures = new ArrayList<Future<SenseiSystemInfo>>(_nodes.size());
+      for(Node n : _nodes)
+      {
+        futures.add(_networkClient.sendRequestToNode(req, n, _serializer));
+      }
+    }
+    
+
     for(Future<SenseiSystemInfo> future : futures)
     {
       try

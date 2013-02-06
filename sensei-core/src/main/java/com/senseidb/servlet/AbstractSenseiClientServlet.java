@@ -46,6 +46,7 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.senseidb.util.JsonTemplateProcessor;
+import com.senseidb.util.NetUtil;
 import com.senseidb.util.RequestConverter2;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
@@ -469,6 +470,20 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
   }
 
+  private void handleNodeInfoRequest(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException {
+      try {
+        SenseiRequest nodeInfoRequest = new SenseiRequest();
+        nodeInfoRequest.setFetchNodeInfo(true);
+        SenseiSystemInfo res = _senseiSysBroker.browse(nodeInfoRequest);
+        OutputStream ostream = resp.getOutputStream();
+        convertResult(req, res, ostream);
+        ostream.flush();
+      } catch (Exception e) {
+        throw new ServletException(e.getMessage(),e);
+      }
+  }
+
   private void handleJMXRequest(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
   {
@@ -561,6 +576,10 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     else if ("/sysinfo".equalsIgnoreCase(req.getPathInfo()))
     {
       handleSystemInfoRequest(req, resp);
+    }
+    else if ("/nodeinfo".equalsIgnoreCase(req.getPathInfo()))
+    {
+      handleNodeInfoRequest(req, resp);
     }
     else if (req.getPathInfo().startsWith("/admin/jmx/"))
     {
