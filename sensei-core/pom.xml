@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.senseidb</groupId>
@@ -8,7 +8,7 @@
 		<version>1.5.1-SNAPSHOT</version>
 		<relativePath>../sensei-parent/pom.xml</relativePath>
 	</parent>
-	
+
 	<artifactId>sensei-core</artifactId>
 	<packaging>jar</packaging>
 	<name>sensei core</name>
@@ -27,21 +27,13 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-			<!--
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.2</version>
-				<configuration>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-			
-			-->
+			<!-- <plugin> <artifactId>maven-resources-plugin</artifactId> <version>2.2</version> 
+				<configuration> <encoding>UTF-8</encoding> </configuration> </plugin> -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
+				<version>2.1.2</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -54,7 +46,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8.1</version>
+				<version>2.8.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -65,75 +57,75 @@
 				</executions>
 			</plugin>
 			<plugin>
-		      <artifactId>maven-dependency-plugin</artifactId>
-              <version>2.4</version>
-		      <executions>
-		         <execution>
-		         <phase>package</phase>
-		         <goals>
-		            <goal>copy-dependencies</goal>
-		         </goals>
-		         <configuration>
-		            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-		         </configuration>
-		       </execution>
-		       </executions>
-		    </plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>1.9</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                         </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <prefix>git</prefix>
-                    <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
-                    <verbose>true</verbose>
-                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
-                </configuration>
-            </plugin>
-		    
-            <plugin>
-              <groupId>org.antlr</groupId>
-              <artifactId>antlr3-maven-plugin</artifactId>
-              <version>3.4</version>
-              <executions>
-                <execution>
-                  <id>run antlr</id>
-                  <phase>generate-sources</phase>
-                  <goals>
-                    <goal>antlr</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-            <plugin>
-              <groupId>org.codehaus.mojo</groupId>
-              <artifactId>build-helper-maven-plugin</artifactId>
-              <version>1.7</version>
-              <executions>
-                <execution>
-                  <id>add-source</id>
-                  <phase>generate-sources</phase>
-                  <goals>
-                    <goal>add-source</goal>
-                  </goals>
-                  <configuration>
-                    <sources>
-                      <source>${basedir}/target/generated-sources/antlr3</source>
-                    </sources>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>1.9</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<prefix>git</prefix>
+					<dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
+					<verbose>true</verbose>
+					<dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr3-maven-plugin</artifactId>
+				<version>3.4</version>
+				<executions>
+					<execution>
+						<id>run antlr</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>antlr</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${basedir}/target/generated-sources/antlr3</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 		</plugins>
 	</build>
@@ -145,44 +137,44 @@
 
 	<dependencies>
 
-    <dependency>
-      <groupId>org.jolokia</groupId>
-      <artifactId>jolokia-core</artifactId>
-      <version>0.90</version>
-    </dependency>
+		<dependency>
+			<groupId>org.jolokia</groupId>
+			<artifactId>jolokia-core</artifactId>
+			<version>0.90</version>
+		</dependency>
 
-        <dependency>
+		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
 			<version>2.4.0a</version>
 		</dependency>
 
 		<dependency>
-		    <groupId>org.apache.hadoop</groupId>
-		    <artifactId>hadoop-core</artifactId>
-		    <version>0.20.204.0</version>
-        <exclusions>
-          <exclusion>
-            <groupId>tomcat</groupId>
-            <artifactId>jasper-runtime</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>tomcat</groupId>
-            <artifactId>jasper-compiler</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jsp-api-2.1</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jsp-2.1</artifactId>
-          </exclusion>
-        </exclusions> 
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-core</artifactId>
+			<version>0.20.204.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>tomcat</groupId>
+					<artifactId>jasper-runtime</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>tomcat</groupId>
+					<artifactId>jasper-compiler</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>jsp-api-2.1</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>jsp-2.1</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		
+
 		<dependency>
-			<groupId>com.linkedin.zoie</groupId>
+			<groupId>com.senseidb.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
 			<version>3.2.1-SNAPSHOT</version>
 			<exclusions>
@@ -196,7 +188,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>fastutil</groupId>
 			<artifactId>fastutil</artifactId>
@@ -217,11 +209,11 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.6.1</version>
 		</dependency>
-		
+
 		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-log4j12</artifactId>
-		    <version>1.6.1</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.1</version>
 		</dependency>
 
 		<dependency>
@@ -229,18 +221,18 @@
 			<artifactId>commons-lang</artifactId>
 			<version>2.5</version>
 		</dependency>
-		
-	    <dependency>
-	      <groupId>commons-io</groupId>
-	      <artifactId>commons-io</artifactId>
-	      <version>2.1</version>
-	    </dependency>
-	 
+
 		<dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.1.3</version>
-        </dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.1.3</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.browseengine.bobo</groupId>
@@ -277,12 +269,12 @@
 			<artifactId>norbert_2.8.1</artifactId>
 			<version>0.6.16-SNAPSHOT</version>
 		</dependency>
-		
+
 		<dependency>
-           <groupId>com.yammer.metrics</groupId>
-           <artifactId>metrics-core</artifactId>
-           <version>2.0.0-RC0</version>
-        </dependency>
+			<groupId>com.yammer.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>2.0.0-RC0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -300,41 +292,47 @@
 			<artifactId>zookeeper</artifactId>
 			<version>3.3.3</version>
 			<exclusions>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>com.sun.jdmk</groupId>
-			    <artifactId>jmxtools</artifactId>
-			  </exclusion>
-			  <exclusion>  <!-- declare the exclusion here -->
-			    <groupId>com.sun.jmx</groupId>
-			    <artifactId>jmxri</artifactId>
-			  </exclusion>
+				<exclusion>  <!-- declare the exclusion here -->
+					<groupId>com.sun.jdmk</groupId>
+					<artifactId>jmxtools</artifactId>
+				</exclusion>
+				<exclusion>  <!-- declare the exclusion here -->
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
-          <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr</artifactId>
-            <version>3.4</version>
-            <type>jar</type>
-            <scope>compile</scope>
-          </dependency>
-                
-  	<dependency>
-		<groupId>org.javassist</groupId>
-		<artifactId>javassist</artifactId>
-		<version>3.16.1-GA</version>
-	</dependency>
-	<dependency>
-		<groupId>org.easymock</groupId>
-		<artifactId>easymock</artifactId>
-		<version>2.5.1</version>
-		 <scope>test</scope>
-	</dependency>
-     <dependency>
-		<groupId>org.easymock</groupId>
-		<artifactId>easymockclassextension</artifactId>
-		<version>2.5.1</version>
-		 <scope>test</scope>
-	</dependency>
-            
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr</artifactId>
+			<version>3.4</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.16.1-GA</version>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>2.5.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymockclassextension</artifactId>
+			<version>2.5.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.linkedin.kamikaze</groupId>
+			<artifactId>kamikaze</artifactId>
+			<version>3.0.6</version>
+			<scope>compile</scope>
+		</dependency>
+
 	</dependencies>
 </project>

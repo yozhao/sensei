@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 import com.senseidb.gateway.jdbc.SenseiJDBCAdaptor;
 
-public class SimpleJDBCAdaptor implements SenseiJDBCAdaptor{
+public class SimpleJDBCAdaptor extends SenseiJDBCAdaptor{
 
   private static String sql = "select json,version from test where version > ?";
   @Override
