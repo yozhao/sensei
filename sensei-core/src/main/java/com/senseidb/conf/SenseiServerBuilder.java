@@ -365,8 +365,9 @@ public class SenseiServerBuilder implements SenseiConfParams{
       throw new ConfigurationException(
           "Error parsing '" + SENSEI_PROPERTIES + "': " + PARTITIONS + "=" + Arrays.toString(partitionArray), e);
     }
-
-    return partitions.toIntArray();
+    int[] partitionsArray = partitions.toIntArray();
+    Arrays.sort(partitionsArray);
+    return partitionsArray;    
   }
 
   public SenseiCore buildCore() throws ConfigurationException {
