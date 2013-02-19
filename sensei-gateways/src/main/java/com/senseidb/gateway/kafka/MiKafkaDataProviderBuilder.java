@@ -29,7 +29,6 @@ public class MiKafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
     String timeoutStr = config.get("kafka.timeout");
     String rewindStr = config.get("kafka.rewind");
     int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
-    int batchsize = Integer.parseInt(config.get("kafka.batchsize"));
     boolean rewind = rewindStr != null ? Boolean.parseBoolean(rewindStr) : false;
 
     if (dataFilter==null){
@@ -54,7 +53,7 @@ public class MiKafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
       }
     }
     
-		MiKafkaStreamDataProvider provider = new MiKafkaStreamDataProvider(_versionComparator,zookeeperUrl,timeout,batchsize,consumerGroupId,topic,oldSinceKey,dataFilter, rewind);
+		MiKafkaStreamDataProvider provider = new MiKafkaStreamDataProvider(_versionComparator,zookeeperUrl,timeout,consumerGroupId,topic,oldSinceKey,dataFilter, rewind);
 		return provider;
 	}
 

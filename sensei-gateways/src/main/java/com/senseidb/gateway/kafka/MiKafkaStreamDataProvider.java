@@ -44,13 +44,12 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject>{
   private static long _startTime = 0;
   private static int count = 0;
 
-  public MiKafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,int batchSize,
+  public MiKafkaStreamDataProvider(Comparator<String> versionComparator,String zookeeperUrl,int soTimeout,
                                  String consumerGroupId,String topic, String oldSinceKey,
                                  DataSourceFilter<DataPacket> dataConverter, boolean rewind){
     super(versionComparator);
     _consumerGroupId = consumerGroupId;
     _topic = topic;
-    super.setBatchSize(batchSize);
     _zookeeperUrl = zookeeperUrl;
     _oldSinceKey = oldSinceKey;
     _rewind = rewind;
