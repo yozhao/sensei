@@ -13,55 +13,52 @@ import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.indexing.DataSourceFilter;
 import com.senseidb.indexing.ShardingStrategy;
 
-public class MiKafkaDataProviderBuilder extends SenseiGateway<DataPacket>{
+public class MiKafkaDataProviderBuilder extends SenseiGateway<DataPacket> {
 
-	private final Comparator<String> _versionComparator = new MiVersionComparator(); 
+  private final Comparator<String> _versionComparator = new MiVersionComparator();
 
-	@Override
+  @Override
   public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<DataPacket> dataFilter,
-      String oldSinceKey,
-      ShardingStrategy shardingStrategy,
-      Set<Integer> partitions) throws Exception
-  {
-	  String zookeeperUrl = config.get("kafka.zookeeperUrl");
-	  String consumerGroupId = config.get("kafka.consumerGroupId");
+      String oldSinceKey, ShardingStrategy shardingStrategy, Set<Integer> partitions)
+      throws Exception {
+    String zookeeperUrl = config.get("kafka.zookeeperUrl");
+    String consumerGroupId = config.get("kafka.consumerGroupId");
     String topic = config.get("kafka.topic");
     String timeoutStr = config.get("kafka.timeout");
     String rewindStr = config.get("kafka.rewind");
     int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
     boolean rewind = rewindStr != null ? Boolean.parseBoolean(rewindStr) : false;
 
-    if (dataFilter==null){
+    if (dataFilter == null) {
       String type = config.get("kafka.msg.type");
-      if (type == null){
+      if (type == null) {
         type = "json";
       }
-    
-      if ("json".equals(type)){
+
+      if ("json".equals(type)) {
         dataFilter = new DefaultJsonDataSourceFilter();
-      }
-      else if ("avro".equals(type)){
+      } else if ("avro".equals(type)) {
         String msgClsString = config.get("kafka.msg.avro.class");
         String dataMapperClassString = config.get("kafka.msg.avro.datamapper");
         Class cls = Class.forName(msgClsString);
         Class dataMapperClass = Class.forName(dataMapperClassString);
-        DataSourceFilter dataMapper = (DataSourceFilter)dataMapperClass.newInstance();
+        DataSourceFilter dataMapper = (DataSourceFilter) dataMapperClass.newInstance();
         dataFilter = new AvroDataSourceFilter(cls, dataMapper);
-      }
-      else{
-        throw new IllegalArgumentException("invalid msg type: "+type);
+      } else {
+        throw new IllegalArgumentException("invalid msg type: " + type);
       }
     }
-    
-		MiKafkaStreamDataProvider provider = new MiKafkaStreamDataProvider(_versionComparator,zookeeperUrl,timeout,consumerGroupId,topic,oldSinceKey,dataFilter, rewind);
-		return provider;
-	}
+
+    MiKafkaStreamDataProvider provider = new MiKafkaStreamDataProvider(_versionComparator,
+        zookeeperUrl, timeout, consumerGroupId, topic, oldSinceKey, dataFilter, rewind);
+    return provider;
+  }
 
   @Override
   public Comparator<String> getVersionComparator() {
     return _versionComparator;
   }
-  
+
   public static class MiVersionComparator implements Comparator<String>, Serializable {
     private static final long serialVersionUID = 1L;
     private static final Pattern _numPattern = Pattern.compile("[0-9]+");
