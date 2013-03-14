@@ -3,7 +3,9 @@ package com.senseidb.indexing.hadoop.job;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -35,7 +37,8 @@ import com.senseidb.indexing.hadoop.util.SenseiJobConfig;
 
 public class MapReduceJob extends Configured {
 
-	private static final Logger logger = Logger.getLogger(MapReduceJob.class);
+  private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(); 
+  private static final Logger logger = Logger.getLogger(MapReduceJob.class);	
 	
 	  public JobConf createJob(Class MRClass) throws IOException, URISyntaxException {
 		    
@@ -187,7 +190,15 @@ public class MapReduceJob extends Configured {
 	          count++;
 	        }
 	      }
-	      Arrays.sort(shardNames, 0, count);
+
+	      Arrays.sort(shardNames, 0, count, new Comparator<String>() {
+	        @Override
+	        public int compare(String shardName1, String shardName2) {
+	          if (shardName1.length() < shardName2.length()) return -1;
+	          else if (shardName1.length() > shardName2.length()) return 1;
+	          else return shardName1.compareTo(shardName2);
+	        }
+	      });
 
 	      Shard[] shards = new Shard[count >= numShards ? count : numShards];
 	      for (int i = 0; i < count; i++) {
@@ -199,7 +210,7 @@ public class MapReduceJob extends Configured {
 	      for (int i = count; i < numShards; i++) {
 	        String shardPath;
 	        while (true) {
-	          shardPath = parent + indexSubDirPrefix + String.format("%05d", number++);
+	          shardPath = parent + indexSubDirPrefix + NUMBER_FORMAT.format(number++);
 	          if (!fs.exists(new Path(shardPath))) {
 	            break;
 	          }
@@ -211,7 +222,7 @@ public class MapReduceJob extends Configured {
 	      Shard[] shards = new Shard[numShards];
 	      for (int i = 0; i < shards.length; i++) {
 	        shards[i] =
-	            new Shard(versionNumber, parent + indexSubDirPrefix + String.format("%05d", i),
+	            new Shard(versionNumber, parent + indexSubDirPrefix + NUMBER_FORMAT.format(i),
 	                generation);
 	      }
 	      return shards;
