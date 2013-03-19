@@ -31,7 +31,7 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
   private ConsumerConnector _consumerConnector;
   private ConsumerIterator<Message> _consumerIterator;
 
-  private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
+  private static Logger logger = Logger.getLogger(MiKafkaStreamDataProvider.class);
   private final String _zookeeperUrl;
   private final String _oldSinceKey;
   private final boolean _rewind;
@@ -40,7 +40,7 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
   private final DataSourceFilter<DataPacket> _dataConverter;
   private volatile Map<String, Long> _partitionOffsetMap = new TreeMap<String, Long>();
 
-  private static long _startTime = 0;
+  private static long _checkTime = 0;
   private static int count = 0;
 
   public MiKafkaStreamDataProvider(Comparator<String> versionComparator, String zookeeperUrl,
@@ -99,10 +99,16 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
       for (Map.Entry<String, Long> entry : _partitionOffsetMap.entrySet()) {
         version += ";" + entry.getKey() + ":" + entry.getValue().toString();
       }
+      
+      if (count == 0) {
+        _checkTime = System.currentTimeMillis();
+      }
       ++count;
+      
       if (count % 50000 == 0) {
-        System.out.println("Count = " + count + " QPS: " + count * 1000.0
-            / (System.currentTimeMillis() - _startTime));
+        System.out.println("Count = " + count + " QPS: " + 50000 * 1000.0
+            / (System.currentTimeMillis() - _checkTime));
+        _checkTime = System.currentTimeMillis();
       }
 
       return new DataEvent<JSONObject>(data, version);
@@ -151,6 +157,7 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
           _partitionOffsetMap.clear();
         } else {
           _consumerConnector.commitOffsets(_topic, _partitionOffsetMap);
+          logger.info("Commit offsets from old since key: " + _oldSinceKey);
         }
       }
     }
@@ -165,7 +172,6 @@ public class MiKafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
 
     super.start();
     _started = true;
-    _startTime = System.currentTimeMillis();
   }
 
   @Override
