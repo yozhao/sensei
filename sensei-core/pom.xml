@@ -177,23 +177,6 @@
 			<groupId>com.senseidb.zoie</groupId>
 			<artifactId>zoie-jms</artifactId>
 			<version>3.2.1-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>fastutil</groupId>
-					<artifactId>fastutil</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>it.unimi.dsi</groupId>
-					<artifactId>fastutil</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>fastutil</groupId>
-			<artifactId>fastutil</artifactId>
-			<version>5.0.5</version>
-			<type>jar</type>
 		</dependency>
 
 		<dependency>
