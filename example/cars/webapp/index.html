@@ -1,9 +1,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
   <head>
     <meta http-equiv="content-type" content="text/html;charset=utf-8">
-    <title>Sensei Demo - Cars</title>
+    <title>Sensei Demo - Tweets</title>
 
-    <script src="http://code.jquery.com/jquery-1.4.4.js"></script>
+    <script src="js/jquery-1.4.4.js"></script>
 
     <script type="text/javascript">
 	 
@@ -17,14 +17,14 @@
     <!-- Le styles -->
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <script type="text/javascript" src="sensei-js/sensei-client-1.0.0.js"></script>
-    <script type="text/javascript" src="js/cardemo.js"></script>
+    <script type="text/javascript" src="js/tweetdemo.js"></script>
   </head>
 
  <body onload="doSearch()">
     <div class="topbar">
       <div class="topbar-inner">
         <div class="container-fluid">
-          <a class="brand" href="#">Sensei Demo - Cars </a>
+          <a class="brand" href="#">Sensei Demo - Tweets </a>
           <ul class="nav">
             <li class="active"><a href="#">Home</a></li>
           </ul>
@@ -37,25 +37,16 @@
     <div class="container-fluid">
       <div class="sidebar">
         <div class="well">
-          <h4>Facets</h4>
-          <hr/>
-          <h5>Color</h5>
-            <div id="color">
+		  <img width="100" height="100" src="images/sensei_black.jpg" />
+		  <hr/>
+          <h5>Time</h5>
+            <div id="timeRange">
             </div>
-          <h5>Category</h5>
-            <div id="category">
+          <h5>Tweeter</h5>
+            <div id="tweeter">
             </div>
-          <h5>Price</h5>
-            <div id="price">
-            </div>
-          <h5>Year</h5>
-            <div id="year">
-            </div>
-		  <h5>Mileage</h5>
-	            <div id="mileage">
-	            </div>
-          <h5>Tags</h5>
-            <div id="tags">
+          <h5>Hashtags</h5>
+            <div id="hashtags">
             </div>
         </div>
       </div>
@@ -65,67 +56,23 @@
 
         <input id="qbox" style="width:500px;height:30px" type="text" height="20" size="50" />
         <input type="button" class="btn primary" onclick="updateTextQuery()" value="Search" />
+        <input type="button" class="btn success" onclick="doSearch()" value="Refresh" />
         <a href="#" onclick="if(resetAll()||true) return false">reset</a>
-        
         <p>
         Number of hits: <span id="numhits">0</span> / <span id="totaldocs">0</span>, (took  <span id="time">0</span> seconds)
         </p>
         </div>
 
-        <!-- Example row of columns -->
+        <h2>Tweets</h2>
         <div class="row">
-          <div class="span9">
-            <h2>MakeModel</h2>
-            <div id="makemodel">
-			      <table width="150">
-			        <tr>
-			          <td align="left" class="ROWHEAD">makemodel: <span><a>All</a>/</span></td>
-			        </tr>
-			        <tr>
-			          <td>
-			            <table>
-			              <tr>
-			              </tr>
-			            </table>
-			          </td>
-			        </tr>
-			      </table>
-            </div>
-          </div>
-          <div class="span9">
-            <h2>City</h2>
-             <div id="city">
-				<table width="150">
-			        <tr>
-			          <td align="left" class="ROWHEAD">city: <span><a>All</a>/</span></td>
-			        </tr>
-			        <tr>
-			          <td>
-			            <table>
-			              <tr>
-			              </tr>
-			            </table>
-			          </td>
-			        </tr>
-			      </table>
-             </div>
-         </div>
+          <div class="span3"><h2>id</h2></div>
+          <div class="span3"><h2>score</h2></div>
+          <div class="span3"><h2>time</h2></div>
+          <div class="span3"><h2>tweeter</h2></div>
+          <div class="span6"><h2>tweet</h2></div>
         </div>
-        <hr>
-        <h2>Hits</h2>
-        <table class="zebra-striped">
-          <thead>
-            <th>#</th>
-            <th><a href="#" onclick="if(toggleSort('color')||true) return false">Color</a></th>
-            <th><a href="#" onclick="if(toggleSort('category')||true) return false">Category</a></th>
-            <th><a href="#" onclick="if(toggleSort('year')||true) return false">Year</a></th>
-            <th><a href="#" onclick="if(toggleSort('price')||true) return false">Price</a></th>
-            <th><a href="#" onclick="if(toggleSort('mileage')||true) return false">Mileage</a></th>
-            <th>Score</th>
-          </thead>
-          <tbody id="results">
-          </tbody>
-        </table>
+        <div id="results">
+        </div>
         <footer>
           <p>&copy; SenseiDB.com 2011</p>
         </footer>
