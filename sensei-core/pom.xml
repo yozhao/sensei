@@ -221,12 +221,6 @@
 			<groupId>com.browseengine.bobo</groupId>
 			<artifactId>bobo-browse</artifactId>
 			<version>3.1.2-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>fastutil</groupId>
-					<artifactId>fastutil</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
