@@ -487,9 +487,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
       if (indexingManager == null){
         indexingManager = new DefaultStreamingIndexingManager(_senseiSchema,_senseiConf, pluginRegistry, _gateway,strategy, pluggableSearchEngineManager);
       }
+      
+      Analyzer queryAnalyzer = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_ANALYZER, Analyzer.class);
+      if (queryAnalyzer == null) {
+        queryAnalyzer = analyzer;
+      }
       SenseiQueryBuilderFactory queryBuilderFactory = pluginRegistry.getBeanByFullPrefix(SENSEI_QUERY_BUILDER_FACTORY, SenseiQueryBuilderFactory.class);
       if (queryBuilderFactory == null){
-        QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", analyzer);
+        QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", queryAnalyzer);
         queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
       }
       SenseiCore senseiCore = new SenseiCore(nodeid,partitions,zoieSystemFactory,indexingManager,queryBuilderFactory, decorator);
