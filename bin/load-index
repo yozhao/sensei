@@ -42,7 +42,7 @@ def main(argv):
         "type"        : "exec",
         "mbean"       : "com.senseidb:zoie-name=pair-admin-%s-%s" % (self.node['id'], self.part),
         "operation"   : "loadIndex",
-        "arguments"   : [os.path.join(uri, str(self.part))]
+        "arguments"   : [os.path.join(uri, "shard" + str(self.part))]
       })
       if not res.get('value'):
         if res.get('status') == 404:

@@ -37,6 +37,7 @@ public interface SenseiConfParams {
 	public static final String SENSEI_INDEXER_COPIER_HDFS = "hdfs";
 
 	public static final String SENSEI_INDEX_ANALYZER = "sensei.index.analyzer";
+	public static final String SENSEI_QUERY_ANALYZER = "sensei.query.analyzer";
 	public static final String SENSEI_INDEX_SIMILARITY = "sensei.index.similarity";
 	public static final String SENSEI_INDEX_INTERPRETER = "sensei.index.interpreter";
     public static final String SENSEI_INDEX_CUSTOM = "sensei.index.custom";

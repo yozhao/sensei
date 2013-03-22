@@ -40,26 +40,28 @@ public class SenseiSchema {
   public static final String EVENT_TYPE_DELETE = "delete";
   public static final String EVENT_TYPE_SKIP   = "skip";
 
-	private static Logger logger = Logger.getLogger(SenseiSchema.class);
-	
-	private String _uidField;
-	private String _deleteField;
-	private String _skipField;
-	private String _srcDataStore;
-	private String _srcDataField;
+  private static Logger logger = Logger.getLogger(SenseiSchema.class);
+
+  private String _uidField;
+  private String _deleteField;
+  private String _skipField;
+  private String _srcDataStore;
+  private String _srcDataField;
   private boolean _compressSrcData;
   private List<FacetDefinition> facets = new ArrayList<FacetDefinition>();
-	public static class FieldDefinition {
-		public Format formatter;
-		public boolean isMeta;
-		public IndexSpec textIndexSpec;
-		public String fromField;
-		public boolean isMulti;
-		public boolean isActivity;
-		public String delim = ",";
-		public Class type = null;
+
+  public static class FieldDefinition {
+    public Format formatter;
+    public boolean isMeta;
+    public IndexSpec textIndexSpec;
+    public String fromField;
+    public boolean isMulti;
+    public boolean isActivity;
+    public String delim = ",";
+    public Store store;
+    public Class type = null;
 		public String name;
-	}
+  }
 
   public static class FacetDefinition {
     public String name;
@@ -163,12 +165,16 @@ public class SenseiSchema {
         try {
               String n = column.getString("name");
               String t = column.getString("type");
-              String frm = column.optString("from");
-              
+              String frm = column.optString("from", "");
+              String storeString = column.optString("store", "");
+
               FieldDefinition fdef = new FieldDefinition();
               fdef.formatter = null;
               fdef.fromField = frm.length() > 0 ? frm : n;
-
+              fdef.store = storeString.length() > 0 ? DefaultSenseiInterpreter.STORE_VAL_MAP.get(storeString.toUpperCase()) : Store.NO;
+              if (fdef.store == null) {
+                throw new ConfigurationException("Invalid indexing parameter specification");
+              }
               fdef.isMeta = true;
               
               fdef.isMulti = column.optBoolean("multi");
@@ -228,22 +234,19 @@ public class SenseiSchema {
               }
               else if (t.equals("text")){
                   fdef.isMeta = false;
-                  String idxString = column.optString("index", null);
-                  String storeString = column.optString("store", null);
-                  String tvString = column.optString("termvector", null);
-                  Index idx = idxString == null ? Index.ANALYZED : DefaultSenseiInterpreter.INDEX_VAL_MAP.get(idxString.toUpperCase());
-                  Store store = storeString == null ? Store.NO : DefaultSenseiInterpreter.STORE_VAL_MAP.get(storeString.toUpperCase());
-                  TermVector tv = tvString == null ? TermVector.NO : DefaultSenseiInterpreter.TV_VAL_MAP.get(tvString.toUpperCase());
+                  String idxString = column.optString("index", "");
+                  String tvString = column.optString("termvector", "");
+                  Index idx = idxString.length() == 0? Index.ANALYZED : DefaultSenseiInterpreter.INDEX_VAL_MAP.get(idxString.toUpperCase());
+                  TermVector tv = tvString.length() == 0? TermVector.NO : DefaultSenseiInterpreter.TV_VAL_MAP.get(tvString.toUpperCase());
                   
-                  if (idx==null || store==null || tv==null){
+                  if (idx==null || tv==null || fdef.store==null){
                     throw new ConfigurationException("Invalid indexing parameter specification");
                   }
-                  
                   IndexSpec indexingSpec = new IndexSpec();
-                  indexingSpec.store = store;
+                  indexingSpec.store = fdef.store;
                   indexingSpec.index = idx;
                   indexingSpec.tv = tv;
-                    
+
                   fdef.textIndexSpec = indexingSpec; 
               }
               
@@ -383,7 +386,7 @@ public class SenseiSchema {
 					indexingSpec.store = store;
 					indexingSpec.index = idx;
 					indexingSpec.tv = tv;
-					  
+
 					fdef.textIndexSpec = indexingSpec; 
 				}
 

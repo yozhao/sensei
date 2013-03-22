@@ -1,2 +1,0 @@
-src/test/resources/data/sample_data.avro
-mvn  exec:java  -Dexec.mainClass=com.senseidb.ba.util.BaClient -Dexec.args="ba-server"
