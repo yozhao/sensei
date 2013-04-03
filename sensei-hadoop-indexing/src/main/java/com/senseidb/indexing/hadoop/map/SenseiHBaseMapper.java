@@ -74,8 +74,7 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
       throw new IllegalStateException("data conversion or filtering failed inside mapper. \n");
     }
 
-    if( _defaultInterpreter == null)
-      reporter.incrCounter("Map", "Interpreter_null", 1);
+    if (_defaultInterpreter == null) reporter.incrCounter("Map", "Interpreter_null", 1);
 
     if (_defaultInterpreter != null && json != null && analyzer != null) {
       ZoieIndexable indexable = _defaultInterpreter.convertAndInterpret(json);
@@ -140,19 +139,21 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
   private void setAnalyzer(JobConf conf) throws Exception {
 
     if (analyzer != null) return;
-
     String version = _conf.get(SenseiJobConfig.DOCUMENT_ANALYZER_VERSION);
-    if (version == null) throw new IllegalStateException("version has not been specified");
 
     String analyzerName = _conf.get(SenseiJobConfig.DOCUMENT_ANALYZER);
     if (analyzerName == null) throw new IllegalStateException(
         "analyzer name has not been specified");
 
     Class analyzerClass = Class.forName(analyzerName);
-    Constructor constructor = analyzerClass.getConstructor(Version.class);
-    analyzer = (Analyzer) constructor.newInstance((Version) Enum.valueOf(
-      (Class) Class.forName("org.apache.lucene.util.Version"), version));
-
+    if (null != version) {
+      Constructor constructor = analyzerClass.getConstructor(Version.class);
+      analyzer = (Analyzer) constructor.newInstance((Version) Enum.valueOf(
+        (Class) Class.forName("org.apache.lucene.util.Version"), version));
+    } else {
+      Constructor constructor = analyzerClass.getConstructor();
+      analyzer = (Analyzer) constructor.newInstance();
+    }
   }
 
   private void setSchema(JobConf conf) throws Exception {
