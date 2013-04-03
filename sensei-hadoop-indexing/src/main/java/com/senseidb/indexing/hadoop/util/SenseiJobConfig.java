@@ -19,5 +19,7 @@ public interface SenseiJobConfig {
 	public static final String INPUT_DIRS = "sensei.input.dirs";
 	public static final String OUTPUT_DIR = "sensei.output.dir";
 	public static final String INDEX_SUBDIR_PREFIX = "sensei.index.prefix";
+	public static final String HBASE_TABLE_NAME = "sensei.input.hbase.tablename";
+	public static final String HBASE_COLUMNS = "sensei.input.hbase.columns";
 	
 }

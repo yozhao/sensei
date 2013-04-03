@@ -40,7 +40,7 @@ import com.senseidb.indexing.hadoop.util.SenseiJobConfig;
  * Note: Currently the version number of the entire index is not used and
  * defaults to -1.
  */
-public class Shard implements WritableComparable {
+public class Shard implements WritableComparable<Shard> {
 
   // This method is copied from Path.
   public static String normalizePath(String path) {
@@ -188,15 +188,11 @@ public class Shard implements WritableComparable {
     gen = in.readLong();
   }
 
+  
+  
   // ///////////////////////////////////
   // Comparable
   // ///////////////////////////////////
-  /* (non-Javadoc)
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
-  public int compareTo(Object o) {
-    return compareTo((Shard) o);
-  }
 
   /**
    * Compare to another shard.
