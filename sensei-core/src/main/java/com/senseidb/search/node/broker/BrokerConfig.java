@@ -136,7 +136,16 @@ public class BrokerConfig {
   public void setAllowPartialMerge(boolean allowPartialMerge) {
     this.allowPartialMerge = allowPartialMerge;
   }
-
+  public void shutdown() {
+    networkClientConfig.setClusterClient(null);
+    try {
+      clusterClient.shutdown();
+      clusterClient = null;
+    } finally {
+      networkClient.shutdown();
+      networkClient = null;
+    }
+  }
 
   
 }
