@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -20,6 +21,7 @@ import proj.zoie.api.indexing.AbstractZoieIndexable;
 
 import com.browseengine.bobo.api.FacetSpec;
 import com.linkedin.norbert.NorbertException;
+import com.linkedin.norbert.cluster.ClusterDisconnectedException;
 import com.linkedin.norbert.javacompat.cluster.ClusterClient;
 import com.linkedin.norbert.javacompat.cluster.Node;
 import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
@@ -49,6 +51,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
  
   private final boolean allowPartialMerge;
   private final ClusterClient clusterClient;
+
+  private volatile boolean disconnected;
+  
   private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(SenseiBroker.class, "numberOfNodesInTheCluster"));
   public SenseiBroker(PartitionedNetworkClient<String> networkClient, ClusterClient clusterClient, boolean allowPartialMerge)
       throws NorbertException {
@@ -256,6 +261,17 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 		}
 	  return count;
 	}
-  
-	
+  @Override
+  protected List<SenseiResult> doCall(SenseiRequest req) throws ExecutionException {
+    try {
+    // TODO Auto-generated method stub
+    return super.doCall(req);
+    } catch (ClusterDisconnectedException ex) {
+      disconnected = true;
+      throw ex;
+    }
+  }
+	public boolean isDisconnected() {
+	  return disconnected;
+	}
 }

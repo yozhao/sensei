@@ -42,6 +42,11 @@ class MapResult implements Serializable {
     public Long2ObjectOpenHashMap<GroupedValue> results;
     public TermValueList[] dictionaries;
     public BoboIndexReader indexReader;
+    @Override
+    public String toString() {
+      return "MapResult [results=" + results + ", dictionaries=" + java.util.Arrays.toString(dictionaries) + "]";
+    }
+    
 }
 
 public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMap<String, GroupedValue>> {
@@ -106,8 +111,8 @@ public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMa
             }
         }
 
-        if (mapResult.results.size() > TRIM_SIZE * 20) {
-            trimToSize(mapResult.results, TRIM_SIZE * 5);
+        if (mapResult.results.size() > Math.max(TRIM_SIZE, top) * 20) {
+            trimToSize(mapResult.results,  Math.max(TRIM_SIZE, top) * 5);
         }
 
         return mapResult;
@@ -154,7 +159,9 @@ public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMa
 
     @Override
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
-        /*
+       // System.out.println("Combine - " + mapResults);
+      
+      /*
          * if (combinerStage == CombinerStage.partitionLevel) { if (map == null)
          * { return Collections.EMPTY_LIST; } trimToSize(map, TRIM_SIZE * 5);
          * List<HashMap<String, GroupedValue>> ret =
@@ -173,8 +180,20 @@ public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMa
             for (int i = 0; i < mapResults.size(); i++) {
                 MapResult current = (MapResult) mapResults.get(i);
                 if (results.get(current.indexReader) != null) {
-                    results.get(current.indexReader).results.putAll(current.results);
-                    trimToSize(current.results, TRIM_SIZE);
+                    
+                    Long2ObjectOpenHashMap<GroupedValue> currentMergedResults = results.get(current.indexReader).results;                    
+                    
+                    Long2ObjectOpenHashMap<GroupedValue> currentResultsToMerge = current.results;
+                    for (long key : currentResultsToMerge.keySet()) {
+                      GroupedValue groupedValue = currentMergedResults.get(key);
+                      if (groupedValue != null) {
+                        groupedValue.merge(currentResultsToMerge.get(key));
+                      } else {
+                        currentMergedResults.put(key, currentResultsToMerge.get(key));
+                      }
+                    }
+                   // .putAll(currentResultsToMerge);
+                    trimToSize(currentResultsToMerge,  Math.max(TRIM_SIZE, top));
                 } else {
                     results.put(current.indexReader, current);
                 }
@@ -188,6 +207,7 @@ public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMa
                 }
                 
             }
+           // System.out.println("End combine - " + ret);
             return java.util.Arrays.asList((Serializable)ret);
         }
         if (mapResults.size() == 0) {
@@ -201,7 +221,7 @@ public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMa
         for (int i = 1; i < mapResults.size(); i++) {
             merge(firstMap,  (HashMap<String, GroupedValue>) mapResults.get(i));
         }
-        trimToSize(firstMap, TRIM_SIZE);
+        trimToSize(firstMap,  Math.max(TRIM_SIZE, top));
         return java.util.Arrays.asList((Serializable)firstMap);
 
     }
@@ -372,7 +392,7 @@ public class GroupByMapReduceJob implements SenseiMapReduce<Serializable, HashMa
                 JSONArray jsonArrResult = (JSONArray) result;
                 if (jsonArrResult.length() > top) {
                     JSONArray newArr = new JSONUtil.FastJSONArray();
-                    for (int i = 0; i <= top; i++) {
+                    for (int i = 0; i < top; i++) {
                         newArr.put(jsonArrResult.get(i));
                     }
                     jsonArrResult = newArr;

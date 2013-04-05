@@ -115,6 +115,11 @@ public class AggregateFunctionFactory {
         count += ((CountGroupedValue) anotherValue).count;
       }
 
+      @Override
+      public String toString() {
+        return "CountGroupedValue [count=" + count + "]";
+      }
+      
   }
 
   public static class CountAggregationFunction implements AggregateFunction<CountGroupedValue> {
