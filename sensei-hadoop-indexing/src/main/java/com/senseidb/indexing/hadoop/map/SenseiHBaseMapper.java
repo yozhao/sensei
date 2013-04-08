@@ -58,9 +58,15 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
   private MapInputConverter _converter;
 
   private static Analyzer analyzer;
+  private int _processed = 0;
 
   public void map(ImmutableBytesWritable key, Result value,
       OutputCollector<Shard, IntermediateForm> output, Reporter reporter) throws IOException {
+    
+    if (++_processed % 5000 == 0) {
+      logger.info(_processed + " entries are processed");
+      reporter.setStatus(_processed + " entries are processed");
+    }
 
     if (_isConfigured == false) throw new IllegalStateException(
         "Mapper's configure method wasn't sucessful. May not get the correct schema or Lucene Analyzer.");
