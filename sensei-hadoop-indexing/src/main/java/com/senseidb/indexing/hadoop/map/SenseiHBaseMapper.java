@@ -65,9 +65,8 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
     
     if (++_processed % 5000 == 0) {
       logger.info(_processed + " entries are processed");
-      reporter.setStatus(_processed + " entries are processed");
     }
-
+   
     if (_isConfigured == false) throw new IllegalStateException(
         "Mapper's configure method wasn't sucessful. May not get the correct schema or Lucene Analyzer.");
 
@@ -117,6 +116,7 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
         }
       }
     }
+    reporter.progress();
   }
 
   public void configure(JobConf job) {

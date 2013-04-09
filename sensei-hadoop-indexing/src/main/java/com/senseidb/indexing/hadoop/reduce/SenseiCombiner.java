@@ -58,6 +58,7 @@ public class SenseiCombiner extends MapReduceBase implements
         }
         form.process(singleDocForm);
       }
+      reporter.progress();
     }
 
     if (form != null) {
