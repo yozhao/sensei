@@ -18,10 +18,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * The configuration file should contain information like this sensei.cluster.name=sensei-example
+ * The configuration file should contain information like this
+ * sensei.cluster.name=sensei-example
  * sensei.cluster.url=10.235.6.46:2181,10.235.6.47:2181,10.235.6.48:2181
- * zookeeper.session.timeout=3001 zookeeper.connection.timeout=3001 sensei.server.node.ids=0,1,2,3
- * server.0=10.235.6.49:8080 server.1=10.235.6.50:8080 server.2=10.235.6.51:8080
+ * zookeeper.session.timeout=3001
+ * zookeeper.connection.timeout=3001
+ * sensei.server.node.ids=0,1,2,3
+ * server.0=10.235.6.49:8080
+ * server.1=10.235.6.50:8080
+ * server.2=10.235.6.51:8080
  * server.3=10.235.6.52:8080
  */
 
@@ -120,7 +125,7 @@ public class SenseiServiceProxyBalancer {
     return true;
   }
 
-  private static void resetSenseiServiceMap(List<String> availableServers) throws Exception {
+  private static void resetSenseiServiceMap(List<String> availableServers) throws Exception{
     if (availableServers.isEmpty()) {
       senseiServiceProxyMapLock.writeLock().lock();
       senseiServiceProxyMap.clear();
@@ -128,7 +133,7 @@ public class SenseiServiceProxyBalancer {
       senseiServiceProxyMapLock.writeLock().unlock();
     } else {
       Map<String, SenseiServiceProxy> tempServerMap = new ConcurrentHashMap<String, SenseiServiceProxy>();
-      Integer[] tempNodeIds = new Integer[availableServers.size()];
+      Integer []tempNodeIds = new Integer[availableServers.size()];
       boolean newServerAdded = false;
       for (int i = 0; i < availableServers.size(); i++) {
         Integer nodeId = Integer.valueOf(availableServers.get(i));
@@ -136,8 +141,7 @@ public class SenseiServiceProxyBalancer {
         SenseiServerConf serverConf = senseiConfMap.get(nodeId);
         Validate.notNull(serverConf);
         if (senseiServiceProxyMap.containsKey(serverConf.toString())) {
-          tempServerMap
-              .put(serverConf.toString(), senseiServiceProxyMap.get(serverConf.toString()));
+          tempServerMap.put(serverConf.toString(), senseiServiceProxyMap.get(serverConf.toString()));
         } else {
           SenseiServiceProxy senseiServiceProxy = new SenseiServiceProxy(serverConf.getHost(),
               serverConf.getPort());
