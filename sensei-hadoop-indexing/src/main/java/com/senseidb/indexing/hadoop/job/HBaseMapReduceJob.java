@@ -54,15 +54,16 @@ public class HBaseMapReduceJob extends Configured {
     outputPath = new Path(conf.get(SenseiJobConfig.OUTPUT_DIR));
     String indexPath = conf.get(SenseiJobConfig.INDEX_PATH);
     String indexSubDirPrefix = conf.get(SenseiJobConfig.INDEX_SUBDIR_PREFIX, "");
-    shards = createShards(indexPath, numShards, conf, indexSubDirPrefix);
-
+    
     FileSystem fs = FileSystem.get(conf);
-    String username = conf.get("hadoop.job.ugi");
     if (fs.exists(outputPath) && conf.getBoolean(SenseiJobConfig.FORCE_OUTPUT_OVERWRITE, false)) fs
         .delete(outputPath, true);
     if (fs.exists(new Path(indexPath))
         && conf.getBoolean(SenseiJobConfig.FORCE_OUTPUT_OVERWRITE, false)) fs.delete(new Path(
         indexPath), true);
+
+    shards = createShards(indexPath, numShards, conf, indexSubDirPrefix);
+
 
     // set the starting generation for each shard
     // when a reduce task fails, a new reduce task
