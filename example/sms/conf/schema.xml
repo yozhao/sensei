@@ -9,8 +9,6 @@
 	<table uid="id">
 		<column name="userId" type="int" />
 		<column name="msgTime" type="long" />
-		<column name="msgAdd" type="string" />
-		<column name="msgType" type="short" />
 		<column name="msgId" type="string" store="YES" />
 		<!-- attributes: indexed, termvector are only used when type is text -->
 		<column name="contents" type="text" index="ANALYZED" store="NO" termvector="NO" />
