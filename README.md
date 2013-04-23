@@ -16,7 +16,7 @@ Wiki is available at:
 
 Issues are tracked at: 
 
-[http://linkedin.jira.com/browse/SENSEI](http://linkedin.jira.com/browse/SENSEI)
+[https://senseidb.atlassian.net/browse/SENSEI](https://senseidb.atlassian.net/browse/SENSEI)
 
 ### Mailing List / Discussion Group
 
