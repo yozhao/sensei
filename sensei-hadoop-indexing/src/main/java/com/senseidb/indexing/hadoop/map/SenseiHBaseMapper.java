@@ -62,17 +62,22 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
 
   public void map(ImmutableBytesWritable key, Result value,
       OutputCollector<Shard, IntermediateForm> output, Reporter reporter) throws IOException {
-    
+
     if (++_processed % 5000 == 0) {
       logger.info(_processed + " entries are processed");
     }
-   
+
+    reporter.progress();
+
     if (_isConfigured == false) throw new IllegalStateException(
         "Mapper's configure method wasn't sucessful. May not get the correct schema or Lucene Analyzer.");
 
     JSONObject json = null;
     try {
       json = _converter.getJsonInput(key, value, _conf);
+      if (json == null) {
+        return;
+      }
       json = _converter.doFilter(json);
     } catch (Exception e) {
       ExceptionUtils.printRootCauseStackTrace(e);
@@ -116,7 +121,6 @@ public class SenseiHBaseMapper extends MapReduceBase implements TableMap<Shard, 
         }
       }
     }
-    reporter.progress();
   }
 
   public void configure(JobConf job) {
