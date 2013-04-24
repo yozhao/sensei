@@ -1,0 +1,16 @@
+type=java
+job.class=com.xiaomi.sms.tools.backfill.BackfillJob
+
+mapreduce.job.maps=100
+
+mapred.job.name=SmsBackfill
+
+##### SmsKafkaClient configuration ######
+sensei.schema.file.url=/user/h_zhaoyonghui/jobs/sensei-sms/conf/sms-kafka-client.properties
+
+####### HBase configuration #####
+sensei.input.hbase.tablename=test_search_sms_message
+sensei.input.hbase.columns=C S:D
+hbase.timestamp.lower.bound=10000
+hbase.timestamp.higher.bound=9999999999999l
+

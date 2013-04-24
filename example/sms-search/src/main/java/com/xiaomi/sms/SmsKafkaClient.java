@@ -1,6 +1,7 @@
 package com.xiaomi.sms;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import at.orz.hash.CityHash;
@@ -40,13 +41,15 @@ public class SmsKafkaClient {
     }
   }
 
-  public static boolean AddOneMessage(ShortMessage message) throws Exception {
+  public static boolean AddOneMessage(ShortMessage message) {
     if (message.userId < 0 || message.msgId == null || message.msgTime < 0
         || message.contents == null) {
-      throw new Exception("Bad message input");
+      return false;
     }
     byte[] msgIdByte = message.msgId.getBytes();
     message.id = CityHash.cityHash64(msgIdByte, 0, msgIdByte.length);
+    // We don't need millisecond precision, second precision is good
+    message.msgTime /= 1000;
     JSONObject json = new JSONObject(message);
 
     boolean done = true;
@@ -68,13 +71,17 @@ public class SmsKafkaClient {
         break;
       }
       if (i < retryNumber) {
-        Thread.sleep(retryIntervalInMillis);
+        try {
+          Thread.sleep(retryIntervalInMillis);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
       }
     }
     return done;
   }
 
-  public static boolean DeleteOneMessage(int userId, String msgId) throws Exception {
+  public static boolean DeleteOneMessage(int userId, String msgId) {
     MessageDeleteRequest request = new MessageDeleteRequest();
     request.userId = userId;
     byte[] msgIdByte = msgId.getBytes();
@@ -100,13 +107,18 @@ public class SmsKafkaClient {
         break;
       }
       if (i < retryNumber) {
-        Thread.sleep(retryIntervalInMillis);
+        try {
+          Thread.sleep(retryIntervalInMillis);
+        } catch (InterruptedException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       }
     }
     return done;
   }
 
-  public static boolean init(final String filePath) throws Exception {
+  public static synchronized boolean init(final String filePath) throws Exception {
     if (initialized) {
       return true;
     }

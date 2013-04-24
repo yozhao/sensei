@@ -21,6 +21,11 @@
 			<systemPath>${basedir}/../../lib/kafka-0.7.2.jar</systemPath>
 		</dependency>
 		<dependency>
+			<groupId>com.senseidb</groupId>
+			<artifactId>sensei-hadoop-indexing</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.github.sgroschupf</groupId>
 			<artifactId>zkclient</artifactId>
 			<version>0.1</version>
