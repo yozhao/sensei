@@ -4,14 +4,13 @@ import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 
-import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.search.node.broker.BrokerConfig;
 import com.senseidb.servlet.SenseiConfigServletContextListener;
 
 public class BrokerProxyConfig extends BrokerConfig {
-  public BrokerProxyConfig(Configuration senseiConf, PartitionedLoadBalancerFactory<String> loadBalancerFactory, Map<String,String> config) {
-    super(senseiConf, loadBalancerFactory);
+  public BrokerProxyConfig(Configuration senseiConf, Map<String,String> config) {
+    super(senseiConf);
     clusterName = getStrParam(config, SenseiConfParams.SENSEI_CLUSTER_NAME, clusterName);    
     zkurl = getStrParam(config, SenseiConfParams.SENSEI_CLUSTER_URL, zkurl);
     zkTimeout = getIntParam(config, SenseiConfParams.SENSEI_CLUSTER_TIMEOUT, zkTimeout);   

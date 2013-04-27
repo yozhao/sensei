@@ -32,7 +32,7 @@ public class BrokerConfig {
 	private ZuCluster clusterClient;
 
   
-  public BrokerConfig(Configuration senseiConf ) {
+	public BrokerConfig(Configuration senseiConf ) {
     clusterName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_NAME);
     zkurl = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_URL);
     zkTimeout = senseiConf.getInt(SenseiConfParams.SENSEI_CLUSTER_TIMEOUT, 300000);
@@ -121,6 +121,8 @@ public class BrokerConfig {
     this.allowPartialMerge = allowPartialMerge;
   }
 
-
+  public ZuCluster getClusterClient() {
+		return clusterClient;
+	}
   
 }
