@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -597,7 +598,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		int nodeid = _senseiConf.getInt(NODE_ID);
 		ZuTransportService transportService = new ZuTransportService();
 		int serverPort = _senseiConf.getInt(SERVER_PORT);
-		ZuFinagleServer server = new ZuFinagleServer("sensei-finagle-server-" + nodeid, serverPort, transportService.getService());
+		String hostAddress;
+		try {
+			hostAddress = NetUtil.getHostAddress();
+		} catch (Exception e) {
+			throw new ConfigurationException(e.getMessage(), e);
+		}
+		ZuFinagleServer server = new ZuFinagleServer("sensei-finagle-server-" + nodeid, new InetSocketAddress(hostAddress, serverPort),
+				transportService.getService());
 
 		SenseiCore core = buildCore();
 
