@@ -122,9 +122,9 @@
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka</artifactId>
-			<version>0.7.6</version>
+			<version>0.7.0</version>
 			 <scope>system</scope>
-			<systemPath>${basedir}/../lib/kafka-0.7.6.jar</systemPath>
+			<systemPath>${basedir}/../lib/kafka-0.7.0.jar</systemPath>
       <!-- exclusions>
         <exclusion> 
           <groupId>zkclient</groupId>
