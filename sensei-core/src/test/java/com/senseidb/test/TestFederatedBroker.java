@@ -4,10 +4,11 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import org.junit.Ignore;
 
 import com.senseidb.search.req.mapred.TestMapReduce;
 import com.senseidb.svc.api.SenseiService;
-
+@Ignore
 public class TestFederatedBroker extends TestCase {
 
   private static final Logger logger = Logger.getLogger(TestMapReduce.class);

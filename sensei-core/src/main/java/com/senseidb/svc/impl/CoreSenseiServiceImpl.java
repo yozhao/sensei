@@ -1,5 +1,7 @@
 package com.senseidb.svc.impl;
 
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,8 +43,6 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
-
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult> {
 
 	public static final ZuSerializer<SenseiRequest, SenseiResult> JAVA_SERIALIZER = new JOSSSerializer<SenseiRequest, SenseiResult>();
@@ -61,8 +61,13 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 				logger.error(e.getMessage(),e);
 		  }
 	}
+	 
+   
+   
+	
 	public CoreSenseiServiceImpl(SenseiCore core) {
 		super(core);
+		
 	}
 	
 	private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser, BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor) throws BrowseException

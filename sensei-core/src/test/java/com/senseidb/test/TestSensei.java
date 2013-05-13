@@ -1291,6 +1291,8 @@ public class TestSensei extends TestCase {
     if (ret.opt("totaldocs") !=null){
      // assertEquals(15000L, ret.getLong("totaldocs"));
     }
+    writer.close();
+    reader.close();
     return ret;
   }
 

@@ -271,7 +271,24 @@ public class SenseiServerBuilder implements SenseiConfParams{
     _schemaDoc = loadSchema(confDir);
     _senseiSchema = SenseiSchema.build(_schemaDoc);
   }
+  public SenseiServerBuilder(PropertiesConfiguration configuration) throws Exception {
 
+      _senseiConfFile = configuration.getFile();
+      if (!_senseiConfFile.exists()){
+        throw new ConfigurationException("configuration file: "+_senseiConfFile.getAbsolutePath()+" does not exist.");
+      }
+     
+   _senseiConf = configuration;
+    pluginRegistry = SenseiPluginRegistry.build(_senseiConf);
+    pluginRegistry.start();
+    
+    processRelevanceFunctionPlugins(pluginRegistry);
+    processRelevanceExternalObjectPlugins(pluginRegistry);
+
+    _gateway = pluginRegistry.getBeanByFullPrefix(SENSEI_GATEWAY, SenseiGateway.class);
+    _schemaDoc = loadSchema(_senseiConfFile.getParentFile());
+    _senseiSchema = SenseiSchema.build(_schemaDoc);
+  }
 
   public SenseiServerBuilder(Resource confDir, Map<String, Object> properties) throws Exception
   {

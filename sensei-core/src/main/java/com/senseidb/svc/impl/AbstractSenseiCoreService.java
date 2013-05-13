@@ -14,9 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
-
 import org.apache.lucene.util.NamedThreadFactory;
 
 import proj.zoie.api.IndexReaderFactory;
@@ -32,6 +32,7 @@ import com.senseidb.search.req.AbstractSenseiResult;
 import com.senseidb.search.req.ErrorType;
 import com.senseidb.search.req.SenseiError;
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
@@ -44,7 +45,6 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   private static Timer SearchTimer = null;
   private static Timer MergeTimer = null;
   private static Meter SearchCounter = null;
-	
   static{
 	  // register jmx monitoring for timers
 	  try{
@@ -73,10 +73,14 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   private final ExecutorService _executorService = Executors.newCachedThreadPool(threadFactory);
   
   private final Map<Integer,Timer> partitionTimerMetricMap = new HashMap<Integer,Timer>();
-	
-	public AbstractSenseiCoreService(SenseiCore core){
+  protected  final Map<Integer, Counter> partitionCalls = new HashMap<Integer, Counter>();
+  private static final AtomicInteger nodeIdSequence = new AtomicInteger();
+	private Integer nodeId = null;
+  
+  public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
-	  int[] partitions = _core.getPartitions();
+	 
+	 
 	}
   
   private Timer buildTimer(int partition) {
@@ -137,6 +141,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
                     @Override
                     public Res call() throws Exception {
+                      incrementCallCounter(partition);
                       return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(), indexReaderCache);
                     }                    
                   });
@@ -163,6 +168,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
                 @Override
                 public Res call() throws Exception {
+                  incrementCallCounter(partition);
                   return  handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(), indexReaderCache);
                 }                    
               });
@@ -273,4 +279,17 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
 	public abstract ZuSerializer<Req,Res> getSerializer();
 	public abstract String getMessageTypeName();
+
+  public void incrementCallCounter(final int partition) {
+    synchronized(AbstractSenseiCoreService.class) {
+      if (nodeId == null) {
+        nodeId = nodeIdSequence.incrementAndGet();
+        for (int currentPartition :_core.getPartitions()) {
+          partitionCalls.put(currentPartition, Metrics.newCounter(AbstractSenseiCoreService.class, "partitionCallsForPartition" + currentPartition + "andNode" + nodeId));
+        }
+      }
+    }
+    
+      partitionCalls.get(partition).inc();
+  }
 }
