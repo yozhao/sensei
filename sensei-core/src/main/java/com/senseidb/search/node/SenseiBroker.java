@@ -47,6 +47,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 	public SenseiBroker(ZuCluster clusterClient, boolean allowPartialMerge) {
 		super(clusterClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
 		this.allowPartialMerge = allowPartialMerge;
+		clusterClient.addClusterEventListener(this);
 	}
 
   public static void recoverSrcData(SenseiResult res, SenseiHit[] hits, boolean isFetchStoredFields)
@@ -208,6 +209,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 		logger.info("clusterChanged(): Received new clusterView from zu " + clusterView);
 		Set<InetSocketAddress> nodeAddresses = getNodesAddresses(clusterView);
 		this.nodeAddresses = nodeAddresses;
+		updateNumberOfNodesMetric();
 	}
 
 	public void updateNumberOfNodesMetric() {
