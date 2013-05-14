@@ -14,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.util.NamedThreadFactory;
@@ -74,14 +73,11 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   
   private final Map<Integer,Timer> partitionTimerMetricMap = new HashMap<Integer,Timer>();
   protected  final Map<Integer, Counter> partitionCalls = new HashMap<Integer, Counter>();
-  private static final AtomicInteger nodeIdSequence = new AtomicInteger();
-	private Integer nodeId = null;
   
   public AbstractSenseiCoreService(SenseiCore core){
 	  _core = core;
-	 
-	 
-	}
+	  initCounters();
+  }
   
   private Timer buildTimer(int partition) {
     MetricName partitionSearchMetricName = new MetricName(MetricsConstants.Domain,"timer","partition-time-"+partition,"partition");
@@ -281,15 +277,12 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 	public abstract String getMessageTypeName();
 
   public void incrementCallCounter(final int partition) {
-    synchronized(AbstractSenseiCoreService.class) {
-      if (nodeId == null) {
-        nodeId = nodeIdSequence.incrementAndGet();
-        for (int currentPartition :_core.getPartitions()) {
-          partitionCalls.put(currentPartition, Metrics.newCounter(AbstractSenseiCoreService.class, "partitionCallsForPartition" + currentPartition + "andNode" + nodeId));
-        }
-      }
-    }
-    
       partitionCalls.get(partition).inc();
   }
+
+	private void initCounters() {
+		for (int currentPartition :_core.getPartitions()) {
+		  partitionCalls.put(currentPartition, Metrics.newCounter(AbstractSenseiCoreService.class, "partitionCallsForPartition" + currentPartition + "andNode" + _core.getNodeId()));
+		}
+	}
 }
