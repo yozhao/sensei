@@ -15,10 +15,11 @@ import junit.framework.TestCase;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
+import org.junit.Ignore;
 
-import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.test.util.OverridenNodeStarter;
 
+@Ignore
 public class StabilityTest extends TestCase {
   private List<OverridenNodeStarter> nodes = new ArrayList<OverridenNodeStarter>();  
   
