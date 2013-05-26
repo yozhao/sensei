@@ -23,6 +23,8 @@ import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
+import com.twitter.common.application.ShutdownRegistry.ShutdownRegistryImpl;
+import com.twitter.common.zookeeper.testing.ZooKeeperTestServer;
 
 /**
  * Embeds all the logic for starting the test Sensei instance
@@ -49,14 +51,33 @@ public class SenseiStarter {
   public static boolean started = false;
 
    public static URL  federatedBrokerUrl;
+   
+
+   private static ZooKeeperTestServer zkTestServer;
 
 	private static ZuCluster clusterClient;
-  
+
+
+  public static ZuCluster createZuCluster() throws Exception{
+    ZuCluster zkCluster = new ZuCluster(zkTestServer.createClient(), "testCluster");
+    return zkCluster;
+  }
 
   /**
    * Will start the new Sensei instance once per process
    */
   public static synchronized void start(String confDir1, String confDir2) {
+    
+ final ShutdownRegistryImpl shutdownRegistry = new ShutdownRegistryImpl();
+    
+    try{
+      zkTestServer = new ZooKeeperTestServer(0, shutdownRegistry, ZooKeeperTestServer.DEFAULT_SESSION_TIMEOUT);
+      zkTestServer.startNetwork();
+    }
+    catch(Exception e) {
+      throw new RuntimeException(e);
+    }
+     
     ActivityRangeFacetHandler.isSynchronized = true;
     if (started) {
       logger.warn("The server had been already started");
@@ -75,11 +96,14 @@ public class SenseiStarter {
     }
     SenseiServerBuilder senseiServerBuilder1 = null;
     senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
+    senseiServerBuilder1.setClusterClient(clusterClient);
+    
     node1 = senseiServerBuilder1.buildServer();
     httpServer1 = senseiServerBuilder1.buildHttpRestServer();
     logger.info("Node 1 created.");
     SenseiServerBuilder senseiServerBuilder2 = null;
     senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
+    senseiServerBuilder2.setClusterClient(clusterClient);
     node2 = senseiServerBuilder2.buildServer();
     httpServer2 = senseiServerBuilder2.buildHttpRestServer();
     logger.info("Node 2 created.");
@@ -93,11 +117,13 @@ public class SenseiStarter {
         throw ne;
     }
 		httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
+		
     logger.info("Cluster client started");
     Runtime.getRuntime().addShutdownHook(new Thread(){
       @Override
       public void run(){
         shutdownSensei();
+        zkTestServer.shutdownNetwork();
     }});
     node1.start(true);
     httpServer1.start();

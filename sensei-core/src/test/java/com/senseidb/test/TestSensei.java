@@ -19,6 +19,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import zu.core.cluster.ZuCluster;
+
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -30,6 +32,8 @@ import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.svc.api.SenseiService;
+import com.twitter.common.application.ShutdownRegistry.ShutdownRegistryImpl;
+import com.twitter.common.zookeeper.testing.ZooKeeperTestServer;
 
 public class TestSensei extends TestCase {
 
@@ -37,11 +41,12 @@ public class TestSensei extends TestCase {
 
   private static SenseiBroker broker;
   private static SenseiService httpRestSenseiService;
+  
   static {
     SenseiStarter.start("test-conf/node1","test-conf/node2");
     broker = SenseiStarter.broker;
     httpRestSenseiService = SenseiStarter.httpRestSenseiService;
-
+    
   }
 
   public void testTotalCount() throws Exception

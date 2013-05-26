@@ -7,12 +7,10 @@
 	
 	<import resource="zoie.spring" />
 
-	<bean id="cluster-client" class="zu.core.cluster.ZuCluster">
-	  <constructor-arg value="localhost" />
-	  <constructor-arg value="2181" />
-	  <constructor-arg value="testCluster" />
-	  <constructor-arg value="30000" />
-	</bean>
+
+	<bean id="cluster-client" 
+		class="com.senseidb.test.SenseiStarter" 
+		factory-method="createZuCluster"  />
 
 	<bean id="query-parser" class="org.apache.lucene.queryParser.QueryParser">
 	   <constructor-arg ref="lucene-version"/>

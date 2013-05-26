@@ -12,7 +12,7 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.broker.BrokerConfig;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.svc.api.SenseiException;
+import com.senseidb.test.SenseiStarter;
 
 public class OverridenNodeStarter {
   private  boolean serverStarted = false;
@@ -44,7 +44,7 @@ public class OverridenNodeStarter {
         });
      
          brokerConfig = new BrokerConfig(senseiConfiguration);
-        brokerConfig.init();
+        brokerConfig.init(SenseiStarter.createZuCluster());
          senseiBroker = brokerConfig.buildSenseiBroker();
        
       } catch (Exception ex) {
@@ -53,14 +53,14 @@ public class OverridenNodeStarter {
     }
   }
 
-  public  void waitTillServerStarts(int expectedDocs) throws SenseiException, InterruptedException {
+  public  void waitTillServerStarts(int expectedDocs) throws Exception {
     int counter = 0;
     while (true) {
       SenseiResult senseiResult = senseiBroker.browse(new SenseiRequest());
       if (senseiBroker.isDisconnected()) {
         brokerConfig.shutdown();
         Thread.sleep(5000);
-        brokerConfig.init();
+        brokerConfig.init(SenseiStarter.createZuCluster());
         senseiBroker = brokerConfig.buildSenseiBroker();
         System.out.println("Restarted the broker");
       }

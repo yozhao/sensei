@@ -121,6 +121,12 @@ public class SenseiServerBuilder implements SenseiConfParams{
   private final SenseiGateway _gateway;
   private PluggableSearchEngineManager pluggableSearchEngineManager;
   private SenseiIndexReaderDecorator decorator;
+  
+  private ZuCluster clusterClient = null;
+  
+  public void setClusterClient(ZuCluster clusterClient) {
+    this.clusterClient = clusterClient;
+  }
 
   static final String SENSEI_CONTEXT_PATH = "sensei";
 
@@ -164,9 +170,11 @@ public class SenseiServerBuilder implements SenseiConfParams{
     server.addConnector(connector);
 
     DefaultSenseiJSONServlet senseiServlet = new DefaultSenseiJSONServlet();
+    senseiServlet.setClusterClient(this.clusterClient);
     ServletHolder senseiServletHolder = new ServletHolder(senseiServlet);
 
     SenseiHttpInvokerServiceServlet springServlet = new SenseiHttpInvokerServiceServlet();
+    springServlet.setClusterClient(this.clusterClient);
     ServletHolder springServletHolder = new ServletHolder(springServlet);
 
     AgentServlet jmxServlet = new AgentServlet();
@@ -633,6 +641,8 @@ public class SenseiServerBuilder implements SenseiConfParams{
   }
 
 	private ZuCluster buildClusterClient() {
+	  if (clusterClient != null) return clusterClient;
+	  
 		String clusterName = _senseiConf.getString(SENSEI_CLUSTER_NAME);
 		String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
 		int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
@@ -640,13 +650,14 @@ public class SenseiServerBuilder implements SenseiConfParams{
 		String[] url = zkUrl.split(":");
 		String host = url[0];
 		int zkPort = Integer.parseInt(url[1]);
-		ZuCluster cluster = null;
+		
 		try {
-			cluster = new ZuCluster(host, zkPort, clusterName, zkTimeout);
+		  clusterClient = new ZuCluster(host, zkPort, clusterName, zkTimeout);
 		} catch (MonitorException e) {
 			throw new RuntimeException(e);
 		}
-		return cluster;
+		
+		return clusterClient;
 	}
 	/*
   public HttpAdaptor buildJMXAdaptor(){

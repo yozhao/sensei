@@ -45,7 +45,7 @@ public class SingleNodeStarter {
           }
         });
         brokerConfig = new BrokerConfig(senseiConfiguration);
-        brokerConfig.init();
+        brokerConfig.init(null);
          senseiBroker = brokerConfig.buildSenseiBroker();
         waitTillServerStarts(expectedDocs);
       } catch (Exception ex) {
@@ -61,7 +61,7 @@ public class SingleNodeStarter {
       if (senseiBroker.isDisconnected()) {
         brokerConfig.shutdown();
         Thread.sleep(5000);
-        brokerConfig.init();
+        brokerConfig.init(null);
         senseiBroker = brokerConfig.buildSenseiBroker();
         System.out.println("Restarted the broker");
       }

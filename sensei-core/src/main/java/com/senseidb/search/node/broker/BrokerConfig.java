@@ -49,6 +49,14 @@ public class BrokerConfig {
   }
 
 	public void init() {
+	  this.init(null);
+	}
+	
+	public void init(ZuCluster zuCluster) {
+	  if (zuCluster != null) {
+	    clusterClient = zuCluster;
+	    return;
+	  }
 		String[] url = zkurl.split(":");
 		String host = url[0];
 		int zkPort = Integer.parseInt(url[1]);

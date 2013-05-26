@@ -44,7 +44,7 @@ public class LayeredBroker implements SenseiPlugin, Broker<SenseiRequest, Sensei
   public void start() {
     for (String cluster : clusters) {
       CompoundBrokerConfig brokerConfig = clusterBrokerConfig.get(cluster);
-      brokerConfig.init();
+      brokerConfig.init(null);
       brokers.put(cluster, brokerConfig.buildSenseiBroker());
     }
     

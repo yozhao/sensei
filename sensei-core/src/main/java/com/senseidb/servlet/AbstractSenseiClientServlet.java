@@ -29,6 +29,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import zu.core.cluster.ZuCluster;
+
 import com.browseengine.bobo.api.BrowseSelection;
 import com.senseidb.bql.parsers.BQLCompiler;
 import com.senseidb.conf.SenseiConfParams;
@@ -83,6 +85,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private Timer _statTimer;
   private RequestPostProcessor postProcessor;
 	private BrokerConfig _brokerConfig;
+	
+	private ZuCluster zuCluster = null;
+	
+	public void setClusterClient(ZuCluster zuCluster) {
+	  this.zuCluster = zuCluster;
+	}
 
 
   public AbstractSenseiClientServlet() {
@@ -93,7 +101,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
     _brokerConfig = new BrokerConfig(senseiConf);
-    _brokerConfig.init();
+    _brokerConfig.init(zuCluster);
     postProcessor = pluginRegistry.getBeanByFullPrefix(SenseiConfParams.SENSEI_REQUEST_POSTPROCESSOR, RequestPostProcessor.class);
     _senseiBroker = _brokerConfig.buildSenseiBroker();
     _senseiSysBroker = _brokerConfig.buildSysSenseiBroker(versionComparator);

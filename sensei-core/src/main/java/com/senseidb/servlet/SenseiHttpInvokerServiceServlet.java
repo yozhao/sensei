@@ -11,6 +11,8 @@ import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
+import zu.core.cluster.ZuCluster;
+
 import com.senseidb.svc.api.SenseiService;
 import com.senseidb.svc.impl.ClusteredSenseiServiceImpl;
 
@@ -21,12 +23,18 @@ public class SenseiHttpInvokerServiceServlet extends
 
 	private ClusteredSenseiServiceImpl innerSvc;
 	private HttpInvokerServiceExporter target;
+	
+	private ZuCluster zuCluster = null;
+	
+	public void setClusterClient(ZuCluster zuCluster) {
+	  this.zuCluster = zuCluster;
+	}
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		
-		innerSvc = new ClusteredSenseiServiceImpl(senseiConf,  versionComparator);
+		innerSvc = new ClusteredSenseiServiceImpl(senseiConf,  versionComparator, zuCluster);
 		target = new HttpInvokerServiceExporter();
 		target.setService(innerSvc);
 		target.setServiceInterface(SenseiService.class);

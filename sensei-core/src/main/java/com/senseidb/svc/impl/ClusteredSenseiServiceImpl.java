@@ -5,6 +5,8 @@ import java.util.Comparator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
+import zu.core.cluster.ZuCluster;
+
 import com.senseidb.search.node.AbstractConsistentHashBroker;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.broker.BrokerConfig;
@@ -21,9 +23,9 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
   private AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo> _senseiSysBroker;
 	private BrokerConfig _brokerConfig;
   
-  public ClusteredSenseiServiceImpl(Configuration senseiConf, Comparator<String> versionComparator) {
+  public ClusteredSenseiServiceImpl(Configuration senseiConf, Comparator<String> versionComparator, ZuCluster clusterClient) {
     _brokerConfig = new BrokerConfig(senseiConf);
-    _brokerConfig.init();
+    _brokerConfig.init(clusterClient);
     _senseiBroker = _brokerConfig.buildSenseiBroker();
     _senseiSysBroker = _brokerConfig.buildSysSenseiBroker(versionComparator);
   }
