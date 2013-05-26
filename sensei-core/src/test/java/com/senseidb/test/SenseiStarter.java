@@ -58,9 +58,11 @@ public class SenseiStarter {
 	private static ZuCluster clusterClient;
 
 
-  public static ZuCluster createZuCluster() throws Exception{
-    ZuCluster zkCluster = new ZuCluster(zkTestServer.createClient(), "testCluster");
-    return zkCluster;
+  public static synchronized ZuCluster createZuCluster() throws Exception{
+    if (clusterClient == null) {
+      clusterClient = new ZuCluster(zkTestServer.createClient(), "testCluster");
+    }
+    return clusterClient;
   }
 
   /**
