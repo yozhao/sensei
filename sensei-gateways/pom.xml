@@ -120,11 +120,9 @@
         </dependency>
 
 		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka</artifactId>
-			<version>0.7.2</version>
-			 <scope>system</scope>
-			<systemPath>${basedir}/../lib/kafka-0.7.2.jar</systemPath>
+			<groupId>kafka</groupId>
+			<artifactId>core-kafka_2.8.0</artifactId>
+			<version>xm-0.7.2</version>
 		</dependency>
 		
 		<dependency>
