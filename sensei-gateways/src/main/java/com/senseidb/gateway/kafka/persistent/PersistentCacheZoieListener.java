@@ -1,11 +1,10 @@
 package com.senseidb.gateway.kafka.persistent;
 
+import proj.zoie.api.indexing.IndexingEventListener;
+
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
-
-import proj.zoie.api.indexing.IndexingEventListener;
-import proj.zoie.api.indexing.IndexingEventListener.IndexingEvent;
 
 public  class PersistentCacheZoieListener implements IndexingEventListener {
   private final PersistentCache persistentCache;

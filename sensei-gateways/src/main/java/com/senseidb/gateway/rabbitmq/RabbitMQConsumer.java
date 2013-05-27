@@ -1,18 +1,18 @@
 
 package com.senseidb.gateway.rabbitmq;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.QueueingConsumer;
-import com.rabbitmq.client.QueueingConsumer.Delivery;
-import com.senseidb.indexing.DataSourceFilter;
+import java.io.IOException;
 
 import org.apache.commons.lang.Validate;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.QueueingConsumer;
+import com.rabbitmq.client.QueueingConsumer.Delivery;
+import com.senseidb.indexing.DataSourceFilter;
 
 public class RabbitMQConsumer implements Runnable {
     private static final Logger _logger = LoggerFactory.getLogger(RabbitMQConsumer.class);

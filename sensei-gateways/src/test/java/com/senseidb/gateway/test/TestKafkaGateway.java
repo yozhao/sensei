@@ -27,6 +27,8 @@ import proj.zoie.impl.indexing.StreamDataProvider;
 import com.senseidb.gateway.SenseiGateway;
 import com.senseidb.gateway.kafka.DefaultJsonDataSourceFilter;
 import com.senseidb.plugin.SenseiPluginRegistry;
+import com.twitter.common.application.ShutdownRegistry.ShutdownRegistryImpl;
+import com.twitter.common.zookeeper.testing.ZooKeeperTestServer;
 
 public class TestKafkaGateway {
   static File confFile = new File("src/test/resources/configs/kafka-gateway.properties");
@@ -49,20 +51,39 @@ public class TestKafkaGateway {
   
   static File kafkaLogFile = null;
   
+  private static ZooKeeperTestServer zkTestServer;
+  private static int port;
+  
+  
   @BeforeClass
   public static void init() throws Exception{
+	final ShutdownRegistryImpl shutdownRegistry = new ShutdownRegistryImpl();
+	    
+	try{
+	  zkTestServer = new ZooKeeperTestServer(0, shutdownRegistry, ZooKeeperTestServer.DEFAULT_SESSION_TIMEOUT);
+	  port = zkTestServer.startNetwork();
+	}
+	catch(Exception e) {
+	  throw new RuntimeException(e);
+	}
+		
     config = new PropertiesConfiguration(confFile);
     pluginRegistry = SenseiPluginRegistry.build(config);
     pluginRegistry.start();
 
     
     Properties kafkaProps = new Properties();
+    
     kafkaProps.load(new FileReader(kafkaServerFile));
+    
+    // override to the local running zk server
+    kafkaProps.setProperty("zk.connect", "localhost:"+port);
     
     kafkaLogFile = new File(kafkaProps.getProperty("log.dir"));
     FileUtils.deleteDirectory(kafkaLogFile);
     
     KafkaConfig kafkaConfig = new KafkaConfig(kafkaProps);
+    
     kafkaServer = new KafkaServer(kafkaConfig);
     
     kafkaServer.startup();
@@ -79,7 +100,7 @@ public class TestKafkaGateway {
     simpleKafkaGateway.start();
     
     Properties props = new Properties();
-    props.put("zk.connect", "localhost:2181");
+    props.put("zk.connect", "localhost:"+port);
     props.put("serializer.class", "kafka.serializer.DefaultEncoder");
 
     ProducerConfig producerConfig = new ProducerConfig(props);
@@ -107,6 +128,7 @@ public class TestKafkaGateway {
         kafkaServer.shutdown();
         kafkaServer.awaitShutdown();
       }
+      zkTestServer.shutdownNetwork();
     }
     finally{
       try {

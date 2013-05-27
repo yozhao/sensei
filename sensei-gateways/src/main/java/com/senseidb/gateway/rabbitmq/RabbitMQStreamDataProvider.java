@@ -1,7 +1,13 @@
 
 package com.senseidb.gateway.rabbitmq;
 
-import com.senseidb.indexing.DataSourceFilter;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -10,13 +16,7 @@ import org.slf4j.LoggerFactory;
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-import java.io.IOException;
-import java.util.Comparator;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.senseidb.indexing.DataSourceFilter;
 
 /**
  * @author shixin

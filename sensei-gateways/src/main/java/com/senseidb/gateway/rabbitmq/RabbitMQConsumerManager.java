@@ -1,13 +1,13 @@
 
 package com.senseidb.gateway.rabbitmq;
 
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 class RabbitMQConsumerManager {
     private static final Logger _logger = LoggerFactory.getLogger(RabbitMQConsumerManager.class);

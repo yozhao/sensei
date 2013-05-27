@@ -3,7 +3,6 @@ package com.senseidb.gateway.kafka.persistent;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -15,12 +14,7 @@ import proj.zoie.api.DataConsumer.DataEvent;
 import com.senseidb.gateway.kafka.DataPacket;
 import com.senseidb.gateway.kafka.KafkaStreamDataProvider;
 import com.senseidb.indexing.DataSourceFilter;
-import com.senseidb.indexing.activity.PurgeUnusedActivitiesJob;
 import com.senseidb.util.Pair;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
 
 public class PersistentKafkaStreamDataProvider extends KafkaStreamDataProvider  {
   private static final Logger log = Logger.getLogger(PersistentKafkaStreamDataProvider.class);

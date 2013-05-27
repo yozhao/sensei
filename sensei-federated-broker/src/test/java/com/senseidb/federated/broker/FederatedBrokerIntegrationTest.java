@@ -3,41 +3,69 @@ package com.senseidb.federated.broker;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import voldemort.client.StoreClient;
+import zu.core.cluster.ZuCluster;
 
 import com.browseengine.bobo.api.BrowseSelection;
 import com.senseidb.federated.broker.proxy.BrokerProxy;
+import com.senseidb.federated.broker.proxy.SenseiBrokerProxy;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
+import com.twitter.common.zookeeper.ZooKeeperClient;
+import com.twitter.common.zookeeper.testing.BaseZooKeeperTest;
 
-import voldemort.client.StoreClient;
-
-public class FederatedBrokerIntegrationTest extends TestCase {
+public class FederatedBrokerIntegrationTest extends BaseZooKeeperTest{
   
   private ClassPathXmlApplicationContext brokerContext;
   private FederatedBroker federatedBroker;
   private StoreClient<String, String> storeClient;
   private BrokerProxy senseiProxy;
-  @Override
-  protected void setUp() throws Exception {
-   SingleNodeStarter.start("conf", 15000);
+  
+  private ZooKeeperClient zkClient;
+  private ZuCluster clusterClient;
+  
+  @Before
+  public void init() throws Exception {
+   
    brokerContext = new ClassPathXmlApplicationContext("federatedBroker-context.xml");
-   federatedBroker = (FederatedBroker) brokerContext.getBean("federatedBroker", FederatedBroker.class);
+   
    storeClient = (StoreClient<String,String>) brokerContext.getBean("storeClient");
-   senseiProxy = (BrokerProxy) brokerContext.getBean("senseiProxy");
+   
+   BrokerProxy voldermortProxy = (BrokerProxy) brokerContext.getBean("voldermortProxy");
+   
+   Configuration senseiConfiguration =(Configuration)brokerContext.getBean("senseiConfiguration");
+   
+   senseiProxy = SenseiBrokerProxy.valueOf(senseiConfiguration, new HashMap<String,String>(), clusterClient);
+   
+   federatedBroker = new FederatedBroker(Arrays.asList(senseiProxy,voldermortProxy));
+   
    JSONArray arr = readCarDocs();
    storeClient.put("test", arr.toString());
+   
+   federatedBroker.start();
+   
+   zkClient = createZkClient();
+   clusterClient = new ZuCluster(zkClient, "senseiClient");
+   SingleNodeStarter.start("conf", 15000, clusterClient);
+   
   }
+  
   private JSONArray readCarDocs() throws IOException, URISyntaxException, JSONException {
     JSONArray arr = new JSONArray();
      LineIterator lineIterator = FileUtils.lineIterator(new File(FederatedBrokerIntegrationTest.class.getClassLoader().getResource("data/cars.json").toURI()));
@@ -52,6 +80,8 @@ public class FederatedBrokerIntegrationTest extends TestCase {
      }
     return arr;
   }
+  
+  @Test
   public void test1SearchOnTwoClusters() throws Exception {
     SenseiRequest req = new SenseiRequest();
     BrowseSelection sel = new BrowseSelection("year");
@@ -59,17 +89,27 @@ public class FederatedBrokerIntegrationTest extends TestCase {
     sel.addValue(selVal);
     req .addSelection(sel);
     SenseiResult result = federatedBroker.browse(req);
-    assertEquals(30000, result.getTotalDocs());
-    assertEquals(5814, result.getNumHits());
+    TestCase.assertEquals(30000, result.getTotalDocs());
+    TestCase.assertEquals(5814, result.getNumHits());
     SenseiResult oneProxyResult = senseiProxy.doQuery(req).get(0);
-    assertEquals(15000, oneProxyResult.getTotalDocs());
-    assertEquals(2907, oneProxyResult.getNumHits());
-    
+    TestCase.assertEquals(15000, oneProxyResult.getTotalDocs());
+    TestCase.assertEquals(2907, oneProxyResult.getNumHits());
   }
   
   
-  @Override
-  protected void tearDown() throws Exception {
-    brokerContext.close();
+  @After
+  public void shutdown() throws Exception {
+	try{
+	  federatedBroker.stop(); 
+	}
+	finally {
+	  try{
+		brokerContext.close();
+	  }
+	  finally {
+		zkClient.close();
+        clusterClient.shutdown();
+	  }
+	}
   }
 }

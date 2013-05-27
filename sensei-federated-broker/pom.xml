@@ -111,11 +111,17 @@
 	    <artifactId>guava</artifactId>
 	    <version>12.0.1</version>
 	</dependency>
-	   <dependency>
+	  <dependency>
 	     <groupId>${project.groupId}</groupId>
 	     <artifactId>sensei-core</artifactId>
 	     <version>${project.version}</version>
-	    </dependency>
+	  </dependency>
+		<dependency>
+		    <groupId>com.twitter.common</groupId>
+		    <artifactId>zookeeper-testing</artifactId>
+		    <version>0.0.30</version>
+		    <scope>test</scope>
+		</dependency>
 	 <dependency>
 		<groupId>voldemort</groupId>
 		<artifactId>voldemort</artifactId>

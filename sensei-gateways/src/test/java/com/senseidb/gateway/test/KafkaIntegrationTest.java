@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Properties;
 
 import junit.framework.Assert;
-import junit.framework.TestCase;
 import kafka.javaapi.producer.Producer;
 import kafka.javaapi.producer.ProducerData;
 import kafka.message.Message;
@@ -30,15 +29,18 @@ import com.senseidb.gateway.kafka.persistent.PersistentCacheManager;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.util.Pair;
 import com.senseidb.util.SingleNodeStarter;
+import com.twitter.common.application.ShutdownRegistry.ShutdownRegistryImpl;
+import com.twitter.common.zookeeper.testing.ZooKeeperTestServer;
 @Ignore("Takes too much time to execute and might be  fragile")
 public class KafkaIntegrationTest  {
   private static File kafkaServerFile = new File("src/test/resources/configs/kafka-server.properties");
   private static KafkaServer kafkaServer;
   private static String indexDirectory;
   private static File ConfDir1;
+  
   @BeforeClass
   public static void init() throws Exception {
-    File indexDir = new File("sensei-kafka-test"); 
+	File indexDir = new File("sensei-kafka-test"); 
     SingleNodeStarter.rmrf(indexDir);
     indexDir.mkdir();
     ConfDir1 = new File(KafkaIntegrationTest.class.getClassLoader().getResource("kafka-sensei-conf").toURI());
@@ -54,6 +56,7 @@ public class KafkaIntegrationTest  {
     FileUtils.deleteDirectory(kafkaLogFile);
     
     KafkaConfig kafkaConfig = new KafkaConfig(kafkaProps);
+    
     kafkaServer = new KafkaServer(kafkaConfig);
     
     kafkaServer.startup();
@@ -71,6 +74,7 @@ public class KafkaIntegrationTest  {
     kafkaProducer.send(msgList);
     SingleNodeStarter.waitTillServerStarts(15000);
   }
+  
   @AfterClass
   public static void afterClass() {
     SingleNodeStarter.shutdown();

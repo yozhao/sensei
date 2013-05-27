@@ -19,9 +19,6 @@ import proj.zoie.hourglass.impl.HourglassListener;
 import proj.zoie.impl.indexing.ZoieSystem;
 
 import com.senseidb.util.Pair;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.MetricName;
 
 public class PersistentCache {
   private static final Logger log = Logger.getLogger(PersistentCache.class);

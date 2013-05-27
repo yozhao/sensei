@@ -25,10 +25,6 @@
      	    </bean>
      </constructor-arg>
      </bean>
-     <bean id="senseiProxy" class="com.senseidb.federated.broker.proxy.SenseiBrokerProxy" factory-method="valueOf"> 
-      	<constructor-arg index="0"><ref bean="senseiConfiguration"/></constructor-arg>
-           <constructor-arg index="1"><bean class="java.util.HashMap"/></constructor-arg>
-     </bean>
      <bean id="senseiInMemoryService" class="com.senseidb.search.node.inmemory.InMemorySenseiService" factory-method="valueOf">
      	<constructor-arg index="0">
      		<bean class="java.io.File">
@@ -39,13 +35,5 @@
 	  <bean id="voldermortProxy" class="com.senseidb.federated.broker.proxy.GenericBrokerProxy">
 	    	<constructor-arg index="0"><ref bean="senseiInMemoryService"/></constructor-arg>
             <constructor-arg index="1"><ref bean="voldermortDatasource"/></constructor-arg>
-	  </bean>
-	  <bean id="federatedBroker" class="com.senseidb.federated.broker.FederatedBroker" init-method="start" destroy-method="stop"  p:inMemorySenseiService-ref="senseiInMemoryService">	  		
-	  	<property name="proxies">
-	  	<list>
-	  		<ref bean="senseiProxy"/>
-	  		<ref bean="voldermortProxy"/>
-	  	</list>
-	  	</property>
 	  </bean>
 </beans>

@@ -1,12 +1,8 @@
 
 package com.senseidb.gateway.rabbitmq;
 
-import com.senseidb.gateway.SenseiGateway;
-import com.senseidb.gateway.rabbitmq.RabbitMQConfig.ConnectionConfig;
-import com.senseidb.gateway.rabbitmq.RabbitMQConfig.ExchangeConfig;
-import com.senseidb.gateway.rabbitmq.RabbitMQConfig.QueueConfig;
-import com.senseidb.indexing.DataSourceFilter;
-import com.senseidb.indexing.ShardingStrategy;
+import java.util.Comparator;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -16,8 +12,12 @@ import org.slf4j.LoggerFactory;
 
 import proj.zoie.impl.indexing.StreamDataProvider;
 
-import java.util.Comparator;
-import java.util.Set;
+import com.senseidb.gateway.SenseiGateway;
+import com.senseidb.gateway.rabbitmq.RabbitMQConfig.ConnectionConfig;
+import com.senseidb.gateway.rabbitmq.RabbitMQConfig.ExchangeConfig;
+import com.senseidb.gateway.rabbitmq.RabbitMQConfig.QueueConfig;
+import com.senseidb.indexing.DataSourceFilter;
+import com.senseidb.indexing.ShardingStrategy;
 
 /**
  * @author shixin

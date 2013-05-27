@@ -21,7 +21,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.util.Assert;
 
-
 import com.senseidb.util.Pair;
 
 public class EventBatch {

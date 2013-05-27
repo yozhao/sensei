@@ -19,7 +19,6 @@ import proj.zoie.api.Zoie;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.indexing.ShardingStrategy;
-import com.senseidb.indexing.activity.PurgeUnusedActivitiesJob;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiZoieFactory;

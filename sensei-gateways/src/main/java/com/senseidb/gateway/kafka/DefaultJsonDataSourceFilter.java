@@ -5,7 +5,6 @@ import java.nio.charset.Charset;
 import org.json.JSONObject;
 
 import com.senseidb.indexing.DataSourceFilter;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class DefaultJsonDataSourceFilter extends DataSourceFilter<DataPacket> {

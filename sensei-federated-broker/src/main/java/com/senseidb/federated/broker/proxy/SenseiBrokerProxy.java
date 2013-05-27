@@ -44,9 +44,10 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   public SenseiBrokerProxy(ZuCluster clusterClient, boolean allowPartialMerge) {
     super(clusterClient, allowPartialMerge);
   }
-  public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties) {
+  
+  public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties, ZuCluster senseiCluster) {
     BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, overrideProperties);
-    brokerProxyConfig.init();
+    brokerProxyConfig.init(senseiCluster);
     SenseiBrokerProxy ret = new SenseiBrokerProxy(brokerProxyConfig.getClusterClient(), true);
     return ret;
   }
