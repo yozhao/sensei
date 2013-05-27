@@ -21,14 +21,32 @@ public class SingleNodeStarter {
   private static boolean serverStarted = false;
   private static Server jettyServer;
   private static SenseiServer server;
+  private static ZuCluster zuCluster;
 
   public static void start(String localPath, int expectedDocs, ZuCluster clusterClient) {
     start(new File(getUri(localPath)), expectedDocs, clusterClient);
   }
 
-  public static void start(File confDir, int expectedDocs, ZuCluster clusterClient) {
+  public static void stop() {
+	  try {
+        jettyServer.stop();
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          server.shutdown();
+        }
+        finally{
+          zuCluster.shutdown();
+        }
+      }
+    
+  }
+  
+  public static void start(File confDir, int expectedDocs, final ZuCluster clusterClient) {
     if (!serverStarted) {
       try {
+    	  zuCluster = clusterClient;
         PropertiesConfiguration senseiConfiguration = new PropertiesConfiguration(new File(confDir, "sensei.properties"));
         final String indexDir = senseiConfiguration.getString(SenseiConfParams.SENSEI_INDEX_DIR);
         rmrf(new File(indexDir));
@@ -42,13 +60,10 @@ public class SingleNodeStarter {
           @Override
           public void run() {
             try {
-              jettyServer.stop();
+            	rmrf(new File(indexDir));
             } catch (Exception e) {
               e.printStackTrace();
-            } finally {
-              server.shutdown();
-              rmrf(new File(indexDir));
-            }
+            } 
           }
         });
         SenseiBrokerProxy brokerProxy = SenseiBrokerProxy.valueOf(senseiConfiguration, new HashMap<String, String>(), clusterClient);

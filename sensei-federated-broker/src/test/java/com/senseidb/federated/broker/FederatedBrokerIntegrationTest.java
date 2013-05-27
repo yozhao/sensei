@@ -42,7 +42,8 @@ public class FederatedBrokerIntegrationTest extends BaseZooKeeperTest{
   
   @Before
   public void init() throws Exception {
-   
+   zkClient = createZkClient();
+   clusterClient = new ZuCluster(zkClient, "senseiClient");
    brokerContext = new ClassPathXmlApplicationContext("federatedBroker-context.xml");
    
    storeClient = (StoreClient<String,String>) brokerContext.getBean("storeClient");
@@ -60,8 +61,6 @@ public class FederatedBrokerIntegrationTest extends BaseZooKeeperTest{
    
    federatedBroker.start();
    
-   zkClient = createZkClient();
-   clusterClient = new ZuCluster(zkClient, "senseiClient");
    SingleNodeStarter.start("conf", 15000, clusterClient);
    
   }
@@ -100,16 +99,11 @@ public class FederatedBrokerIntegrationTest extends BaseZooKeeperTest{
   @After
   public void shutdown() throws Exception {
 	try{
-	  federatedBroker.stop(); 
+	    federatedBroker.stop();
+	    SingleNodeStarter.stop();
 	}
 	finally {
-	  try{
-		brokerContext.close();
-	  }
-	  finally {
-		zkClient.close();
-        clusterClient.shutdown();
-	  }
+		shutdownNetwork();
 	}
   }
 }

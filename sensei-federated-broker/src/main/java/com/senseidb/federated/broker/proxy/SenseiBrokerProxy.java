@@ -48,7 +48,7 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties, ZuCluster senseiCluster) {
     BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, overrideProperties);
     brokerProxyConfig.init(senseiCluster);
-    SenseiBrokerProxy ret = new SenseiBrokerProxy(brokerProxyConfig.getClusterClient(), true);
+    SenseiBrokerProxy ret = new SenseiBrokerProxy(senseiCluster, true);
     return ret;
   }
   @Override
