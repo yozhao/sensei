@@ -14,6 +14,17 @@ import com.senseidb.search.client.res.SenseiResult;
 
 public class JsonSerializationTest extends Assert {
 
+
+    @Test
+    public void testHitsDeserialization() throws Exception {
+        String response = new String(IOUtils.getBytes(getClass().getClassLoader().getResourceAsStream("json/senseiresult.json")), "UTF-8");
+        System.out.println(new JSONObject(response).toString(2));
+        SenseiResult senseiResult = JsonDeserializer.deserialize(SenseiResult.class, new JSONObject(response));
+        assertEquals(senseiResult.getHits().get(0).getStoredFields().size(), 14);
+        assertEquals(senseiResult.getHits().get(0).getStoredFields().get(0).getFieldName(),"contents");
+        System.out.println(senseiResult);
+    }
+
     @Test
     public void test1Deserialization() throws Exception {
         String response = new String(IOUtils.getBytes(getClass().getClassLoader().getResourceAsStream("json/senseiresult.json")), "UTF-8");
