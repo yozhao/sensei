@@ -414,6 +414,12 @@ public class HttpRestSenseiServiceImpl implements SenseiService
       String fetchString = join(tvFetch,",");
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR, fetchString));
     }
+    Set<String> sfFetch = req.getStoredFieldsToFetch();
+    if (sfFetch !=null && sfFetch.size()>0){
+      String fetchFieldsString = join(sfFetch,",");
+      qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FIELDS_TO_FETCH, fetchFieldsString));
+    }
+
     if (req.getRouteParam() != null)
     {
       qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_ROUTE_PARAM, req.getRouteParam()));

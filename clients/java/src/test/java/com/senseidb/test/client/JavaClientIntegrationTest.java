@@ -462,6 +462,15 @@ public class JavaClientIntegrationTest extends Assert {
     assertEquals("{\"min\":2100,\"uid\":4757}", res.getMapReduceResult().toString());
     
   }
+
+  @Test
+  public void testFetchStoredFields() throws Exception{
+      SenseiClientRequest request = SenseiClientRequest.builder().query(Queries.matchAllQuery(1)).setFieldsToFetch(Arrays.asList("color")).build();
+      SenseiResult res = senseiServiceProxy.sendSearchRequest( request);
+      assertEquals("number of return stored fields is wrong", 1, res.getHits().get(0).getStoredFields().size());
+      assertEquals("numhits is wrong", 15000, res.getNumhits().intValue());
+  }
+
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases:*/
 
 //  public void testAndFilter1() throws Exception

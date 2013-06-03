@@ -57,8 +57,9 @@ private long   tid           =          -1;
   private List<String> _selectList; // Select list (mostly used in BQL) 
   private transient Set<String> _selectSet;
   private SenseiMapReduce mapReduceFunction;
-  private List<SenseiError> errors;
-  
+  private List<SenseiError> errors;  
+  private Set<String> _storedFieldsToFetch;
+
   public SenseiRequest(){
     _facetInitParamMap = new HashMap<String,FacetHandlerInitializerParam>();
     _selections=new HashMap<String,BrowseSelection>();
@@ -74,6 +75,7 @@ private long   tid           =          -1;
     _distinct = null;
     _maxPerGroup = 0;
     _termVectorsToFetch = null;
+    _storedFieldsToFetch = null;
     _selectList = null;
     _selectSet = null;
   }
@@ -85,7 +87,16 @@ private long   tid           =          -1;
   public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
     _termVectorsToFetch = termVectorsToFetch;
   }
-/**
+
+  public Set<String> getStoredFieldsToFetch() {
+    return _storedFieldsToFetch;
+  }
+
+  public void setStoredFieldsToFetch(Set<String> _storedFieldsToFetch) {
+    this._storedFieldsToFetch = _storedFieldsToFetch;
+  }
+
+    /**
    * Get the transaction ID.
    * @return the transaction ID.
    */
@@ -496,7 +507,7 @@ private long   tid           =          -1;
       buf.append("group by: ").append(_groupBy).append('\n');
     buf.append("max per group: ").append(_maxPerGroup).append('\n');
     buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
-    buf.append("fetch stored value: ").append(_fetchStoredValue);
+    buf.append("fetch stored value: ").append(_fetchStoredValue).append('\n');
     return buf.toString();
   }
 
@@ -532,6 +543,7 @@ private long   tid           =          -1;
     clone.setDistinct(this.getDistinct());
     clone.setMaxPerGroup(this.getMaxPerGroup());
     clone.setTermVectorsToFetch(this.getTermVectorsToFetch());
+    clone.setStoredFieldsToFetch(this.getStoredFieldsToFetch());
     if (this.getSelectList() != null) {
       clone.setSelectList(new ArrayList<String>(this.getSelectList()));
     }

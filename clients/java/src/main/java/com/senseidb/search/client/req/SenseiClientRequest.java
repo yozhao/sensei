@@ -52,6 +52,7 @@ public class SenseiClientRequest {
    * Flag indicating whether stored fields are to be fetched
    */
   private boolean fetchStored;
+  private List<String> fieldsToFetch;
   private List<String> termVectors = new ArrayList<String>();
   /**
    * shards of the index to be searched
@@ -99,6 +100,11 @@ public class SenseiClientRequest {
 
     public Builder fetchStored(boolean fetchStored) {
       request.fetchStored = fetchStored;
+      return this;
+    }
+
+    public Builder setFieldsToFetch(List<String> fieldsToFetch) {
+      request.fieldsToFetch = fieldsToFetch;
       return this;
     }
 
@@ -245,6 +251,10 @@ public class SenseiClientRequest {
 
   public List<String> getTermVectors() {
     return termVectors;
+  }
+
+  public List<String> getFieldsToFetch() {
+    return fieldsToFetch;
   }
 
   public List<Integer> getPartitions() {
