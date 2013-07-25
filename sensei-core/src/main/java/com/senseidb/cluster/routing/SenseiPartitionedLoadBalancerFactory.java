@@ -1,11 +1,14 @@
 package com.senseidb.cluster.routing;
 
-import com.linkedin.norbert.cluster.InvalidClusterException;
-import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.*;
-
-import java.util.Map;
 import java.util.Set;
+
+import com.linkedin.norbert.cluster.InvalidClusterException;
+import com.linkedin.norbert.javacompat.network.ConsistentHashPartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.Endpoint;
+import com.linkedin.norbert.javacompat.network.HashFunction;
+import com.linkedin.norbert.javacompat.network.MultiRingConsistentHashPartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancer;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
 
 public class SenseiPartitionedLoadBalancerFactory implements PartitionedLoadBalancerFactory<String> {
   private final ConsistentHashPartitionedLoadBalancerFactory<String> lbf;

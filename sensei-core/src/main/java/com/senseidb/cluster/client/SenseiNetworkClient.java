@@ -1,19 +1,21 @@
 /**
- * 
+ *
  */
 package com.senseidb.cluster.client;
 
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import com.google.protobuf.Message;
 import com.linkedin.norbert.cluster.ClusterDisconnectedException;
 import com.linkedin.norbert.cluster.InvalidClusterException;
 import com.linkedin.norbert.cluster.InvalidNodeException;
 import com.linkedin.norbert.javacompat.cluster.Node;
-import com.linkedin.norbert.javacompat.network.*;
-import com.linkedin.norbert.javacompat.network.IntegerConsistentHashPartitionedLoadBalancerFactory;
 import com.linkedin.norbert.javacompat.network.NettyPartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.NetworkClientConfig;
+import com.linkedin.norbert.javacompat.network.PartitionedLoadBalancerFactory;
+import com.linkedin.norbert.javacompat.network.PartitionedNetworkClient;
+import com.linkedin.norbert.javacompat.network.RequestBuilder;
+import com.linkedin.norbert.javacompat.network.ScatterGatherHandler;
 import com.linkedin.norbert.network.NoNodesAvailableException;
 import com.linkedin.norbert.network.ResponseIterator;
 import com.linkedin.norbert.network.Serializer;
@@ -86,6 +88,7 @@ public class SenseiNetworkClient implements PartitionedNetworkClient<String>
     return _networkClient.sendRequestToPartitions(partitionedId, partitions, requestBuilder, serializer);
   }
 
+  @Override
   public void shutdown()
   {
     _networkClient.shutdown();

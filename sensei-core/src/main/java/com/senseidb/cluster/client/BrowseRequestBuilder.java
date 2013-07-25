@@ -11,7 +11,6 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiQuery;
 import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class BrowseRequestBuilder {
@@ -19,7 +18,7 @@ public class BrowseRequestBuilder {
 	public BrowseRequestBuilder(){
 		clear();
 	}
-	
+
 	public void addSelection(String name,String val,boolean isNot){
 		BrowseSelection sel = _req.getSelection(name);
 		if (sel==null){
@@ -33,11 +32,11 @@ public class BrowseRequestBuilder {
 		}
 		_req.addSelection(sel);
 	}
-	
+
 	public void clearSelection(String name){
 		_req.removeSelection(name);
 	}
-	
+
 	public void applyFacetSpec(String name,int minHitCount,int maxCount,boolean expand,FacetSortSpec orderBy){
 		FacetSpec fspec = new FacetSpec();
 		fspec.setMinHitCount(minHitCount);
@@ -46,7 +45,7 @@ public class BrowseRequestBuilder {
 		fspec.setOrderBy(orderBy);
 		_req.setFacetSpec(name, fspec);
 	}
-	
+
 	public void applySort(SortField[] sorts){
 		if (sorts==null){
 			_req.clearSort();
@@ -55,22 +54,22 @@ public class BrowseRequestBuilder {
 			_req.setSort(sorts);
 		}
 	}
-	
+
 	public void clearFacetSpecs(){
 		_req.getFacetSpecs().clear();
 	}
 	public void clearFacetSpec(String name){
 		_req.getFacetSpecs().remove(name);
 	}
-	
+
 	public void setOffset(int offset){
 		_req.setOffset(offset);
 	}
-	
+
 	public void setCount(int count){
 		_req.setCount(count);
 	}
-	
+
 	public void setQuery(String qString){
 		JSONObject qObj = new FastJSONObject();
 		if (qString!=null){
@@ -82,22 +81,22 @@ public class BrowseRequestBuilder {
 		}
 		_req.setQuery(new SenseiJSONQuery(qObj));
 	}
-	
+
 	public void clear(){
 		_req = new SenseiRequest();
 		_req.setOffset(0);
 		_req.setCount(5);
 		_req.setFetchStoredFields(true);
 	}
-	
+
 	public void clearSelections(){
 		_req.clearSelections();
 	}
-	
+
 	public SenseiRequest getRequest(){
 		return _req;
 	}
-	
+
 	public String getQueryString(){
 		SenseiQuery q = _req.getQuery();
 		if (q!=null){
