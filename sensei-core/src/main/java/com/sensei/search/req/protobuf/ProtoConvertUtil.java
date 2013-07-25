@@ -238,15 +238,6 @@ public class ProtoConvertUtil {
 			logger.error(e.getMessage(),e);
 			throw new ParseException(e.getMessage());
 		}
-		
-	}
 
-	private static byte[] intToByteArray(int data) {
-		byte[] bytes = new byte[4];
-		bytes[0] = (byte) (data & 0x000F);
-		bytes[1] = (byte) ((data & 0x00F0) >> 8);
-		bytes[2] = (byte) ((data & 0x0F00) >> 16);
-		bytes[3] = (byte) ((data & 0xF000) >> 24);
-		return bytes;		
 	}
 }

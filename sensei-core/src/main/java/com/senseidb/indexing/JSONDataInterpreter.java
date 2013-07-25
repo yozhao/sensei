@@ -25,12 +25,6 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 			  }
 			}
 
-      //@Override
-      //public byte[] getStoreValue()
-      //{
-        //throw new NotImplementedException();
-      //}
-
       @Override
 			public long getUID() {
 			  try{
@@ -50,17 +44,17 @@ public abstract class JSONDataInterpreter extends AbstractZoieIndexableInterpret
 			public boolean isSkip() {
 				return extractSkipFlag(src);
 			}
-			
+
 		};
 	}
 
 	public abstract long extractUID(JSONObject obj) throws JSONException;
 	public abstract Document buildDoc(JSONObject obj) throws JSONException;
-	
+
 	public boolean extractSkipFlag(JSONObject obj){
 		return false;
 	}
-	
+
 	public boolean extractDeleteFlag(JSONObject obj){
 		return false;
 	}

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
@@ -12,7 +11,7 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 
 public class BrowseResultFormatter{
-    
+
     public static String formatResults(BrowseResult res) {
             StringBuffer sb = new StringBuffer();
             sb.append(res.getNumHits());
@@ -44,7 +43,7 @@ public class BrowseResultFormatter{
             sb.append("*****************************\n");
             return sb.toString();
     }
-    
+
     static StringBuffer formatHit(BrowseHit hit) {
             StringBuffer sb = new StringBuffer();
             if (hit.getGroupHitsCount() > 0) {
@@ -56,7 +55,7 @@ public class BrowseResultFormatter{
             }
             Map<String, String[]> fields = hit.getFieldValues();
             if (fields!=null){
-              
+
               for(Entry<String,String[]> entry: fields.entrySet()) {
             	    String key = entry.getKey();
                     sb.append("\t").append(key).append(" :");

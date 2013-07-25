@@ -1,8 +1,6 @@
 package com.senseidb.conf;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,12 +17,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.util.Assert;
 
+import com.browseengine.bobo.facets.AbstractRuntimeFacetHandlerFactory;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
-import com.browseengine.bobo.facets.AbstractRuntimeFacetHandlerFactory;
 import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
@@ -37,14 +35,7 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.range.MultiRangeFacetHandler;
-import com.senseidb.conf.SenseiSchema.FacetDefinition;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
-import com.senseidb.indexing.activity.ActivityValues;
-import com.senseidb.indexing.activity.CompositeActivityManager;
-import com.senseidb.indexing.activity.CompositeActivityValues;
-import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
-import com.senseidb.indexing.activity.primitives.ActivityIntValues;
-import com.senseidb.indexing.activity.time.TimeAggregatedActivityValues;
 import com.senseidb.plugin.SenseiPluginRegistry;
 import com.senseidb.search.facet.UIDFacetHandler;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
@@ -141,7 +132,7 @@ public class SenseiFacetHandlerBuilder {
 	static MultiValueFacetHandler buildMultiHandler(String name,String fieldName,TermListFactory<?> termListFactory,Set<String> depends){
 		return new MultiValueFacetHandler(name, fieldName, termListFactory,null,depends);
 	}
-	
+
 	static MultiValueFacetHandler buildWeightedMultiHandler(String name,String fieldName,TermListFactory<?> termListFactory,Set<String> depends){
 	    return new MultiValueWithWeightFacetHandler(name, fieldName, termListFactory);
 	}
@@ -356,12 +347,12 @@ public class SenseiFacetHandlerBuilder {
 					logger.error("facet name: "+UID_FACET_NAME+" is reserved, skipping...");
 					continue;
 				}
-				
+
 				String type = facet.getString("type");
 				String fieldName = facet.optString("column",name);
 				Set<String> dependSet = new HashSet<String>();
 				JSONArray dependsArray = facet.optJSONArray("depends");
-				
+
 				if (dependsArray != null) {
 				  int depCount = dependsArray.length();
 				  for (int k=0;k<depCount;++k){
@@ -424,7 +415,7 @@ public class SenseiFacetHandlerBuilder {
 				}  else if (type.equals("dynamicTimeRange")) {
 				  if (dependSet.isEmpty()) {
 			      Assert.isTrue(fieldName != null && fieldName.length() > 0, "Facet handler " + name + " requires either depends or column attributes");
-			      RangeFacetHandler internalFacet = new RangeFacetHandler(name + "_internal", fieldName, new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT), null);
+			      RangeFacetHandler internalFacet = new RangeFacetHandler(name + "_internal", fieldName, new PredefinedTermListFactory<Long>(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT), null);
 			      facets.add(internalFacet);
 			      dependSet.add(internalFacet.getName());
 				  }
@@ -457,10 +448,10 @@ public class SenseiFacetHandlerBuilder {
 			}
 		}
 
-		facets.addAll((Collection<? extends FacetHandler<?>>) pluggableSearchEngineManager.createFacetHandlers());
+		facets.addAll(pluggableSearchEngineManager.createFacetHandlers());
 		// uid facet handler to be added by default
 		UIDFacetHandler uidHandler = new UIDFacetHandler(UID_FACET_NAME);
-		SumGroupByFacetHandler sumGroupByFacetHandler = new SumGroupByFacetHandler(SUM_GROUP_BY_FACET_NAME); 
+		SumGroupByFacetHandler sumGroupByFacetHandler = new SumGroupByFacetHandler(SUM_GROUP_BY_FACET_NAME);
 		facets.add(uidHandler);
 		facets.add(sumGroupByFacetHandler);
     sysInfo.setFacetInfos(facetInfos);
@@ -468,7 +459,7 @@ public class SenseiFacetHandlerBuilder {
     return sysInfo;
 	}
 
-  
+
 
   public static RuntimeFacetHandlerFactory<?, ?> getDynamicTimeFacetHandlerFactory(final String name, String fieldName, Set<String> dependSet,
       final Map<String, List<String>> paramMap) {
