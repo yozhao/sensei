@@ -20,6 +20,7 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_V
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FIELDS_TO_FETCH;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_MAX_PER_GROUP;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_OFFSET;
@@ -413,6 +414,9 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
         List<Fieldable> fields = doc.getFields();
         for (Fieldable field : fields)
         {
+          if (req.getStoredFieldsToFetch() !=null && !req.getStoredFieldsToFetch().contains(field.name())) {
+            continue;
+          }
           JSONObject data = new FastJSONObject();
           data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
           data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
@@ -597,6 +601,15 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet
       if (tvsToFetch.size() > 0)
         senseiReq.setTermVectorsToFetch(tvsToFetch);
     }
+
+      String[] fetchSFs= params.getStringArray(PARAM_FIELDS_TO_FETCH);
+      if (fetchSFs!=null && fetchSFs.length>0){
+          HashSet<String> sfToFetch = new HashSet<String>(Arrays.asList(fetchSFs));
+          sfToFetch.remove("");
+          if (sfToFetch.size() > 0)
+              senseiReq.setStoredFieldsToFetch(sfToFetch);
+      }
+
     String groupBy = params.getString(PARAM_GROUP_BY, null);
     if (groupBy != null && groupBy.length() != 0)
       senseiReq.setGroupBy(StringUtils.split(groupBy, ','));
