@@ -63,7 +63,7 @@ public class CompositeActivityValues {
   protected CompositeActivityStorage activityStorage;
   protected UpdateBatch<Update> updateBatch;
   protected RecentlyAddedUids recentlyAddedUids;
-  protected AtomicInteger indexSize;
+  protected AtomicInteger indexSize = new AtomicInteger(0);
   protected volatile Metadata metadata;
 
   private volatile boolean closed;
@@ -94,7 +94,6 @@ public class CompositeActivityValues {
 
   public void init(int count) {
     uidToArrayIndex = new Long2IntOpenHashMap(count);
-    indexSize = new AtomicInteger(0);
   }
 
   public void updateVersion(String version) {
