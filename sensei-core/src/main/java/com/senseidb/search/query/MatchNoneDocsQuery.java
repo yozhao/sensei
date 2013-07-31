@@ -15,10 +15,7 @@ import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.util.ToStringUtils;
 
-
-public class MatchNoneDocsQuery extends Query
-{
-
+public class MatchNoneDocsQuery extends Query {
 
   /**
    *  This query matches nothing, is basically for Machine oriented ConstExpQuery. Or any other dummy use cases.
@@ -44,10 +41,10 @@ public class MatchNoneDocsQuery extends Query
     final float score;
     final byte[] norms;
     private int doc = -1;
-    
-    MatchNoneScorer(IndexReader reader, Similarity similarity, Weight w,
-        byte[] norms) throws IOException {
-      super(similarity,w);
+
+    MatchNoneScorer(IndexReader reader, Similarity similarity, Weight w, byte[] norms)
+        throws IOException {
+      super(similarity, w);
       this.termDocs = reader.termDocs(null);
       score = w.getValue();
       this.norms = norms;
@@ -62,7 +59,7 @@ public class MatchNoneDocsQuery extends Query
     public int nextDoc() throws IOException {
       return NO_MORE_DOCS;
     }
-    
+
     @Override
     public float score() {
       return norms == null ? score : score * getSimilarity().decodeNormValue(norms[docID()]);
@@ -111,7 +108,8 @@ public class MatchNoneDocsQuery extends Query
     }
 
     @Override
-    public Scorer scorer(IndexReader reader, boolean scoreDocsInOrder, boolean topScorer) throws IOException {
+    public Scorer scorer(IndexReader reader, boolean scoreDocsInOrder, boolean topScorer)
+        throws IOException {
       return new MatchNoneScorer(reader, similarity, this,
           normsField != null ? reader.norms(normsField) : null);
     }
@@ -119,12 +117,12 @@ public class MatchNoneDocsQuery extends Query
     @Override
     public Explanation explain(IndexReader reader, int doc) {
       // explain query weight
-      Explanation queryExpl = new ComplexExplanation
-        (true, getValue(), "MatchNoneDocsQuery, product of:");
+      Explanation queryExpl = new ComplexExplanation(true, getValue(),
+          "MatchNoneDocsQuery, product of:");
       if (getBoost() != 1.0f) {
-        queryExpl.addDetail(new Explanation(getBoost(),"boost"));
+        queryExpl.addDetail(new Explanation(getBoost(), "boost"));
       }
-      queryExpl.addDetail(new Explanation(queryNorm,"queryNorm"));
+      queryExpl.addDetail(new Explanation(queryNorm, "queryNorm"));
 
       return queryExpl;
     }
@@ -149,8 +147,7 @@ public class MatchNoneDocsQuery extends Query
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof MatchNoneDocsQuery))
-      return false;
+    if (!(o instanceof MatchNoneDocsQuery)) return false;
     MatchNoneDocsQuery other = (MatchNoneDocsQuery) o;
     return this.getBoost() == other.getBoost();
   }

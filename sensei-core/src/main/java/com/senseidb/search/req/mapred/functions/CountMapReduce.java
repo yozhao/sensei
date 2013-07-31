@@ -19,12 +19,12 @@ public class CountMapReduce implements SenseiMapReduce<Double, Double> {
 
   @Override
   public void init(JSONObject params) {
-   
-    
+
   }
 
   @Override
-  public Double map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
+  public Double map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor,
+      FacetCountAccessor facetCountAccessor) {
     double ret = 0;
     for (int i = 0; i < docIdCount; i++) {
       ret += 1;
@@ -54,12 +54,12 @@ public class CountMapReduce implements SenseiMapReduce<Double, Double> {
 
   @Override
   public JSONObject render(Double reduceResult) {
-   
+
     try {
-      return new FastJSONObject().put("count",  String.format("%1.5f", reduceResult));
+      return new FastJSONObject().put("count", String.format("%1.5f", reduceResult));
     } catch (JSONException e) {
       throw new RuntimeException(e);
     }
   }
-  
+
 }

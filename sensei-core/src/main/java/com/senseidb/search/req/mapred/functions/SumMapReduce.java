@@ -26,15 +26,16 @@ public class SumMapReduce implements SenseiMapReduce<Double, Double> {
     if (column == null) {
       throw new IllegalStateException("Column parameter shouldn't be null");
     }
-    
+
   }
 
   @Override
-  public Double map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
+  public Double map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor,
+      FacetCountAccessor facetCountAccessor) {
     double ret = 0;
     SingleFieldAccessor singleFieldAccessor = accessor.getSingleFieldAccessor(column);
     if (!(accessor.getTermValueList(column) instanceof TermNumberList)) {
-        throw new IllegalStateException("SumMapReduce needs numeric column");
+      throw new IllegalStateException("SumMapReduce needs numeric column");
     }
     for (int i = 0; i < docIdCount; i++) {
       ret += singleFieldAccessor.getDouble(docIds.get(i));
@@ -64,12 +65,12 @@ public class SumMapReduce implements SenseiMapReduce<Double, Double> {
 
   @Override
   public JSONObject render(Double reduceResult) {
-   
+
     try {
-      return new FastJSONObject().put("sum",  String.format("%1.5f", reduceResult));
+      return new FastJSONObject().put("sum", String.format("%1.5f", reduceResult));
     } catch (JSONException e) {
       throw new RuntimeException(e);
     }
   }
-  
+
 }

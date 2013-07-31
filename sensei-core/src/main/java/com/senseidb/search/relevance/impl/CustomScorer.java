@@ -28,33 +28,26 @@ import com.senseidb.search.relevance.CustomRelevanceFunction;
 import com.senseidb.search.relevance.RuntimeRelevanceFunction;
 import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 
-public class CustomScorer extends Scorer
-{
+public class CustomScorer extends Scorer {
   private static Logger logger = Logger.getLogger(CustomScorer.class);
   final Scorer _innerScorer;
   private RuntimeRelevanceFunction _sModifier = null;
-  
-  public CustomScorer(Scorer innerScorer, 
-                      BoboIndexReader boboReader, 
-                       CustomMathModel cModel, 
-                       DataTable _dt,
-                       JSONObject _valueJson
-                       ) throws Exception
-  {
+
+  public CustomScorer(Scorer innerScorer, BoboIndexReader boboReader, CustomMathModel cModel,
+      DataTable _dt, JSONObject _valueJson) throws Exception {
     super(innerScorer.getSimilarity());
-    
+
     _innerScorer = innerScorer;
     _sModifier = new RuntimeRelevanceFunction(cModel, _dt);
     _sModifier.initializeGlobal(_valueJson);
     _sModifier.initializeReader(boboReader, _valueJson);
   }
-  
 
   @Override
   public float score() throws IOException {
     return _sModifier.newScore(_innerScorer.score(), docID());
   }
-  
+
   @Override
   public int advance(int target) throws IOException {
     return _innerScorer.advance(target);
@@ -69,6 +62,5 @@ public class CustomScorer extends Scorer
   public int nextDoc() throws IOException {
     return _innerScorer.nextDoc();
   }
-  
-  
+
 }

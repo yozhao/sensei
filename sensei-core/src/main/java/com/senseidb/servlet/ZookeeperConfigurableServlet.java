@@ -13,7 +13,7 @@ import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class ZookeeperConfigurableServlet extends HttpServlet {
-  
+
   /**
    * 
    */
@@ -29,13 +29,15 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    
-    ServletContext ctx = config.getServletContext();
-     senseiConf = (Configuration)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_OBJ);
-    
 
-    versionComparator = (Comparator<String>)ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
-    pluginRegistry = (SenseiPluginRegistry) ctx.getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY);
+    ServletContext ctx = config.getServletContext();
+    senseiConf = (Configuration) ctx
+        .getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_OBJ);
+
+    versionComparator = (Comparator<String>) ctx
+        .getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
+    pluginRegistry = (SenseiPluginRegistry) ctx
+        .getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY);
     allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
-}
+  }
 }

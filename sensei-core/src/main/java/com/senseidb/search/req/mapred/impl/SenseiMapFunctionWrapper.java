@@ -20,7 +20,6 @@ import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.IntArray;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 
-
 /**
  * Inctance of this class is the part of the senseiReuqest, and it keep the intermediate step of the map reduce job
  * @author vzhabiuk
@@ -34,32 +33,41 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
   private int[] partialDocIds;;
   private int docIdIndex = 0;
   private final FieldAccessorFactory fieldAccessorFactory;
+
   @SuppressWarnings("rawtypes")
-  public SenseiMapFunctionWrapper(SenseiMapReduce mapReduceStrategy, Set<SenseiFacetInfo> facetInfos, FieldAccessorFactory fieldAccessorFactory) {
+  public SenseiMapFunctionWrapper(SenseiMapReduce mapReduceStrategy,
+      Set<SenseiFacetInfo> facetInfos, FieldAccessorFactory fieldAccessorFactory) {
     super();
     this.mapReduceStrategy = mapReduceStrategy;
-    this.fieldAccessorFactory = fieldAccessorFactory;   
+    this.fieldAccessorFactory = fieldAccessorFactory;
     partialDocIds = new int[BUFFER_SIZE];
     result = new MapReduceResult();
     this.facetInfos = facetInfos;
   }
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#mapFullIndexReader(com.browseengine.bobo.api.BoboIndexReader)
+  /*
+   * (non-Javadoc)
+   * @see
+   * com.browseengine.bobo.mapred.BoboMapFunctionWrapper#mapFullIndexReader(com.browseengine.bobo
+   * .api.BoboIndexReader)
    */
   @Override
   public void mapFullIndexReader(BoboIndexReader reader, FacetCountCollector[] facetCountCollectors) {
-    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
+    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>) (reader.getInnerReader());
     DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
     IntArray docArray = fieldAccessorFactory.getDocArray(reader);
-    Serializable mapResult = mapReduceStrategy.map(docArray, docArray.size(), zoieReader.getUIDArray(), fieldAccessorFactory.getAccessor(facetInfos, reader, docIDMapper), new FacetCountAccessor(facetCountCollectors));
+    Serializable mapResult = mapReduceStrategy.map(docArray, docArray.size(),
+      zoieReader.getUIDArray(), fieldAccessorFactory.getAccessor(facetInfos, reader, docIDMapper),
+      new FacetCountAccessor(facetCountCollectors));
     if (mapResult != null) {
-      result.getMapResults().add(mapResult);    
+      result.getMapResults().add(mapResult);
     }
   }
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#mapSingleDocument(int, com.browseengine.bobo.api.BoboIndexReader)
+  /*
+   * (non-Javadoc)
+   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#mapSingleDocument(int,
+   * com.browseengine.bobo.api.BoboIndexReader)
    */
   @Override
   public final void mapSingleDocument(int docId, BoboIndexReader reader) {
@@ -69,9 +77,12 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     }
     if (docIdIndex == BUFFER_SIZE - 1) {
       partialDocIds[docIdIndex++] = docId;
-      ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
+      ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>) (reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      Serializable mapResult = mapReduceStrategy.map(new DefaultIntArray(partialDocIds), BUFFER_SIZE, zoieReader.getUIDArray(), fieldAccessorFactory.getAccessor(facetInfos, reader, docIDMapper),  FacetCountAccessor.EMPTY);
+      Serializable mapResult = mapReduceStrategy
+          .map(new DefaultIntArray(partialDocIds), BUFFER_SIZE, zoieReader.getUIDArray(),
+            fieldAccessorFactory.getAccessor(facetInfos, reader, docIDMapper),
+            FacetCountAccessor.EMPTY);
       if (mapResult != null) {
         result.getMapResults().add(mapResult);
       }
@@ -79,34 +90,41 @@ public class SenseiMapFunctionWrapper implements BoboMapFunctionWrapper {
     }
   }
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#finalizeSegment(com.browseengine.bobo.api.BoboIndexReader)
+  /*
+   * (non-Javadoc)
+   * @see
+   * com.browseengine.bobo.mapred.BoboMapFunctionWrapper#finalizeSegment(com.browseengine.bobo.api
+   * .BoboIndexReader)
    */
   @Override
   public void finalizeSegment(BoboIndexReader reader, FacetCountCollector[] facetCountCollectors) {
-    
+
     if (docIdIndex > 0) {
-      ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(reader.getInnerReader());
+      ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>) (reader.getInnerReader());
       DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
-      Serializable mapResult = mapReduceStrategy.map(new DefaultIntArray(partialDocIds), docIdIndex, zoieReader.getUIDArray(), fieldAccessorFactory.getAccessor(facetInfos, reader, docIDMapper), new FacetCountAccessor(facetCountCollectors));
+      Serializable mapResult = mapReduceStrategy.map(new DefaultIntArray(partialDocIds),
+        docIdIndex, zoieReader.getUIDArray(), fieldAccessorFactory.getAccessor(facetInfos, reader,
+          docIDMapper), new FacetCountAccessor(facetCountCollectors));
       if (mapResult != null) {
-        result.getMapResults().add(mapResult);    
+        result.getMapResults().add(mapResult);
       }
     }
     docIdIndex = 0;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see com.browseengine.bobo.mapred.BoboMapFunctionWrapper#finalizePartition()
    */
   @Override
   public void finalizePartition() {
-    result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults(), CombinerStage.partitionLevel))) ;    
+    result.setMapResults(new ArrayList(mapReduceStrategy.combine(result.getMapResults(),
+      CombinerStage.partitionLevel)));
   }
 
   @Override
   public MapReduceResult getResult() {
     return result;
   }
-  
+
 }

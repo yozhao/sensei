@@ -15,20 +15,19 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.test.SenseiStarter;
 
 public class OverridenNodeStarter {
-  private  boolean serverStarted = false;
-  private  Server jettyServer;
-  private  SenseiServer server;
-  private  SenseiBroker senseiBroker;
-  private  BrokerConfig brokerConfig;
+  private boolean serverStarted = false;
+  private Server jettyServer;
+  private SenseiServer server;
+  private SenseiBroker senseiBroker;
+  private BrokerConfig brokerConfig;
   private PropertiesConfiguration senseiConfiguration;
 
- 
-  public  void start(PropertiesConfiguration senseiConfiguration) {
+  public void start(PropertiesConfiguration senseiConfiguration) {
     this.senseiConfiguration = senseiConfiguration;
     if (!serverStarted) {
       try {
         final String indexDir = senseiConfiguration.getString(SenseiConfParams.SENSEI_INDEX_DIR);
-       // rmrf(new File(indexDir));
+        // rmrf(new File(indexDir));
         SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(senseiConfiguration);
         server = senseiServerBuilder.buildServer();
         jettyServer = senseiServerBuilder.buildHttpRestServer();
@@ -42,18 +41,18 @@ public class OverridenNodeStarter {
             }
           }
         });
-     
-         brokerConfig = new BrokerConfig(senseiConfiguration);
+
+        brokerConfig = new BrokerConfig(senseiConfiguration);
         brokerConfig.init(SenseiStarter.createZuCluster());
-         senseiBroker = brokerConfig.buildSenseiBroker();
-       
+        senseiBroker = brokerConfig.buildSenseiBroker();
+
       } catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     }
   }
 
-  public  void waitTillServerStarts(int expectedDocs) throws Exception {
+  public void waitTillServerStarts(int expectedDocs) throws Exception {
     int counter = 0;
     while (true) {
       SenseiResult senseiResult = senseiBroker.browse(new SenseiRequest());
@@ -83,18 +82,17 @@ public class OverridenNodeStarter {
     }
     if (f.isDirectory()) {
       for (File sub : f.listFiles()) {
-        if (!rmrf(sub))
-          return false;
+        if (!rmrf(sub)) return false;
       }
     }
     return f.delete();
   }
- 
-  public  boolean isServerStarted() {
+
+  public boolean isServerStarted() {
     return serverStarted;
   }
- 
-  public  void shutdown() {
+
+  public void shutdown() {
     senseiBroker = null;
     try {
       server.setAvailable(false);
@@ -110,9 +108,11 @@ public class OverridenNodeStarter {
       }
     }
   }
+
   public SenseiBroker getSenseiBroker() {
     return senseiBroker;
   }
+
   public PropertiesConfiguration getSenseiConfiguration() {
     return senseiConfiguration;
   }

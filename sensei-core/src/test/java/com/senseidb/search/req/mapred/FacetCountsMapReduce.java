@@ -16,22 +16,26 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
-public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
-  private static final long serialVersionUID = 1L;  
+public class FacetCountsMapReduce implements
+    SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
+  private static final long serialVersionUID = 1L;
   private String column;
-  
+
   public void init(JSONObject params) {
     try {
-       column = params.getString("column");     
+      column = params.getString("column");
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }
   }
-  public HashMap<String, IntContainer> map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
+
+  public HashMap<String, IntContainer> map(IntArray docIds, int docIdCount, long[] uids,
+      FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     if (!facetCountAccessor.areFacetCountsPresent()) {
       return null;
     }
-    BigSegmentedArray countDistribution = facetCountAccessor.getFacetCollector(column).getCountDistribution();
+    BigSegmentedArray countDistribution = facetCountAccessor.getFacetCollector(column)
+        .getCountDistribution();
     TermValueList termValueList = accessor.getTermValueList(column);
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>(countDistribution.size());
     for (int i = 0; i < countDistribution.size(); i++) {
@@ -39,7 +43,6 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
     }
     return ret;
   }
- 
 
   private String getKey(String[] columns, FieldAccessor fieldAccessor, int docId) {
     StringBuilder key = new StringBuilder(fieldAccessor.get(columns[0], docId).toString());
@@ -50,8 +53,9 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
   }
 
   @Override
-  public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
-    
+  public List<HashMap<String, IntContainer>> combine(
+      List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
+
     if (mapResults == null || mapResults.isEmpty()) return mapResults;
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
     for (int i = 0; i < mapResults.size(); i++) {
@@ -67,7 +71,7 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
           ret.put(key, map.get(key));
         }
       }
-    }  
+    }
     return java.util.Arrays.asList(ret);
   }
 
@@ -107,7 +111,7 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
   }
 }
 
- class IntContainer implements Serializable {
+class IntContainer implements Serializable {
   public int value;
 
   public IntContainer(int value) {
@@ -120,6 +124,3 @@ public class FacetCountsMapReduce implements SenseiMapReduce<HashMap<String, Int
     return this;
   }
 }
- 
-
-

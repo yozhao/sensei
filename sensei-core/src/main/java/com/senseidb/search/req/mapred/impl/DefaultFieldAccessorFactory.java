@@ -15,13 +15,14 @@ import com.senseidb.search.req.mapred.IntArray;
 
 public class DefaultFieldAccessorFactory implements FieldAccessorFactory {
   @Override
-  public FieldAccessor getAccessor(Set<SenseiFacetInfo> facetInfos, BoboIndexReader boboIndexReader, DocIDMapper mapper) {
+  public FieldAccessor getAccessor(Set<SenseiFacetInfo> facetInfos,
+      BoboIndexReader boboIndexReader, DocIDMapper mapper) {
     return new FieldAccessorImpl(facetInfos, boboIndexReader, mapper);
   }
 
   @Override
   public IntArray getDocArray(BoboIndexReader boboIndexReader) {
-    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>)(boboIndexReader.getInnerReader());
+    ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>) (boboIndexReader.getInnerReader());
     DocIDMapperImpl docIDMapper = (DocIDMapperImpl) zoieReader.getDocIDMaper();
     return new DefaultIntArray(docIDMapper.getDocArray());
   }

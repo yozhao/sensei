@@ -9,12 +9,13 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.Field.TermVector;
+import org.apache.lucene.document.StringField;
 
 import proj.zoie.api.indexing.AbstractZoieIndexable;
 
+import com.senseidb.indexing.DefaultSenseiInterpreter.IndexSpec;
 import com.senseidb.indexing.DefaultSenseiInterpreter.MetaFormatSpec;
 
 public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable {
@@ -29,6 +30,7 @@ public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable {
     _interpreter = interpreter;
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public IndexingReq[] buildIndexingReqs() {
     Document doc = new Document();
@@ -38,20 +40,16 @@ public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable {
         String name = entry.getKey();
         IndexSpec idxSpec = entry.getValue();
         String val = String.valueOf(idxSpec.fld.get(_obj));
-        doc.add(new org.apache.lucene.document.Field(name, val, idxSpec.store, idxSpec.index,
-            idxSpec.tv));
+        doc.add(new Field(name, val, idxSpec.fieldType));
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
       }
     }
     Set<Entry<String, MetaFormatSpec>> metaEntries = _interpreter._metaFormatSpecMap.entrySet();
     for (Entry<String, MetaFormatSpec> entry : metaEntries) {
-
       String name = entry.getKey();
       try {
-
         MetaFormatSpec formatSpec = entry.getValue();
-
         Object valObj = formatSpec.fld.get(_obj);
         if (valObj == null) continue;
         Format formatter = formatSpec.formatter;
@@ -66,10 +64,7 @@ public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable {
 
         for (Object obj : valueCollection) {
           String val = formatter == null ? String.valueOf(obj) : formatter.format(obj);
-
-          org.apache.lucene.document.Field fld = new org.apache.lucene.document.Field(name, val,
-              Store.NO, Index.NOT_ANALYZED_NO_NORMS, TermVector.NO);
-          fld.setOmitTermFreqAndPositions(true);
+          Field fld = new StringField(name, val, Store.NO);
           doc.add(fld);
         }
       } catch (Exception e) {
@@ -79,12 +74,6 @@ public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable {
     }
     return new IndexingReq[] { new IndexingReq(doc) };
   }
-
-  // @Override
-  // public byte[] getStoreValue()
-  // {
-  // throw new NotImplementedException();
-  // }
 
   @Override
   public long getUID() {
@@ -115,7 +104,6 @@ public class DefaultSenseiZoieIndexable<V> extends AbstractZoieIndexable {
 
   @Override
   public boolean isSkip() {
-
     return checkViaReflection(_interpreter._skipChecker);
   }
 

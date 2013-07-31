@@ -26,22 +26,27 @@ public class LocalQueryOnlySenseiServiceImpl implements SenseiService {
 
   private CoreSenseiServiceImpl _coreService;
   private final SenseiCore _core;
-  public LocalQueryOnlySenseiServiceImpl(File idxDir) throws Exception{
+
+  public LocalQueryOnlySenseiServiceImpl(File idxDir) throws Exception {
     ZoieConfig zoieConfig = new ZoieConfig();
     zoieConfig.setReadercachefactory(SimpleReaderCache.FACTORY);
-    DemoZoieSystemFactory zoieFactory = new DemoZoieSystemFactory(idxDir,new AbstractZoieIndexableInterpreter<JSONObject>(){
-      @Override
-      public ZoieIndexable convertAndInterpret(JSONObject src) {
-        return null;
-      }
-    },zoieConfig);
-    QueryParser queryParser = new QueryParser(Version.LUCENE_35,"contents", new StandardAnalyzer(Version.LUCENE_35));
-    DefaultJsonQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(queryParser);
-    _core = new SenseiCore(1,new int[]{0},zoieFactory,null,queryBuilderFactory, new DefaultFieldAccessorFactory(), zoieFactory.getDecorator());
+    DemoZoieSystemFactory zoieFactory = new DemoZoieSystemFactory(idxDir,
+        new AbstractZoieIndexableInterpreter<JSONObject>() {
+          @Override
+          public ZoieIndexable convertAndInterpret(JSONObject src) {
+            return null;
+          }
+        }, zoieConfig);
+    QueryParser queryParser = new QueryParser(Version.LUCENE_35, "contents", new StandardAnalyzer(
+        Version.LUCENE_35));
+    DefaultJsonQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(
+        queryParser);
+    _core = new SenseiCore(1, new int[] { 0 }, zoieFactory, null, queryBuilderFactory,
+        new DefaultFieldAccessorFactory(), zoieFactory.getDecorator());
     _coreService = new CoreSenseiServiceImpl(_core);
     _core.start();
   }
-  
+
   @Override
   public SenseiResult doQuery(SenseiRequest req) throws SenseiException {
     return _coreService.execute(req);
@@ -57,7 +62,7 @@ public class LocalQueryOnlySenseiServiceImpl implements SenseiService {
     _core.shutdown();
   }
 
-  public static void main(String[] args) throws Exception{
+  public static void main(String[] args) throws Exception {
     File idxDir = new File("/tmp/sensei-example-cars/node1/shard0");
     SenseiService svc = new LocalQueryOnlySenseiServiceImpl(idxDir);
     SenseiResult res = svc.doQuery(new SenseiRequest());

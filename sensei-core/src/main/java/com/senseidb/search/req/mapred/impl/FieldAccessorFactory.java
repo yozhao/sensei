@@ -10,6 +10,8 @@ import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.IntArray;
 
 public interface FieldAccessorFactory {
-    public FieldAccessor getAccessor(Set<SenseiFacetInfo> facetInfos, BoboIndexReader boboIndexReader, DocIDMapper mapper);
-    public IntArray getDocArray(BoboIndexReader boboIndexReader);
+  public FieldAccessor getAccessor(Set<SenseiFacetInfo> facetInfos,
+      BoboIndexReader boboIndexReader, DocIDMapper mapper);
+
+  public IntArray getDocArray(BoboIndexReader boboIndexReader);
 }

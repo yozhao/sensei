@@ -19,48 +19,35 @@ import org.json.JSONObject;
 
 import proj.zoie.api.DataConsumer.DataEvent;
 
-public class JSONUtil
-{
-  public static class FastJSONObject extends JSONObject
-  {
+public class JSONUtil {
+  public static class FastJSONObject extends JSONObject {
     private com.alibaba.fastjson.JSONObject _inner;
 
-    public FastJSONObject()
-    {
+    public FastJSONObject() {
       _inner = new com.alibaba.fastjson.JSONObject();
     }
 
-    public FastJSONObject(String str) throws JSONException
-    {
-      try
-      {
-        _inner = (com.alibaba.fastjson.JSONObject)JSON.parse(str);
-      }
-      catch (Exception e)
-      {
+    public FastJSONObject(String str) throws JSONException {
+      try {
+        _inner = (com.alibaba.fastjson.JSONObject) JSON.parse(str);
+      } catch (Exception e) {
         throw new JSONException(e);
       }
     }
 
-    public FastJSONObject(Map value)
-    {
-      if (value instanceof com.alibaba.fastjson.JSONObject)
-      {
-        _inner = (com.alibaba.fastjson.JSONObject)value;
-      }
-      else
-      {
-        _inner = (com.alibaba.fastjson.JSONObject)toJSON(value);
+    public FastJSONObject(Map value) {
+      if (value instanceof com.alibaba.fastjson.JSONObject) {
+        _inner = (com.alibaba.fastjson.JSONObject) value;
+      } else {
+        _inner = (com.alibaba.fastjson.JSONObject) toJSON(value);
       }
     }
 
-    public FastJSONObject(com.alibaba.fastjson.JSONObject inner)
-    {
+    public FastJSONObject(com.alibaba.fastjson.JSONObject inner) {
       _inner = inner;
     }
 
-    public com.alibaba.fastjson.JSONObject getInnerJSONObject()
-    {
+    public com.alibaba.fastjson.JSONObject getInnerJSONObject() {
       return _inner;
     }
 
@@ -80,24 +67,15 @@ public class JSONUtil
      * @throws JSONException If the value is an invalid number
      *  or if the key is null.
      */
-    public JSONObject accumulate(
-      String key,
-      Object value
-    ) throws JSONException
-    {
+    public JSONObject accumulate(String key, Object value) throws JSONException {
       Object object = _inner.get(key);
-      if (object == null)
-      {
+      if (object == null) {
         com.alibaba.fastjson.JSONArray array = new com.alibaba.fastjson.JSONArray();
         array.add(value);
         _inner.put(key, array);
-      }
-      else if (object instanceof com.alibaba.fastjson.JSONArray)
-      {
-        ((com.alibaba.fastjson.JSONArray)object).add(value);
-      }
-      else
-      {
+      } else if (object instanceof com.alibaba.fastjson.JSONArray) {
+        ((com.alibaba.fastjson.JSONArray) object).add(value);
+      } else {
         com.alibaba.fastjson.JSONArray array = new com.alibaba.fastjson.JSONArray();
         array.add(object);
         array.add(value);
@@ -105,7 +83,6 @@ public class JSONUtil
       }
       return this;
     }
-
 
     /**
      * Append values to the array under a key. If the key does not exist in the
@@ -118,23 +95,16 @@ public class JSONUtil
      * @throws JSONException If the key is null or if the current value
      *  associated with the key is not a JSONArray.
      */
-    public JSONObject append(String key, Object value) throws JSONException
-    {
+    public JSONObject append(String key, Object value) throws JSONException {
       Object object = _inner.get(key);
-      if (object == null)
-      {
+      if (object == null) {
         com.alibaba.fastjson.JSONArray array = new com.alibaba.fastjson.JSONArray();
         array.add(value);
         _inner.put(key, array);
-      }
-      else if (object instanceof com.alibaba.fastjson.JSONArray)
-      {
-        ((com.alibaba.fastjson.JSONArray)object).add(value);
-      }
-      else
-      {
-        throw new JSONException("JSONObject[" + key +
-            "] is not a JSONArray.");
+      } else if (object instanceof com.alibaba.fastjson.JSONArray) {
+        ((com.alibaba.fastjson.JSONArray) object).add(value);
+      } else {
+        throw new JSONException("JSONObject[" + key + "] is not a JSONArray.");
       }
       return this;
     }
@@ -146,17 +116,13 @@ public class JSONUtil
      * @return    The object associated with the key.
      * @throws    JSONException if the key is not found.
      */
-    public Object get(String key) throws JSONException
-    {
+    public Object get(String key) throws JSONException {
       Object object = this.opt(key);
-      if (object == null)
-      {
-        throw new JSONException("JSONObject[" + key +
-            "] not found.");
+      if (object == null) {
+        throw new JSONException("JSONObject[" + key + "] not found.");
       }
       return object;
     }
-
 
     /**
      * Get the JSONArray value associated with a key.
@@ -166,24 +132,17 @@ public class JSONUtil
      * @throws    JSONException if the key is not found or
      *  if the value is not a JSONArray.
      */
-    public JSONArray getJSONArray(String key) throws JSONException
-    {
+    public JSONArray getJSONArray(String key) throws JSONException {
       Object object = this.get(key);
-      if (object instanceof com.alibaba.fastjson.JSONArray)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)object);
+      if (object instanceof com.alibaba.fastjson.JSONArray) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) object);
+      } else if (object instanceof Collection) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) toJSON(object));
+      } else if (object instanceof JSONArray) {
+        return (JSONArray) object;
       }
-      else if (object instanceof Collection)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)toJSON(object));
-      }
-      else if (object instanceof JSONArray) {
-        return (JSONArray)object;
-      }
-      throw new JSONException("JSONObject[" + quote(key) +
-          "] is not a JSONArray.");
+      throw new JSONException("JSONObject[" + quote(key) + "] is not a JSONArray.");
     }
-
 
     /**
      * Get the JSONObject value associated with a key.
@@ -193,24 +152,17 @@ public class JSONUtil
      * @throws    JSONException if the key is not found or
      *  if the value is not a JSONObject.
      */
-    public JSONObject getJSONObject(String key) throws JSONException
-    {
+    public JSONObject getJSONObject(String key) throws JSONException {
       Object object = this.get(key);
-      if (object instanceof com.alibaba.fastjson.JSONObject)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)object);
+      if (object instanceof com.alibaba.fastjson.JSONObject) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) object);
+      } else if (object instanceof Map) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) toJSON(object));
+      } else if (object instanceof JSONObject) {
+        return (JSONObject) object;
       }
-      else if (object instanceof Map)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)toJSON(object));
-      }
-      else if (object instanceof JSONObject) {
-        return (JSONObject)object;
-      }
-      throw new JSONException("JSONObject[" + quote(key) +
-          "] is not a JSONObject.");
+      throw new JSONException("JSONObject[" + quote(key) + "] is not a JSONObject.");
     }
-
 
     /**
      * Determine if the JSONObject contains a specific key.
@@ -220,7 +172,6 @@ public class JSONUtil
     public boolean has(String key) {
       return _inner.containsKey(key);
     }
-
 
     /**
      * Get an enumeration of the keys of the JSONObject.
@@ -244,7 +195,6 @@ public class JSONUtil
       return _inner.size();
     }
 
-
     /**
      * Produce a JSONArray containing the names of the elements of this
      * JSONObject.
@@ -253,7 +203,7 @@ public class JSONUtil
      */
     public JSONArray names() {
       JSONArray ja = new FastJSONArray();
-      Iterator  keys = this.keys();
+      Iterator keys = this.keys();
       while (keys.hasNext()) {
         ja.put(keys.next());
       }
@@ -266,35 +216,24 @@ public class JSONUtil
      * @return    An object which is the value, or null if there is no value.
      */
     public Object opt(String key) {
-      if (key == null)
-      {
+      if (key == null) {
         return null;
       }
 
       Object object = _inner.get(key);
-      if (object == null)
-      {
+      if (object == null) {
         return null;
-      }
-      else if (object instanceof com.alibaba.fastjson.JSONObject)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)object);
-      }
-      else if (object instanceof com.alibaba.fastjson.JSONArray)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)object);
-      }
-      else if (object instanceof Map)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)toJSON(object));
-      }
-      else if (object instanceof Collection)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)toJSON(object));
+      } else if (object instanceof com.alibaba.fastjson.JSONObject) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) object);
+      } else if (object instanceof com.alibaba.fastjson.JSONArray) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) object);
+      } else if (object instanceof Map) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) toJSON(object));
+      } else if (object instanceof Collection) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) toJSON(object));
       }
       return object;
     }
-
 
     /**
      * Get an optional JSONArray associated with a key.
@@ -304,18 +243,13 @@ public class JSONUtil
      * @param key   A key string.
      * @return    A JSONArray which is the value.
      */
-    public JSONArray optJSONArray(String key)
-    {
-      try
-      {
+    public JSONArray optJSONArray(String key) {
+      try {
         return this.getJSONArray(key);
-      }
-      catch(Exception e)
-      {
+      } catch (Exception e) {
         return null;
       }
     }
-
 
     /**
      * Get an optional JSONObject associated with a key.
@@ -325,14 +259,10 @@ public class JSONUtil
      * @param key   A key string.
      * @return    A JSONObject which is the value.
      */
-    public JSONObject optJSONObject(String key)
-    {
-      try
-      {
+    public JSONObject optJSONObject(String key) {
+      try {
         return this.getJSONObject(key);
-      }
-      catch(Exception e)
-      {
+      } catch (Exception e) {
         return null;
       }
     }
@@ -345,16 +275,13 @@ public class JSONUtil
      * @param defaultValue   The default.
      * @return    A string which is the value.
      */
-    public String optString(String key, String defaultValue)
-    {
+    public String optString(String key, String defaultValue) {
       Object object = this.opt(key);
-      if (object == null || NULL.equals(object))
-      {
+      if (object == null || NULL.equals(object)) {
         return defaultValue;
       }
       return object.toString();
     }
-
 
     /**
      * Put a key/value pair in the JSONObject, where the value will be a
@@ -364,12 +291,10 @@ public class JSONUtil
      * @return    this.
      * @throws JSONException
      */
-    public JSONObject put(String key, Collection value) throws JSONException
-    {
-      this.put(key, (Object)value);
+    public JSONObject put(String key, Collection value) throws JSONException {
+      this.put(key, (Object) value);
       return this;
     }
-
 
     /**
      * Put a key/value pair in the JSONObject, where the value will be a
@@ -380,10 +305,9 @@ public class JSONUtil
      * @throws JSONException
      */
     public JSONObject put(String key, Map value) throws JSONException {
-      this.put(key, (Object)value);
+      this.put(key, (Object) value);
       return this;
     }
-
 
     /**
      * Put a key/value pair in the JSONObject. If the value is null,
@@ -396,33 +320,22 @@ public class JSONUtil
      * @throws JSONException If the value is non-finite number
      *  or if the key is null.
      */
-    public JSONObject put(String key, Object value) throws JSONException
-    {
-      if (key == null)
-      {
+    public JSONObject put(String key, Object value) throws JSONException {
+      if (key == null) {
         throw new JSONException("Null key.");
       }
-      if (value != null)
-      {
-        if (value instanceof FastJSONObject)
-        {
-          _inner.put(key, ((FastJSONObject)value).getInnerJSONObject());
-        }
-        else if (value instanceof FastJSONArray)
-        {
-          _inner.put(key, ((FastJSONArray)value).getInnerJSONArray());
-        }
-        else
-        {
-          if (value instanceof JSONObject || value instanceof JSONArray)
-          {
+      if (value != null) {
+        if (value instanceof FastJSONObject) {
+          _inner.put(key, ((FastJSONObject) value).getInnerJSONObject());
+        } else if (value instanceof FastJSONArray) {
+          _inner.put(key, ((FastJSONArray) value).getInnerJSONArray());
+        } else {
+          if (value instanceof JSONObject || value instanceof JSONArray) {
             throw new JSONException("the value is not fast version of JSONObjects: " + value);
           }
           _inner.put(key, toJSON(value));
         }
-      }
-      else
-      {
+      } else {
         this.remove(key);
       }
       return this;
@@ -450,71 +363,53 @@ public class JSONUtil
      *  with <code>{</code>&nbsp;<small>(left brace)</small> and ending
      *  with <code>}</code>&nbsp;<small>(right brace)</small>.
      */
-    public String toString()
-    {
-      try
-      {
+    public String toString() {
+      try {
         return _inner.toString();
-      }
-      catch(Exception e)
-      {
+      } catch (Exception e) {
         return null;
       }
     }
 
-
     /**
      * Not a prettyprinted JSON text, just the same as toString().
      */
-    public String toString(int indentFactor) throws JSONException
-    {
+    public String toString(int indentFactor) throws JSONException {
       return _inner.toString();
     }
   }
 
-  public static class FastJSONArray extends JSONArray
-  {
+  public static class FastJSONArray extends JSONArray {
     private com.alibaba.fastjson.JSONArray _inner;
 
     /**
      * Construct an empty JSONArray.
      */
-    public FastJSONArray()
-    {
+    public FastJSONArray() {
       _inner = new com.alibaba.fastjson.JSONArray();
     }
 
-    public FastJSONArray(String str) throws JSONException
-    {
-      try
-      {
-        _inner = (com.alibaba.fastjson.JSONArray)JSON.parse(str);
-      }
-      catch (Exception e)
-      {
+    public FastJSONArray(String str) throws JSONException {
+      try {
+        _inner = (com.alibaba.fastjson.JSONArray) JSON.parse(str);
+      } catch (Exception e) {
         throw new JSONException(e);
       }
     }
 
-    public FastJSONArray(Collection value)
-    {
-      if (value instanceof com.alibaba.fastjson.JSONArray)
-      {
-        _inner = (com.alibaba.fastjson.JSONArray)value;
-      }
-      else
-      {
-        _inner = (com.alibaba.fastjson.JSONArray)toJSON(value);
+    public FastJSONArray(Collection value) {
+      if (value instanceof com.alibaba.fastjson.JSONArray) {
+        _inner = (com.alibaba.fastjson.JSONArray) value;
+      } else {
+        _inner = (com.alibaba.fastjson.JSONArray) toJSON(value);
       }
     }
 
-    public FastJSONArray(com.alibaba.fastjson.JSONArray inner)
-    {
+    public FastJSONArray(com.alibaba.fastjson.JSONArray inner) {
       _inner = inner;
     }
 
-    public com.alibaba.fastjson.JSONArray getInnerJSONArray()
-    {
+    public com.alibaba.fastjson.JSONArray getInnerJSONArray() {
       return _inner;
     }
 
@@ -525,16 +420,13 @@ public class JSONUtil
      * @return An object value.
      * @throws JSONException If there is no value for the index.
      */
-    public Object get(int index) throws JSONException
-    {
+    public Object get(int index) throws JSONException {
       Object object = this.opt(index);
-      if (object == null)
-      {
+      if (object == null) {
         throw new JSONException("JSONArray[" + index + "] not found.");
       }
       return object;
     }
-
 
     /**
      * Get the JSONArray associated with an index.
@@ -543,24 +435,17 @@ public class JSONUtil
      * @throws JSONException If there is no value for the index. or if the
      * value is not a JSONArray
      */
-    public JSONArray getJSONArray(int index) throws JSONException
-    {
+    public JSONArray getJSONArray(int index) throws JSONException {
       Object object = this.get(index);
-      if (object instanceof com.alibaba.fastjson.JSONArray)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)object);
+      if (object instanceof com.alibaba.fastjson.JSONArray) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) object);
+      } else if (object instanceof Collection) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) toJSON(object));
+      } else if (object instanceof JSONArray) {
+        return (JSONArray) object;
       }
-      else if (object instanceof Collection)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)toJSON(object));
-      }
-      else if (object instanceof JSONArray) {
-        return (JSONArray)object;
-      }
-      throw new JSONException("JSONArray[" + index +
-          "] is not a JSONArray.");
+      throw new JSONException("JSONArray[" + index + "] is not a JSONArray.");
     }
-
 
     /**
      * Get the JSONObject associated with an index.
@@ -569,35 +454,26 @@ public class JSONUtil
      * @throws JSONException If there is no value for the index or if the
      * value is not a JSONObject
      */
-    public JSONObject getJSONObject(int index) throws JSONException
-    {
+    public JSONObject getJSONObject(int index) throws JSONException {
       Object object = this.get(index);
-      if (object instanceof com.alibaba.fastjson.JSONObject)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)object);
+      if (object instanceof com.alibaba.fastjson.JSONObject) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) object);
+      } else if (object instanceof Map) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) toJSON(object));
+      } else if (object instanceof JSONObject) {
+        return (JSONObject) object;
       }
-      else if (object instanceof Map)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)toJSON(object));
-      }
-      else if (object instanceof JSONObject) {
-        return (JSONObject)object;
-      }
-      throw new JSONException("JSONArray[" + index +
-          "] is not a JSONObject.");
+      throw new JSONException("JSONArray[" + index + "] is not a JSONObject.");
     }
-
 
     /**
      * Get the number of elements in the JSONArray, included nulls.
      *
      * @return The length (or size).
      */
-    public int length()
-    {
+    public int length() {
       return _inner.size();
     }
-
 
     /**
      * Get the optional object value associated with an index.
@@ -605,36 +481,24 @@ public class JSONUtil
      * @return    An object value, or null if there is no
      *        object at that index.
      */
-    public Object opt(int index)
-    {
-      if (index < 0 || index >= this.length())
-      {
+    public Object opt(int index) {
+      if (index < 0 || index >= this.length()) {
         return null;
       }
       Object object = _inner.get(index);
-      if (object == null)
-      {
+      if (object == null) {
         return null;
-      }
-      else if (object instanceof com.alibaba.fastjson.JSONObject)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)object);
-      }
-      else if (object instanceof com.alibaba.fastjson.JSONArray)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)object);
-      }
-      else if (object instanceof Map)
-      {
-        return new FastJSONObject((com.alibaba.fastjson.JSONObject)toJSON(object));
-      }
-      else if (object instanceof Collection)
-      {
-        return new FastJSONArray((com.alibaba.fastjson.JSONArray)toJSON(object));
+      } else if (object instanceof com.alibaba.fastjson.JSONObject) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) object);
+      } else if (object instanceof com.alibaba.fastjson.JSONArray) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) object);
+      } else if (object instanceof Map) {
+        return new FastJSONObject((com.alibaba.fastjson.JSONObject) toJSON(object));
+      } else if (object instanceof Collection) {
+        return new FastJSONArray((com.alibaba.fastjson.JSONArray) toJSON(object));
       }
       return object;
     }
-
 
     /**
      * Get the optional JSONArray associated with an index.
@@ -642,18 +506,13 @@ public class JSONUtil
      * @return    A JSONArray value, or null if the index has no value,
      * or if the value is not a JSONArray.
      */
-    public JSONArray optJSONArray(int index)
-    {
-      try
-      {
+    public JSONArray optJSONArray(int index) {
+      try {
         return this.getJSONArray(index);
-      }
-      catch(Exception e)
-      {
+      } catch (Exception e) {
         return null;
       }
     }
-
 
     /**
      * Get the optional JSONObject associated with an index.
@@ -663,18 +522,13 @@ public class JSONUtil
      * @param index The index must be between 0 and length() - 1.
      * @return    A JSONObject value.
      */
-    public JSONObject optJSONObject(int index)
-    {
-      try
-      {
+    public JSONObject optJSONObject(int index) {
+      try {
         return this.getJSONObject(index);
-      }
-      catch(Exception e)
-      {
+      } catch (Exception e) {
         return null;
       }
     }
-
 
     /**
      * Get the optional string associated with an index.
@@ -684,16 +538,13 @@ public class JSONUtil
      * @param defaultValue   The default value.
      * @return    A String value.
      */
-    public String optString(int index, String defaultValue)
-    {
+    public String optString(int index, String defaultValue) {
       Object object = this.opt(index);
-      if (object == null || JSONObject.NULL.equals(object))
-      {
+      if (object == null || JSONObject.NULL.equals(object)) {
         return defaultValue;
       }
       return object.toString();
     }
-
 
     /**
      * Put a value in the JSONArray, where the value will be a
@@ -701,12 +552,10 @@ public class JSONUtil
      * @param value A Collection value.
      * @return    this.
      */
-    public JSONArray put(Collection value)
-    {
-      this.put((Object)value);
+    public JSONArray put(Collection value) {
+      this.put((Object) value);
       return this;
     }
-
 
     /**
      * Put a value in the JSONArray, where the value will be a
@@ -714,12 +563,10 @@ public class JSONUtil
      * @param value A Map value.
      * @return    this.
      */
-    public JSONArray put(Map value)
-    {
-      this.put((Object)value);
+    public JSONArray put(Map value) {
+      this.put((Object) value);
       return this;
     }
-
 
     /**
      * Append an object value. This increases the array's length by one.
@@ -728,27 +575,20 @@ public class JSONUtil
      *  JSONObject.NULL object.
      * @return this.
      */
-    public JSONArray put(Object value)
-    {
-      if (value instanceof FastJSONObject)
-      {
-        _inner.add(((FastJSONObject)value).getInnerJSONObject());
-      }
-      else if (value instanceof FastJSONArray)
-      {
-        _inner.add(((FastJSONArray)value).getInnerJSONArray());
-      }
-      else
-      {
-        if (value instanceof JSONObject || value instanceof JSONArray)
-        {
-          throw new IllegalArgumentException("the value is not fast version of JSONObjects: " + value);
+    public JSONArray put(Object value) {
+      if (value instanceof FastJSONObject) {
+        _inner.add(((FastJSONObject) value).getInnerJSONObject());
+      } else if (value instanceof FastJSONArray) {
+        _inner.add(((FastJSONArray) value).getInnerJSONArray());
+      } else {
+        if (value instanceof JSONObject || value instanceof JSONArray) {
+          throw new IllegalArgumentException("the value is not fast version of JSONObjects: "
+              + value);
         }
         _inner.add(toJSON(value));
       }
       return this;
     }
-
 
     /**
      * Put a value in the JSONArray, where the value will be a
@@ -759,12 +599,10 @@ public class JSONUtil
      * @throws JSONException If the index is negative or if the value is
      * not finite.
      */
-    public JSONArray put(int index, Collection value) throws JSONException
-    {
-      this.put(index, (Object)value);
+    public JSONArray put(int index, Collection value) throws JSONException {
+      this.put(index, (Object) value);
       return this;
     }
-
 
     /**
      * Put a value in the JSONArray, where the value will be a
@@ -775,12 +613,10 @@ public class JSONUtil
      * @throws JSONException If the index is negative or if the the value is
      *  an invalid number.
      */
-    public JSONArray put(int index, Map value) throws JSONException
-    {
-      this.put(index, (Object)value);
+    public JSONArray put(int index, Map value) throws JSONException {
+      this.put(index, (Object) value);
       return this;
     }
-
 
     /**
      * Put or replace an object value in the JSONArray. If the index is greater
@@ -794,35 +630,24 @@ public class JSONUtil
      * @throws JSONException If the index is negative or if the the value is
      *  an invalid number.
      */
-    public JSONArray put(int index, Object value) throws JSONException
-    {
-      if (index < 0)
-      {
+    public JSONArray put(int index, Object value) throws JSONException {
+      if (index < 0) {
         throw new JSONException("JSONArray[" + index + "] not found.");
       }
-      if (index < this.length())
-      {
-        if (value instanceof FastJSONObject)
-        {
-          _inner.set(index, ((FastJSONObject)value).getInnerJSONObject());
-        }
-        else if (value instanceof FastJSONArray)
-        {
-          _inner.set(index, ((FastJSONArray)value).getInnerJSONArray());
-        }
-        else
-        {
-          if (value instanceof JSONObject || value instanceof JSONArray)
-          {
-            throw new IllegalArgumentException("the value is not fast version of JSONObjects: " + value);
+      if (index < this.length()) {
+        if (value instanceof FastJSONObject) {
+          _inner.set(index, ((FastJSONObject) value).getInnerJSONObject());
+        } else if (value instanceof FastJSONArray) {
+          _inner.set(index, ((FastJSONArray) value).getInnerJSONArray());
+        } else {
+          if (value instanceof JSONObject || value instanceof JSONArray) {
+            throw new IllegalArgumentException("the value is not fast version of JSONObjects: "
+                + value);
           }
           _inner.set(index, value);
         }
-      }
-      else
-      {
-        while (index != this.length())
-        {
+      } else {
+        while (index != this.length()) {
           this.put(JSONObject.NULL);
         }
         this.put(value);
@@ -830,20 +655,17 @@ public class JSONUtil
       return this;
     }
 
-
     /**
      * Remove an index and close the hole.
      * @param index The index of the element to be removed.
      * @return The value that was associated with the index,
      * or null if there was no value.
      */
-    public Object remove(int index)
-    {
+    public Object remove(int index) {
       Object o = this.opt(index);
       _inner.remove(index);
       return o;
     }
-
 
     /**
      * Make a JSON text of this JSONArray. For compactness, no
@@ -856,36 +678,28 @@ public class JSONUtil
      * @return a printable, displayable, transmittable
      *  representation of the array.
      */
-    public String toString()
-    {
-      try
-      {
+    public String toString() {
+      try {
         return _inner.toString();
-      }
-      catch (Exception e)
-      {
+      } catch (Exception e) {
         return null;
       }
     }
 
-
     /**
      * Not a prettyprinted JSON text, just the same as toString().
      */
-    public String toString(int indentFactor) throws JSONException
-    {
+    public String toString(int indentFactor) throws JSONException {
       return this.toString();
     }
   }
 
-  public static String normalize(String str)
-  {
+  public static String normalize(String str) {
     return str.replaceAll("[\\s\\\\]*\n[\\s\\\\]*", " ");
   }
 
   @SuppressWarnings("unchecked")
-  public static Object toJSON(Object javaObject)
-  {
+  public static Object toJSON(Object javaObject) {
     if (javaObject == null) {
       return null;
     }
@@ -895,11 +709,11 @@ public class JSONUtil
     }
 
     if (javaObject instanceof FastJSONObject) {
-      return ((FastJSONObject)javaObject).getInnerJSONObject();
+      return ((FastJSONObject) javaObject).getInnerJSONObject();
     }
 
     if (javaObject instanceof FastJSONArray) {
-      return ((FastJSONArray)javaObject).getInnerJSONArray();
+      return ((FastJSONArray) javaObject).getInnerJSONArray();
     }
 
     if (javaObject instanceof Map) {
@@ -973,120 +787,90 @@ public class JSONUtil
   }
 
   public static boolean optBooleanValue(com.alibaba.fastjson.JSONObject json, String key)
-    throws com.alibaba.fastjson.JSONException
-  {
+      throws com.alibaba.fastjson.JSONException {
     return optBooleanValue(json, key, false);
   }
 
-  public static boolean optBooleanValue(com.alibaba.fastjson.JSONObject json, String key, boolean defaultValue)
-    throws com.alibaba.fastjson.JSONException
-  {
+  public static boolean optBooleanValue(com.alibaba.fastjson.JSONObject json, String key,
+      boolean defaultValue) throws com.alibaba.fastjson.JSONException {
     Boolean val = json.getBoolean(key);
-    if (val == null)
-      return defaultValue;
+    if (val == null) return defaultValue;
     return val.booleanValue();
   }
 
   public static boolean optBooleanValue(com.alibaba.fastjson.JSONArray json, int index)
-    throws com.alibaba.fastjson.JSONException
-  {
+      throws com.alibaba.fastjson.JSONException {
     return optBooleanValue(json, index, false);
   }
 
-  public static boolean optBooleanValue(com.alibaba.fastjson.JSONArray json, int index, boolean defaultValue)
-    throws com.alibaba.fastjson.JSONException
-  {
+  public static boolean optBooleanValue(com.alibaba.fastjson.JSONArray json, int index,
+      boolean defaultValue) throws com.alibaba.fastjson.JSONException {
     Boolean val = json.getBoolean(index);
-    if (val == null)
-      return defaultValue;
+    if (val == null) return defaultValue;
     return val.booleanValue();
   }
 
-  public static com.alibaba.fastjson.JSONObject optJSONObject(com.alibaba.fastjson.JSONObject json, String key)
-    throws com.alibaba.fastjson.JSONException
-  {
+  public static com.alibaba.fastjson.JSONObject optJSONObject(com.alibaba.fastjson.JSONObject json,
+      String key) throws com.alibaba.fastjson.JSONException {
     Object obj = json.get(key);
-    if (obj == null)
-      return null;
+    if (obj == null) return null;
 
-    if (!(obj instanceof com.alibaba.fastjson.JSONObject))
-    {
-      try
-      {
-        return (com.alibaba.fastjson.JSONObject)toJSON(obj);
-      }
-      catch(Exception e)
-      {
+    if (!(obj instanceof com.alibaba.fastjson.JSONObject)) {
+      try {
+        return (com.alibaba.fastjson.JSONObject) toJSON(obj);
+      } catch (Exception e) {
         return null;
       }
     }
 
-    return (com.alibaba.fastjson.JSONObject)obj;
+    return (com.alibaba.fastjson.JSONObject) obj;
   }
 
-  public static com.alibaba.fastjson.JSONObject optJSONObject(com.alibaba.fastjson.JSONArray json, int index)
-    throws com.alibaba.fastjson.JSONException
-  {
+  public static com.alibaba.fastjson.JSONObject optJSONObject(com.alibaba.fastjson.JSONArray json,
+      int index) throws com.alibaba.fastjson.JSONException {
     Object obj = json.get(index);
-    if (obj == null)
-      return null;
+    if (obj == null) return null;
 
-    if (!(obj instanceof com.alibaba.fastjson.JSONObject))
-    {
-      try
-      {
-        return (com.alibaba.fastjson.JSONObject)toJSON(obj);
-      }
-      catch(Exception e)
-      {
+    if (!(obj instanceof com.alibaba.fastjson.JSONObject)) {
+      try {
+        return (com.alibaba.fastjson.JSONObject) toJSON(obj);
+      } catch (Exception e) {
         return null;
       }
     }
 
-    return (com.alibaba.fastjson.JSONObject)obj;
+    return (com.alibaba.fastjson.JSONObject) obj;
   }
 
-  public static com.alibaba.fastjson.JSONArray optJSONArray(com.alibaba.fastjson.JSONObject json, String key)
-    throws com.alibaba.fastjson.JSONException
-  {
+  public static com.alibaba.fastjson.JSONArray optJSONArray(com.alibaba.fastjson.JSONObject json,
+      String key) throws com.alibaba.fastjson.JSONException {
     Object obj = json.get(key);
-    if (obj == null)
-      return null;
+    if (obj == null) return null;
 
-    if (!(obj instanceof com.alibaba.fastjson.JSONArray))
-    {
-      try
-      {
-        return (com.alibaba.fastjson.JSONArray)toJSON(obj);
-      }
-      catch(Exception e)
-      {
+    if (!(obj instanceof com.alibaba.fastjson.JSONArray)) {
+      try {
+        return (com.alibaba.fastjson.JSONArray) toJSON(obj);
+      } catch (Exception e) {
         return null;
       }
     }
 
-    return (com.alibaba.fastjson.JSONArray)obj;
+    return (com.alibaba.fastjson.JSONArray) obj;
   }
 
-  public static com.alibaba.fastjson.JSONArray optJSONArray(com.alibaba.fastjson.JSONArray json, int index)
-    throws com.alibaba.fastjson.JSONException
-  {
+  public static com.alibaba.fastjson.JSONArray optJSONArray(com.alibaba.fastjson.JSONArray json,
+      int index) throws com.alibaba.fastjson.JSONException {
     Object obj = json.get(index);
-    if (obj == null)
-      return null;
+    if (obj == null) return null;
 
-    if (!(obj instanceof com.alibaba.fastjson.JSONArray))
-    {
-      try
-      {
-        return (com.alibaba.fastjson.JSONArray)toJSON(obj);
-      }
-      catch(Exception e)
-      {
+    if (!(obj instanceof com.alibaba.fastjson.JSONArray)) {
+      try {
+        return (com.alibaba.fastjson.JSONArray) toJSON(obj);
+      } catch (Exception e) {
         return null;
       }
     }
 
-    return (com.alibaba.fastjson.JSONArray)obj;
+    return (com.alibaba.fastjson.JSONArray) obj;
   }
 }

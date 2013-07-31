@@ -35,7 +35,6 @@ public class SenseiStarter {
 
   public static File ConfDir1 = null;
   public static File ConfDir2 = null;
- 
 
   public static File IndexDir = new File("sensei-index-test");
   public static URL SenseiUrl = null;
@@ -46,19 +45,17 @@ public class SenseiStarter {
   public static Server httpServer1;
   public static Server httpServer2;
   public static SenseiRequestScatterRewriter requestRewriter;
-  public static final String SENSEI_TEST_CONF_FILE="sensei-test.spring";
+  public static final String SENSEI_TEST_CONF_FILE = "sensei-test.spring";
   public static SenseiZoieFactory<?> _zoieFactory;
   public static boolean started = false;
 
-   public static URL  federatedBrokerUrl;
-   
+  public static URL federatedBrokerUrl;
 
-   private static ZooKeeperTestServer zkTestServer;
+  private static ZooKeeperTestServer zkTestServer;
 
-	private static ZuCluster clusterClient;
+  private static ZuCluster clusterClient;
 
-
-  public static synchronized ZuCluster createZuCluster() throws Exception{
+  public static synchronized ZuCluster createZuCluster() throws Exception {
     if (clusterClient == null) {
       clusterClient = new ZuCluster(zkTestServer.createClient(), "testCluster");
     }
@@ -69,17 +66,17 @@ public class SenseiStarter {
    * Will start the new Sensei instance once per process
    */
   public static synchronized void start(String confDir1, String confDir2) {
-    
- final ShutdownRegistryImpl shutdownRegistry = new ShutdownRegistryImpl();
-    
-    try{
-      zkTestServer = new ZooKeeperTestServer(0, shutdownRegistry, ZooKeeperTestServer.DEFAULT_SESSION_TIMEOUT);
+
+    final ShutdownRegistryImpl shutdownRegistry = new ShutdownRegistryImpl();
+
+    try {
+      zkTestServer = new ZooKeeperTestServer(0, shutdownRegistry,
+          ZooKeeperTestServer.DEFAULT_SESSION_TIMEOUT);
       zkTestServer.startNetwork();
-    }
-    catch(Exception e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
-     
+
     ActivityRangeFacetHandler.isSynchronized = true;
     if (started) {
       logger.warn("The server had been already started");
@@ -87,59 +84,59 @@ public class SenseiStarter {
     }
     try {
       JmxSenseiMBeanServer.registerCustomMBeanServer();
-    ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
+      ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
 
-    ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
-    org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
-    loadFromSpringContext();
-    boolean removeSuccessful = rmrf(IndexDir);
-    if (!removeSuccessful) {
-      throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
-    }
-    SenseiServerBuilder senseiServerBuilder1 = null;
-    senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
-    senseiServerBuilder1.setClusterClient(clusterClient);
-    
-    node1 = senseiServerBuilder1.buildServer();
-    httpServer1 = senseiServerBuilder1.buildHttpRestServer();
-    logger.info("Node 1 created.");
-    SenseiServerBuilder senseiServerBuilder2 = null;
-    senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
-    senseiServerBuilder2.setClusterClient(clusterClient);
-    node2 = senseiServerBuilder2.buildServer();
-    httpServer2 = senseiServerBuilder2.buildHttpRestServer();
-    logger.info("Node 2 created.");
-    broker = null;
-    try
-    {
-      broker = new SenseiBroker(clusterClient, true);
-    } catch (Exception ne) {
-      logger.info("shutting down cluster...", ne);
+      ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
+      org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
+      loadFromSpringContext();
+      boolean removeSuccessful = rmrf(IndexDir);
+      if (!removeSuccessful) {
+        throw new IllegalStateException("The index dir " + IndexDir + " coulnd't be purged");
+      }
+      SenseiServerBuilder senseiServerBuilder1 = null;
+      senseiServerBuilder1 = new SenseiServerBuilder(ConfDir1, null);
+      senseiServerBuilder1.setClusterClient(clusterClient);
+
+      node1 = senseiServerBuilder1.buildServer();
+      httpServer1 = senseiServerBuilder1.buildHttpRestServer();
+      logger.info("Node 1 created.");
+      SenseiServerBuilder senseiServerBuilder2 = null;
+      senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
+      senseiServerBuilder2.setClusterClient(clusterClient);
+      node2 = senseiServerBuilder2.buildServer();
+      httpServer2 = senseiServerBuilder2.buildHttpRestServer();
+      logger.info("Node 2 created.");
+      broker = null;
+      try {
+        broker = new SenseiBroker(clusterClient, true);
+      } catch (Exception ne) {
+        logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();
         throw ne;
-    }
-		httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
-		
-    logger.info("Cluster client started");
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-      @Override
-      public void run(){
-        shutdownSensei();
-        zkTestServer.shutdownNetwork();
-    }});
-    node1.start(true);
-    httpServer1.start();
-    logger.info("Node 1 started");
-    node2.start(true);
-    httpServer2.start();
-    logger.info("Node 2 started");
-    SenseiUrl =  new URL("http://localhost:8079/sensei");
-    federatedBrokerUrl =  new URL("http://localhost:8079/sensei/federatedBroker/");
-    waitTillServerStarts();
+      }
+      httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
+
+      logger.info("Cluster client started");
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        @Override
+        public void run() {
+          shutdownSensei();
+          zkTestServer.shutdownNetwork();
+        }
+      });
+      node1.start(true);
+      httpServer1.start();
+      logger.info("Node 1 started");
+      node2.start(true);
+      httpServer2.start();
+      logger.info("Node 2 started");
+      SenseiUrl = new URL("http://localhost:8079/sensei");
+      federatedBrokerUrl = new URL("http://localhost:8079/sensei/federatedBroker/");
+      waitTillServerStarts();
     } catch (Throwable ex) {
       logger.error("Could not start the sensei", ex);
       throw new RuntimeException(ex);
-    }finally {
+    } finally {
       started = true;
     }
   }
@@ -149,11 +146,10 @@ public class SenseiStarter {
     SenseiRequest req = new SenseiRequest();
     SenseiResult res = null;
     int count = 0;
-    do
-    {
+    do {
       Thread.sleep(500);
       res = broker.browse(req);
-      System.out.println(""+res.getNumHits()+" loaded...");
+      System.out.println("" + res.getNumHits() + " loaded...");
       ++count;
     } while (count < 20 && res.getNumHits() < 15000);
 
@@ -162,18 +158,15 @@ public class SenseiStarter {
   private static void loadFromSpringContext() {
 
     ApplicationContext testSpringCtx = null;
-    try
-    {
+    try {
       testSpringCtx = new ClassPathXmlApplicationContext("test-conf/sensei-test.spring");
-    } catch(Throwable e)
-    {
-      if (e instanceof InstanceAlreadyExistsException)
-        logger.warn("JMX InstanceAlreadyExistsException");
-      else
-        logger.error("Unexpected Exception", e.getCause());
+    } catch (Throwable e) {
+      if (e instanceof InstanceAlreadyExistsException) logger
+          .warn("JMX InstanceAlreadyExistsException");
+      else logger.error("Unexpected Exception", e.getCause());
     }
-    clusterClient = (ZuCluster)testSpringCtx.getBean("cluster-client");
-    _zoieFactory = (SenseiZoieFactory<?>)testSpringCtx.getBean("zoie-system-factory");
+    clusterClient = (ZuCluster) testSpringCtx.getBean("cluster-client");
+    _zoieFactory = (SenseiZoieFactory<?>) testSpringCtx.getBean("zoie-system-factory");
   }
 
   public static boolean rmrf(File f) {
@@ -183,21 +176,41 @@ public class SenseiStarter {
 
     if (f.isDirectory()) {
       for (File sub : f.listFiles()) {
-        if (!rmrf(sub))
-          return false;
+        if (!rmrf(sub)) return false;
       }
     }
     return f.delete();
   }
 
   public static void shutdownSensei() {
-    try{ broker.shutdown();}catch(Throwable t){}
-    try{ httpRestSenseiService.shutdown();}catch(Throwable t){}
-    try{node1.shutdown();}catch(Throwable t){}
-    try{httpServer1.stop();}catch(Throwable t){}
-    try{node2.shutdown();}catch(Throwable t){}
-    try{httpServer2.stop();}catch(Throwable t){}
-    try{clusterClient.shutdown();}catch(Throwable t){}
+    try {
+      broker.shutdown();
+    } catch (Throwable t) {
+    }
+    try {
+      httpRestSenseiService.shutdown();
+    } catch (Throwable t) {
+    }
+    try {
+      node1.shutdown();
+    } catch (Throwable t) {
+    }
+    try {
+      httpServer1.stop();
+    } catch (Throwable t) {
+    }
+    try {
+      node2.shutdown();
+    } catch (Throwable t) {
+    }
+    try {
+      httpServer2.stop();
+    } catch (Throwable t) {
+    }
+    try {
+      clusterClient.shutdown();
+    } catch (Throwable t) {
+    }
     rmrf(IndexDir);
     started = false;
   }

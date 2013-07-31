@@ -15,19 +15,20 @@ import junit.framework.TestCase;
 public class ActivityStressTest extends TestCase {
   private static final long UID_BASE = 10000000000L;
   private File dir;
-  private CompositeActivityValues compositeActivityValues; 
-  
-  
+  private CompositeActivityValues compositeActivityValues;
+
   public void setUp() {
     String pathname = getDirPath();
     SenseiStarter.rmrf(new File("sensei-test"));
     dir = new File(pathname);
     dir.mkdirs();
-    
+
   }
+
   public static String getDirPath() {
     return "sensei-test/stressTest";
   }
+
   @Override
   protected void tearDown() throws Exception {
     File file = new File("sensei-test");
@@ -36,12 +37,16 @@ public class ActivityStressTest extends TestCase {
       SenseiStarter.rmrf(file);
     }
   }
+
   public void test1() throws Exception {
     int version = 0;
     int iteration = 0;
     int numberOfUniqueDocuments = 0;
-    while(true) {
-      compositeActivityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory.getInstance(getDirPath()), java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()), Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+    while (true) {
+      compositeActivityValues = CompositeActivityValues.createCompositeValues(
+        ActivityPersistenceFactory.getInstance(getDirPath()),
+        java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()),
+        Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
       if (iteration != 0) {
         long[] arr = new long[5000];
         for (int j = 0; j < arr.length; j++) {
@@ -50,10 +55,13 @@ public class ActivityStressTest extends TestCase {
         compositeActivityValues.delete(arr);
       }
       for (int i = 0; i < 15000; i++) {
-        compositeActivityValues.update(i, String.format("%08d", version), ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+        compositeActivityValues.update(i, String.format("%08d", version),
+          ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
         version++;
       }
-      compositeActivityValues.update(1000000 + (numberOfUniqueDocuments++), String.format("%08d", version++), ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+      compositeActivityValues.update(1000000 + (numberOfUniqueDocuments++),
+        String.format("%08d", version++),
+        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
       long[] arr = new long[5000];
       for (int j = 0; j < arr.length; j++) {
         arr[j] = j + 10000;
@@ -64,7 +72,7 @@ public class ActivityStressTest extends TestCase {
         iteration++;
         continue;
       }
-     // assertEquals(0, compositeActivityValues.deletedIndexes.size());
+      // assertEquals(0, compositeActivityValues.deletedIndexes.size());
       compositeActivityValues.flush();
       compositeActivityValues.syncWithPersistentVersion(String.format("%08d", version - 1));
       assertEquals(10000 + numberOfUniqueDocuments, compositeActivityValues.uidToArrayIndex.size());
@@ -74,10 +82,11 @@ public class ActivityStressTest extends TestCase {
       assertEquals(iteration + 1, compositeActivityValues.getIntValueByUID(9999, "likes"));
       assertEquals(Integer.MIN_VALUE, compositeActivityValues.getIntValueByUID(10000, "likes"));
       assertEquals(Integer.MIN_VALUE, compositeActivityValues.getIntValueByUID(14999, "likes"));
-     assertEquals(1, compositeActivityValues.getIntValueByUID(4999, "likes"));
-     assertEquals(1, compositeActivityValues.getIntValueByUID(0, "likes"));
-     assertEquals(1, compositeActivityValues.getIntValueByUID(1000000 + numberOfUniqueDocuments - 1, "likes"));
-     assertEquals(1, compositeActivityValues.getIntValueByUID(1000000, "likes"));
+      assertEquals(1, compositeActivityValues.getIntValueByUID(4999, "likes"));
+      assertEquals(1, compositeActivityValues.getIntValueByUID(0, "likes"));
+      assertEquals(1,
+        compositeActivityValues.getIntValueByUID(1000000 + numberOfUniqueDocuments - 1, "likes"));
+      assertEquals(1, compositeActivityValues.getIntValueByUID(1000000, "likes"));
       assertEquals(String.format("%08d", version - 1), compositeActivityValues.metadata.version);
       compositeActivityValues.close();
       compositeActivityValues.executor.awaitTermination(1, TimeUnit.SECONDS);
@@ -87,6 +96,7 @@ public class ActivityStressTest extends TestCase {
       }
     }
   }
+
   public void close(int version) throws InterruptedException {
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", version - 1));

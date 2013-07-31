@@ -25,9 +25,6 @@ import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;
 
 public class SenseiSchema {
-  public static final String SRC_DATA_FIELD_NAME = "__SRC_DATA__";
-  public static final String SRC_DATA_COMPRESSED_FIELD_NAME = "stored";
-
   public static final String EVENT_TYPE_FIELD = "type";
   public static final String EVENT_FIELD = "data";
   public static final String EVENT_TYPE_ADD = "add";

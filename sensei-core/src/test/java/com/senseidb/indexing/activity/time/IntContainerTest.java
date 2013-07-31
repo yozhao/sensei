@@ -7,7 +7,6 @@ import org.junit.Test;
 
 public class IntContainerTest extends TestCase {
 
- 
   public void test1() {
     IntContainer intContainer = new IntContainer();
     assertEquals(0, intContainer.getSize());

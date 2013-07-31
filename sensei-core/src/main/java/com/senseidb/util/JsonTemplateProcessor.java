@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.apache.log4j.Logger;
-public class JsonTemplateProcessor{
+
+public class JsonTemplateProcessor {
   public static final String TEMPLATE_MAPPING_PARAM = "templateMapping";
   private final static Logger logger = Logger.getLogger(JsonTemplateProcessor.class);
 
@@ -23,11 +23,9 @@ public class JsonTemplateProcessor{
     while (keys.hasNext()) {
       String templateName = (String) keys.next();
       Object templateValueObj = templatesJson.opt(templateName);
-      if (templateValueObj != null &&
-          (templateValueObj instanceof String ||
-           templateValueObj instanceof Number ||
-           templateValueObj instanceof JSONArray ||
-           templateValueObj instanceof JSONObject)) {
+      if (templateValueObj != null
+          && (templateValueObj instanceof String || templateValueObj instanceof Number
+              || templateValueObj instanceof JSONArray || templateValueObj instanceof JSONObject)) {
         ret.put(templateName, templateValueObj);
       } else {
         throw new UnsupportedOperationException("Value for the template " + templateName
@@ -37,7 +35,7 @@ public class JsonTemplateProcessor{
 
     return ret;
   }
- 
+
   public JSONObject substituteTemplates(JSONObject request) {
     try {
       return (JSONObject) process(request, getTemplates(request));
@@ -63,7 +61,8 @@ public class JsonTemplateProcessor{
     return src;
   }
 
-  private JSONObject processJsonObject(JSONObject src, Map<String, Object> templates) throws JSONException {
+  private JSONObject processJsonObject(JSONObject src, Map<String, Object> templates)
+      throws JSONException {
     if (src == null) {
       return null;
     }
@@ -103,7 +102,8 @@ public class JsonTemplateProcessor{
       while ((index = src.indexOf(replaceable, index + 1)) >= 0) {
         int numSigns = numPrecedingDollarSigns(src, index);
         if (numSigns % 2 == 1) {
-          src = src.substring(0, index) + value.toString() + src.substring(index + replaceable.length());
+          src = src.substring(0, index) + value.toString()
+              + src.substring(index + replaceable.length());
         }
       }
     }

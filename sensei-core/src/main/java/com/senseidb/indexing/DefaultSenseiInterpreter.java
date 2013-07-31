@@ -13,9 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.lucene.document.Field.Index;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.Field.TermVector;
+import org.apache.lucene.document.FieldType;
 
 import proj.zoie.api.indexing.AbstractZoieIndexableInterpreter;
 import proj.zoie.api.indexing.ZoieIndexable;
@@ -62,6 +60,11 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
     return new PredefinedTermListFactory<T>(cls, DEFAULT_FORMAT_STRING_MAP.get(metaType));
   }
 
+  public static class IndexSpec {
+    public FieldType fieldType;
+    Field fld;
+  }
+
   static class MetaFormatSpec {
     Format formatter;
     Field fld;
@@ -69,7 +72,7 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
 
   private final Class<V> _cls;
 
-  final Map<String, FieldType> _textIndexingSpecMap;
+  final Map<String, IndexSpec> _textIndexingSpecMap;
   final Map<String, MetaFormatSpec> _metaFormatSpecMap;
 
   Field _uidField;
@@ -79,7 +82,7 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
   public DefaultSenseiInterpreter(Class<V> cls) {
     _cls = cls;
     _metaFormatSpecMap = new HashMap<String, MetaFormatSpec>();
-    _textIndexingSpecMap = new HashMap<String, FieldType>();
+    _textIndexingSpecMap = new HashMap<String, IndexSpec>();
     _uidField = null;
     Field[] fields = cls.getDeclaredFields();
     for (Field f : fields) {
@@ -87,7 +90,7 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
         if (_uidField != null) {
           throw new IllegalStateException("multiple uids defined in class: " + cls);
         } else {
-          Class fieldType = f.getType();
+          Class<?> fieldType = f.getType();
           if (fieldType.isPrimitive()) {
             if (int.class.equals(fieldType) || short.class.equals(fieldType)
                 || long.class.equals(fieldType)) {
@@ -107,17 +110,71 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
           name = f.getName();
         }
 
-        Index idx = INDEX_VAL_MAP.get(textAnnotation.index());
-        Store store = STORE_VAL_MAP.get(textAnnotation.store());
-        TermVector tv = TV_VAL_MAP.get(textAnnotation.termVector());
+        FieldType fieldType = new FieldType();
 
-        if (idx == null || store == null || tv == null) {
+        String idxString = textAnnotation.index();
+        idxString = idxString.toUpperCase();
+        if (idxString.equals("NO")) {
+          fieldType.setIndexed(false);
+          fieldType.setTokenized(false);
+          fieldType.setOmitNorms(true);
+        } else if (idxString.equals("ANALYZED") || idxString.equals("TOKENIZED")) {
+          fieldType.setIndexed(true);
+          fieldType.setTokenized(true);
+          fieldType.setOmitNorms(false);
+        } else if (idxString.equals("NOT_ANALYZED") || idxString.equals("UN_TOKENIZED")) {
+          fieldType.setIndexed(true);
+          fieldType.setTokenized(false);
+          fieldType.setOmitNorms(false);
+        } else if (idxString.equals("NOT_ANALYZED_NO_NORMS") || idxString.equals("NO_NORMS")) {
+          fieldType.setIndexed(true);
+          fieldType.setTokenized(false);
+          fieldType.setOmitNorms(true);
+        } else if (idxString.equals("ANALYZED_NO_NORMS")) {
+          fieldType.setIndexed(true);
+          fieldType.setTokenized(true);
+          fieldType.setOmitNorms(true);
+        } else {
           throw new RuntimeException("Invalid indexing parameter specification");
         }
+
+        String storeString = textAnnotation.store();
+        if (storeString.equals("NO")) {
+          fieldType.setStored(false);
+        } else if (storeString.equals("YES")) {
+          fieldType.setStored(true);
+        } else {
+          throw new RuntimeException("Invalid indexing parameter specification");
+        }
+
+        String tvString = textAnnotation.termVector();
+        tvString = tvString.toUpperCase();
+        if (tvString.equals("NO")) {
+          fieldType.setStoreTermVectors(false);
+          fieldType.setStoreTermVectorOffsets(false);
+          fieldType.setStoreTermVectorPositions(false);
+        } else if (tvString.equals("YES")) {
+          fieldType.setStoreTermVectors(true);
+          fieldType.setStoreTermVectorOffsets(false);
+          fieldType.setStoreTermVectorPositions(false);
+        } else if (tvString.equals("WITH_POSITIONS")) {
+          fieldType.setStoreTermVectors(true);
+          fieldType.setStoreTermVectorOffsets(false);
+          fieldType.setStoreTermVectorPositions(true);
+        } else if (tvString.equals("WITH_OFFSETS")) {
+          fieldType.setStoreTermVectors(true);
+          fieldType.setStoreTermVectorOffsets(true);
+          fieldType.setStoreTermVectorPositions(false);
+        } else if (tvString.equals("WITH_POSITIONS_OFFSETS")) {
+          fieldType.setStoreTermVectors(true);
+          fieldType.setStoreTermVectorOffsets(true);
+          fieldType.setStoreTermVectorPositions(true);
+        } else {
+          throw new RuntimeException("Invalid indexing parameter specification");
+        }
+
         IndexSpec indexingSpec = new IndexSpec();
-        indexingSpec.store = store;
-        indexingSpec.index = idx;
-        indexingSpec.tv = tv;
+        indexingSpec.fieldType = fieldType;
         indexingSpec.fld = f;
         _textIndexingSpecMap.put(name, indexingSpec);
       } else if (f.isAnnotationPresent(StoredValue.class)) {
@@ -127,10 +184,15 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
         if ("".equals(name)) {
           name = f.getName();
         }
+        FieldType fieldType = new FieldType();
+        fieldType.setStored(true);
+        fieldType.setIndexed(false);
+        fieldType.setStoreTermVectors(false);
+        fieldType.setStoreTermVectorOffsets(false);
+        fieldType.setStoreTermVectorPositions(false);
+
         IndexSpec indexingSpec = new IndexSpec();
-        indexingSpec.store = Store.YES;
-        indexingSpec.index = Index.NO;
-        indexingSpec.tv = TermVector.NO;
+        indexingSpec.fieldType = fieldType;
         indexingSpec.fld = f;
         _textIndexingSpecMap.put(name, indexingSpec);
       } else if (f.isAnnotationPresent(Meta.class)) {
@@ -142,7 +204,7 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
         }
         MetaType metaType = metaAnnotation.type();
         if (MetaType.Auto.equals(metaType)) {
-          Class typeClass = f.getType();
+          Class<?> typeClass = f.getType();
           if (Collection.class.isAssignableFrom(typeClass)) {
             metaType = MetaType.String;
           } else {

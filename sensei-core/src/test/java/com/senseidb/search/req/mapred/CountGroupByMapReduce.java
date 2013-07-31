@@ -11,10 +11,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 @SuppressWarnings("unchecked")
-public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
-  private static final long serialVersionUID = 1L;  
+public class CountGroupByMapReduce implements
+    SenseiMapReduce<HashMap<String, IntContainer>, ArrayList<GroupedValue>> {
+  private static final long serialVersionUID = 1L;
   private String[] columns;
-  
+
   public void init(JSONObject params) {
     try {
       JSONArray columnsJson = params.getJSONArray("columns");
@@ -26,23 +27,24 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
       throw new RuntimeException(ex);
     }
   }
-  public HashMap<String, IntContainer> map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
+
+  public HashMap<String, IntContainer> map(IntArray docIds, int docIdCount, long[] uids,
+      FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
     int duplicatedUids = 0;
-    for (int i = 0; i < docIdCount; i++) {     
+    for (int i = 0; i < docIdCount; i++) {
       String key = getKey(columns, accessor, docIds.get(i));
-      IntContainer count = ret.get(key);     
-     
+      IntContainer count = ret.get(key);
+
       if (!ret.containsKey(key)) {
         ret.put(key, new IntContainer(1));
       } else {
         count.add(1);
       }
-    }  
-    
+    }
+
     return ret;
   }
- 
 
   private String getKey(String[] columns, FieldAccessor fieldAccessor, int docId) {
     StringBuilder key = new StringBuilder(fieldAccessor.get(columns[0], docId).toString());
@@ -53,8 +55,9 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
   }
 
   @Override
-  public List<HashMap<String, IntContainer>> combine(List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
-    
+  public List<HashMap<String, IntContainer>> combine(
+      List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
+
     if (mapResults == null || mapResults.isEmpty()) return mapResults;
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
     for (int i = 0; i < mapResults.size(); i++) {
@@ -67,7 +70,7 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
           ret.put(key, map.get(key));
         }
       }
-    }  
+    }
     return java.util.Arrays.asList(ret);
   }
 
@@ -107,21 +110,24 @@ public class CountGroupByMapReduce implements SenseiMapReduce<HashMap<String, In
   }
 
 }
- class GroupedValue implements Comparable {
-   String key;
-   int value;
 
-   public GroupedValue(String key, int value) {
-     super();
-     this.key = key;
-     this.value = value;
-   }
-   @Override
-   public int compareTo(Object o) {
-     return ((GroupedValue)o).value - value;
-   }
-   @Override
-   public String toString() {
-     return key + ", count=" + value;
-   }
- }
+class GroupedValue implements Comparable {
+  String key;
+  int value;
+
+  public GroupedValue(String key, int value) {
+    super();
+    this.key = key;
+    this.value = value;
+  }
+
+  @Override
+  public int compareTo(Object o) {
+    return ((GroupedValue) o).value - value;
+  }
+
+  @Override
+  public String toString() {
+    return key + ", count=" + value;
+  }
+}

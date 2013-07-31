@@ -12,26 +12,23 @@ class PluginHolder {
   private Object factoryCreatedInstance;
   Map<String, String> properties = new LinkedHashMap<String, String>();
 
-  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry,
-                      String pluginCLass,
-                      String pluginName,
-                      String fullPrefix) {
+  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry, String pluginCLass,
+      String pluginName, String fullPrefix) {
     this.senseiPluginRegistry = senseiPluginRegistry;
     this.pluginCLass = pluginCLass;
     this.pluginName = pluginName;
     this.fullPrefix = fullPrefix;
   }
 
-  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry,
-                      Object instance,
-                      String pluginName,
-                      String fullPrefix) {
+  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry, Object instance,
+      String pluginName, String fullPrefix) {
     this.senseiPluginRegistry = senseiPluginRegistry;
     this.instance = instance;
     this.pluginName = pluginName;
     this.fullPrefix = fullPrefix;
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public Object getInstance() {
     if (instance == null) {
       synchronized (this) {
@@ -39,7 +36,7 @@ class PluginHolder {
           instance = Class.forName(pluginCLass).newInstance();
           if (instance instanceof SenseiPlugin) {
             ((SenseiPlugin) instance).init(properties, senseiPluginRegistry);
-            //((SenseiPlugin) instance).start();
+            // ((SenseiPlugin) instance).start();
           }
         } catch (Exception ex) {
           throw new RuntimeException(ex);
@@ -49,10 +46,8 @@ class PluginHolder {
     if (instance instanceof SenseiPluginFactory) {
       if (factoryCreatedInstance == null) {
         synchronized (instance) {
-          factoryCreatedInstance =
-            ((SenseiPluginFactory) instance).getBean(properties,
-                                                     fullPrefix,
-                                                     this.senseiPluginRegistry);
+          factoryCreatedInstance = ((SenseiPluginFactory) instance).getBean(properties, fullPrefix,
+            this.senseiPluginRegistry);
         }
       }
       return factoryCreatedInstance;

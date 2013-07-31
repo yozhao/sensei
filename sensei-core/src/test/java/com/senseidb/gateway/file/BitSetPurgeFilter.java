@@ -11,7 +11,7 @@ import com.browseengine.bobo.docidset.BitsetDocSet;
 public class BitSetPurgeFilter extends Filter {
 
   @Override
-  public DocIdSet getDocIdSet(IndexReader reader) throws IOException {    
+  public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
     BitsetDocSet bitsetDocSet = new BitsetDocSet();
     bitsetDocSet.addDoc(0);
     return bitsetDocSet;

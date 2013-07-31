@@ -13,8 +13,7 @@ import com.senseidb.svc.api.SenseiException;
  * @param <RESULT>
  */
 public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
-    implements Broker<REQUEST, RESULT>
-{
+    implements Broker<REQUEST, RESULT> {
   private final static Logger logger = Logger.getLogger(AbstractSenseiBroker.class);
 
   /**
@@ -30,10 +29,9 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
    * @return
    * @throws SenseiException
    */
-  public  abstract RESULT browse(final REQUEST req) throws SenseiException;
-  
-  public void shutdown()
-  {
+  public abstract RESULT browse(final REQUEST req) throws SenseiException;
+
+  public void shutdown() {
     logger.info("shutting down broker...");
   }
 

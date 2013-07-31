@@ -9,20 +9,17 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.TokenStream;
 import org.json.JSONObject;
 
-public class BQLCompiler extends AbstractCompiler
-{
+public class BQLCompiler extends AbstractCompiler {
   // A map containing facet type and data type info for a facet
   private Map<String, String[]> _facetInfoMap = new HashMap<String, String[]>();
   private final ThreadLocal<BQLParser> _parser = new ThreadLocal<BQLParser>();
 
-  public BQLCompiler(Map<String, String[]> facetInfoMap)
-  {
+  public BQLCompiler(Map<String, String[]> facetInfoMap) {
     _facetInfoMap = facetInfoMap;
   }
 
   @Override
-  public JSONObject compile(String bqlStmt) throws RecognitionException
-  {
+  public JSONObject compile(String bqlStmt) throws RecognitionException {
     // Lexer splits input into tokens
     ANTLRStringStream input = new ANTLRStringStream(bqlStmt);
     TokenStream tokens = new CommonTokenStream(new BQLLexer(input));
@@ -40,21 +37,16 @@ public class BQLCompiler extends AbstractCompiler
   }
 
   @Override
-  public String getErrorMessage(RecognitionException error)
-  {
+  public String getErrorMessage(RecognitionException error) {
     BQLParser parser = _parser.get();
-    if (parser != null)
-    {
+    if (parser != null) {
       return parser.getErrorMessage(error, parser.getTokenNames());
-    }
-    else
-    {
+    } else {
       return null;
     }
   }
 
-  public void setFacetInfoMap(Map<String, String[]> facetInfoMap)
-  {
+  public void setFacetInfoMap(Map<String, String[]> facetInfoMap) {
     _facetInfoMap = facetInfoMap;
   }
 }
