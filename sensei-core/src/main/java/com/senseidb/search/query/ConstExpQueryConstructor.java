@@ -45,6 +45,7 @@ public class ConstExpQueryConstructor extends QueryConstructor {
   // query template.
   // For example, it can be used in BQL template used by machine.
 
+  @SuppressWarnings("unchecked")
   @Override
   protected Query doConstructQuery(JSONObject json) throws JSONException {
     boolean bool = false;
@@ -113,8 +114,11 @@ public class ConstExpQueryConstructor extends QueryConstructor {
     }
 
     Query q = null;
-    if (bool == true) q = new MatchAllDocsQuery();
-    else q = new MatchNoneDocsQuery();
+    if (bool == true) {
+      q = new MatchAllDocsQuery();
+    } else {
+      q = new MatchNoneDocsQuery();
+    }
     return q;
   }
 
@@ -154,7 +158,7 @@ public class ConstExpQueryConstructor extends QueryConstructor {
     boolean bool = false;
     if (rvalue instanceof JSONArray) {
       JSONArray rarray = (JSONArray) rvalue;
-      HashSet hs = new HashSet();
+      HashSet<Object> hs = new HashSet<Object>();
       for (int i = 0; i < rarray.length(); i++) {
         Object robj = rarray.get(i);
         hs.add(robj);
@@ -188,7 +192,7 @@ public class ConstExpQueryConstructor extends QueryConstructor {
 
       if (larray.length() != rarray.length()) bool = false;
       else {
-        HashSet hs = new HashSet();
+        HashSet<Object> hs = new HashSet<Object>();
         for (int i = 0; i < larray.length(); i++) {
           Object lobj = larray.get(i);
           hs.add(lobj);

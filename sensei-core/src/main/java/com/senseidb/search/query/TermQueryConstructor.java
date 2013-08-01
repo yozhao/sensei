@@ -5,7 +5,6 @@ import java.util.Iterator;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,6 +17,7 @@ public class TermQueryConstructor extends QueryConstructor {
   // // or "color" : {"value" : "red", "boost": 2.0}
   // },
 
+  @SuppressWarnings("unchecked")
   @Override
   protected Query doConstructQuery(JSONObject json) throws JSONException {
     Iterator<String> iter = json.keys();

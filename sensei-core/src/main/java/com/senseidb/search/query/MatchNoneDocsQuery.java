@@ -1,53 +1,28 @@
 package com.senseidb.search.query;
 
 import java.io.IOException;
-import java.util.Set;
 
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.search.ComplexExplanation;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.Searcher;
-import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.ToStringUtils;
 
 public class MatchNoneDocsQuery extends Query {
 
-  /**
-   *  This query matches nothing, is basically for Machine oriented ConstExpQuery. Or any other dummy use cases.
-   *  (When a boolean expression returns false, use this dummy MatchNoneDocsQuery)
-   */
-  private static final long serialVersionUID = 1L;
-
-  public MatchNoneDocsQuery() {
-    this(null);
-  }
-
-  private final String normsField;
-
-  /**
-   * @param normsField Field used for normalization factor (document boost). Null if nothing.
-   */
-  public MatchNoneDocsQuery(String normsField) {
-    this.normsField = normsField;
-  }
-
   private class MatchNoneScorer extends Scorer {
-    final TermDocs termDocs;
-    final float score;
-    final byte[] norms;
+    private final float score;
     private int doc = -1;
+    private final AtomicReader reader;
 
-    MatchNoneScorer(IndexReader reader, Similarity similarity, Weight w, byte[] norms)
-        throws IOException {
-      super(similarity, w);
-      this.termDocs = reader.termDocs(null);
-      score = w.getValue();
-      this.norms = norms;
+    MatchNoneScorer(AtomicReader r, Weight w) throws IOException {
+      super(w);
+      score = w.getValueForNormalization();
+      reader = r;
     }
 
     @Override
@@ -62,22 +37,40 @@ public class MatchNoneDocsQuery extends Query {
 
     @Override
     public float score() {
-      return norms == null ? score : score * getSimilarity().decodeNormValue(norms[docID()]);
+      return score;
     }
 
     @Override
     public int advance(int target) throws IOException {
-      return doc = termDocs.skipTo(target) ? termDocs.doc() : NO_MORE_DOCS;
+      Bits liveDocs = reader.getLiveDocs();
+      for (int i = target; i < reader.maxDoc(); ++i) {
+        if (liveDocs != null && !liveDocs.get(i)) {
+          continue;
+        }
+        doc = i;
+        return doc;
+      }
+      return NO_MORE_DOCS;
+    }
+
+    @Override
+    public int freq() throws IOException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
+    @Override
+    public long cost() {
+      // TODO Auto-generated method stub
+      return 0;
     }
   }
 
   private class MatchNoneDocsWeight extends Weight {
-    private Similarity similarity;
-    private float queryWeight;
-    private float queryNorm;
+    private final Weight innerWeight;
 
-    public MatchNoneDocsWeight(Searcher searcher) {
-      this.similarity = searcher.getSimilarity();
+    public MatchNoneDocsWeight(IndexSearcher searcher) throws IOException {
+      innerWeight = searcher.createNormalizedWeight(MatchNoneDocsQuery.this);
     }
 
     @Override
@@ -91,50 +84,36 @@ public class MatchNoneDocsQuery extends Query {
     }
 
     @Override
-    public float getValue() {
-      return queryWeight;
+    public Scorer scorer(AtomicReaderContext context, boolean scoreDocsInOrder, boolean topScorer,
+        Bits acceptDocs) throws IOException {
+      return new MatchNoneScorer(context.reader(), this);
     }
 
     @Override
-    public float sumOfSquaredWeights() {
-      queryWeight = getBoost();
-      return queryWeight * queryWeight;
+    public Explanation explain(AtomicReaderContext context, int doc) throws IOException {
+      return innerWeight.explain(context, doc);
     }
 
     @Override
-    public void normalize(float queryNorm) {
-      this.queryNorm = queryNorm;
-      queryWeight *= this.queryNorm;
+    public float getValueForNormalization() throws IOException {
+      return innerWeight.getValueForNormalization();
     }
 
     @Override
-    public Scorer scorer(IndexReader reader, boolean scoreDocsInOrder, boolean topScorer)
-        throws IOException {
-      return new MatchNoneScorer(reader, similarity, this,
-          normsField != null ? reader.norms(normsField) : null);
-    }
-
-    @Override
-    public Explanation explain(IndexReader reader, int doc) {
-      // explain query weight
-      Explanation queryExpl = new ComplexExplanation(true, getValue(),
-          "MatchNoneDocsQuery, product of:");
-      if (getBoost() != 1.0f) {
-        queryExpl.addDetail(new Explanation(getBoost(), "boost"));
-      }
-      queryExpl.addDetail(new Explanation(queryNorm, "queryNorm"));
-
-      return queryExpl;
+    public void normalize(float norm, float topLevelBoost) {
+      innerWeight.normalize(norm, topLevelBoost);
     }
   }
 
   @Override
-  public Weight createWeight(Searcher searcher) {
-    return new MatchNoneDocsWeight(searcher);
-  }
-
-  @Override
-  public void extractTerms(Set<Term> terms) {
+  public Weight createWeight(IndexSearcher searcher) {
+    try {
+      return new MatchNoneDocsWeight(searcher);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
   }
 
   @Override

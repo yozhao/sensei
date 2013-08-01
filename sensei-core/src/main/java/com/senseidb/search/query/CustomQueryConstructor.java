@@ -17,7 +17,7 @@ public class CustomQueryConstructor extends QueryConstructor {
   protected Query doConstructQuery(JSONObject jsonQuery) throws JSONException {
     try {
       String className = jsonQuery.getString(CLASS_PARAM);
-      Class queryClass = Class.forName(className);
+      Class<?> queryClass = Class.forName(className);
 
       Object q = queryClass.newInstance();
       // TODO add initialization

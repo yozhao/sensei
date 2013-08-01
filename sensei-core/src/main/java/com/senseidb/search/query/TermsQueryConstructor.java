@@ -7,7 +7,6 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +24,7 @@ public class TermsQueryConstructor extends QueryConstructor {
   // // "tags" : [ "blue", "pill" ], default operator or
   // },
 
+  @SuppressWarnings("unchecked")
   @Override
   protected Query doConstructQuery(JSONObject json) throws JSONException {
     String field = null;

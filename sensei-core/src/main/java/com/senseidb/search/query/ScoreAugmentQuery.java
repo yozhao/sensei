@@ -2,39 +2,33 @@ package com.senseidb.search.query;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.Explanation;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 
 public class ScoreAugmentQuery extends AbstractScoreAdjuster {
-
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
 
   public static interface ScoreAugmentFunction {
 
     /**
      * Initialize the function object if it has to store any reader-specific data; This will be called when creating the scorer;
-     * 
+     *
      * @param reader
-     * @param jsonParams  
+     * @param jsonParams
      * @throws IOException
-     * 
+     *
      * This method initialize the internal score calculator, e.g., let it know what external data can be used, or anything required for computing the score;
      */
-    public void initializeReader(BoboIndexReader reader, JSONObject jsonParams) throws IOException;
+    public void initializeReader(BoboSegmentReader reader, JSONObject jsonParams)
+        throws IOException;
 
     /**
      * Initialize the function in Query level, which means a global initialization; Such as accessing the external storage through a network connection, or any data could be reused;
-     * 
+     *
      * @param jsonParams  This JSONObject contains everything needed to initialize the scoreFunction from outside world. Just set it to NULL and ignore it in the method body if you don't want it.
      * @throws JSONException
      */
@@ -53,7 +47,7 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster {
     public float newScore(float rawScore, int docID);
 
     /**
-     * 
+     *
      * @param rawScore
      * @param docID
      * @return the modified new score for document without the original innerScore to save time;
@@ -72,13 +66,12 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster {
   }
 
   private static class AugmentScorer extends Scorer {
-    private static Logger logger = Logger.getLogger(AugmentScorer.class);
     private final ScoreAugmentFunction _func;
     private final Scorer _innerScorer;
 
-    protected AugmentScorer(BoboIndexReader reader, Scorer innerScorer, ScoreAugmentFunction func,
-        JSONObject jsonParms) throws IOException {
-      super(innerScorer.getSimilarity());
+    protected AugmentScorer(BoboSegmentReader reader, Scorer innerScorer,
+        ScoreAugmentFunction func, JSONObject jsonParms) throws IOException {
+      super(innerScorer.getWeight());
       _innerScorer = innerScorer;
       _func = func;
       _func.initializeReader(reader, jsonParms);
@@ -105,6 +98,16 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster {
       return _innerScorer.nextDoc();
     }
 
+    @Override
+    public int freq() throws IOException {
+      return _innerScorer.freq();
+    }
+
+    @Override
+    public long cost() {
+      return _innerScorer.cost();
+    }
+
   }
 
   private transient ScoreAugmentFunction _func;
@@ -120,35 +123,11 @@ public class ScoreAugmentQuery extends AbstractScoreAdjuster {
   }
 
   @Override
-  protected Scorer createScorer(Scorer innerScorer, IndexReader reader, boolean scoreDocsInOrder,
-      boolean topScorer) throws IOException {
-    if (reader instanceof BoboIndexReader) {
-      return new AugmentScorer((BoboIndexReader) reader, innerScorer, _func.getCopy(), _jsonParam);
+  protected Scorer createScorer(Scorer innerScorer, AtomicReaderContext context) throws IOException {
+    if (context.reader() instanceof BoboSegmentReader) {
+      return new AugmentScorer((BoboSegmentReader) context.reader(), innerScorer, _func.getCopy(), _jsonParam);
     } else {
-      throw new IllegalStateException("reader not instance of " + BoboIndexReader.class);
+      throw new IllegalStateException("reader not instance of " + BoboSegmentReader.class);
     }
   }
-
-  @Override
-  protected Explanation createExplain(Explanation innerExplain, IndexReader reader, int doc)
-      throws IOException {
-    if (reader instanceof BoboIndexReader) {
-      Explanation finalExpl = new Explanation();
-      finalExpl.addDetail(innerExplain);
-
-      _func.initializeReader((BoboIndexReader) reader, _jsonParam);
-
-      float innerValue = innerExplain.getValue();
-      float value = 0;
-      if (_func.useInnerScore()) value = _func.newScore(innerValue, doc);
-      else value = _func.newScore(doc);
-
-      finalExpl.setValue(value);
-      finalExpl.setDescription("Custom score: " + _func.getExplainString(innerValue, doc));
-      return finalExpl;
-    } else {
-      throw new IllegalStateException("reader not instance of " + BoboIndexReader.class);
-    }
-  }
-
 }
