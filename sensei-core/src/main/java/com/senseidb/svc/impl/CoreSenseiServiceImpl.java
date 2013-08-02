@@ -14,14 +14,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
-import proj.zoie.api.ZoieIndexReader;
-import proj.zoie.api.ZoieIndexReader.SubReaderAccessor;
-import proj.zoie.api.ZoieIndexReader.SubReaderInfo;
 import zu.finagle.serialize.JOSSSerializer;
 import zu.finagle.serialize.ZuSerializer;
 
 import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
@@ -67,8 +64,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
   }
 
   private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser,
-      BrowseRequest req, SubReaderAccessor<BoboIndexReader> subReaderAccessor)
-      throws BrowseException {
+      BrowseRequest req) throws BrowseException {
     final SenseiResult result = new SenseiResult();
 
     long start = System.currentTimeMillis();
@@ -98,10 +94,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
       SenseiHit senseiHit = new SenseiHit();
 
       int docid = hit.getDocid();
-      SubReaderInfo<BoboIndexReader> readerInfo = subReaderAccessor.getSubReaderInfo(docid);
       Long uid = (Long) hit.getRawField(PARAM_RESULT_HIT_UID);
-      if (uid == null) uid = ((ZoieIndexReader<BoboIndexReader>) readerInfo.subreader
-          .getInnerReader()).getUID(readerInfo.subdocid);
       senseiHit.setUID(uid);
       senseiHit.setDocid(docid);
       senseiHit.setScore(hit.getScore());
@@ -170,26 +163,25 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
   @Override
   public SenseiResult handlePartitionedRequest(final SenseiRequest request,
-      List<BoboIndexReader> readerList, SenseiQueryBuilderFactory queryBuilderFactory)
+      final List<BoboSegmentReader> readerList, SenseiQueryBuilderFactory queryBuilderFactory)
       throws Exception {
     MultiBoboBrowser browser = null;
 
     try {
-      final List<BoboIndexReader> segmentReaders = BoboBrowser.gatherSubReaders(readerList);
-      if (segmentReaders != null && segmentReaders.size() > 0) {
+      if (readerList != null && readerList.size() > 0) {
         final AtomicInteger skipDocs = new AtomicInteger(0);
 
         final SenseiIndexPruner pruner = _core.getIndexPruner();
 
-        List<BoboIndexReader> validatedSegmentReaders = timerMetric
-            .time(new Callable<List<BoboIndexReader>>() {
+        List<BoboSegmentReader> validatedSegmentReaders = timerMetric
+            .time(new Callable<List<BoboSegmentReader>>() {
 
               @Override
-              public List<BoboIndexReader> call() throws Exception {
+              public List<BoboSegmentReader> call() throws Exception {
                 IndexReaderSelector readerSelector = pruner.getReaderSelector(request);
-                List<BoboIndexReader> validatedReaders = new ArrayList<BoboIndexReader>(
-                    segmentReaders.size());
-                for (BoboIndexReader segmentReader : segmentReaders) {
+                List<BoboSegmentReader> validatedReaders = new ArrayList<BoboSegmentReader>(
+                    readerList.size());
+                for (BoboSegmentReader segmentReader : readerList) {
                   if (readerSelector.isSelected(segmentReader)) {
                     validatedReaders.add(segmentReader);
                   } else {
@@ -211,9 +203,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
               _core.getFieldAccessorFactory());
           breq.setMapReduceWrapper(mapWrapper);
         }
-        SubReaderAccessor<BoboIndexReader> subReaderAccessor = ZoieIndexReader
-            .getSubReaderAccessor(validatedSegmentReaders);
-        SenseiResult res = browse(request, browser, breq, subReaderAccessor);
+        SenseiResult res = browse(request, browser, breq);
         int totalDocs = res.getTotalDocs() + skipDocs.get();
         res.setTotalDocs(totalDocs);
         return res;

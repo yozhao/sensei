@@ -5,7 +5,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -16,26 +15,20 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.svc.api.SenseiService;
 
 public class TestNegativeNumbers extends TestCase {
 
-  private static final Logger logger = Logger.getLogger(TestSensei.class);
-
   private static SenseiBroker broker;
-  private static SenseiService httpRestSenseiService;
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
     broker = SenseiStarter.broker;
-    httpRestSenseiService = SenseiStarter.httpRestSenseiService;
-
   }
 
   public void testSortByAsc() throws Exception {
     SenseiRequest req = new SenseiRequest();
     String field = "groupid";
     req.setCount(11);
-    req.addSortField(new SortField("groupid", SortField.LONG, false));
+    req.addSortField(new SortField("groupid", SortField.Type.LONG, false));
     SenseiResult res = broker.browse(req);
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(
@@ -49,7 +42,7 @@ public class TestNegativeNumbers extends TestCase {
     String field = "groupid";
     req.setCount(20);
     req.setOffset(14989);
-    req.addSortField(new SortField("groupid", SortField.LONG, true));
+    req.addSortField(new SortField("groupid", SortField.Type.LONG, true));
     SenseiResult res = broker.browse(req);
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(
@@ -63,7 +56,7 @@ public class TestNegativeNumbers extends TestCase {
     String field = "groupid";
     req.setCount(4);
 
-    req.addSortField(new SortField("groupid", SortField.LONG, false));
+    req.addSortField(new SortField("groupid", SortField.Type.LONG, false));
     req.addSelection(new BrowseSelection("groupid").addValue("10").addValue("0").addValue("-7000")
         .addValue("-8000").setSelectionOperation(ValueOperation.ValueOperationOr));
     req.setFacetSpec("groupid", new FacetSpec().setMaxCount(50).setMinHitCount(1));
@@ -109,7 +102,7 @@ public class TestNegativeNumbers extends TestCase {
     req.setFacetSpec(field, fs);
     req.setCount(11);
     req.setOffset(0);
-    req.addSortField(new SortField("groupid_range", SortField.LONG, false));
+    req.addSortField(new SortField("groupid_range", SortField.Type.LONG, false));
     SenseiResult res = broker.browse(req);
     System.out.println(res);
     long[] groupdIDs = extractFieldValues(field, res);
@@ -133,7 +126,7 @@ public class TestNegativeNumbers extends TestCase {
     req.setFacetSpec(field, fs);
     req.setCount(11);
     req.setOffset(0);
-    req.addSortField(new SortField("groupid_range", SortField.LONG, false));
+    req.addSortField(new SortField("groupid_range", SortField.Type.LONG, false));
     SenseiResult res = broker.browse(req);
     System.out.println(res);
     List<BrowseFacet> facets = res.getFacetAccessor(field).getFacets();
@@ -173,7 +166,7 @@ public class TestNegativeNumbers extends TestCase {
     String fieldName = "groupid_multi";
     req.addSelection(new BrowseSelection(fieldName).addValue("-1").addValue("1")
         .addNotValue("-500").setSelectionOperation(ValueOperation.ValueOperationOr));
-    req.addSortField(new SortField(fieldName, SortField.LONG, false));
+    req.addSortField(new SortField(fieldName, SortField.Type.LONG, false));
     req.setFacetSpec(fieldName,
       new FacetSpec().setMaxCount(50).setMinHitCount(1).setOrderBy(FacetSortSpec.OrderValueAsc));
     SenseiResult res = broker.browse(req);

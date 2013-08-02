@@ -1,28 +1,24 @@
 package com.senseidb.test.bql.parsers;
 
-import java.util.Map;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Map;
+
 import junit.framework.TestCase;
 
-import org.antlr.runtime.*;
+import org.antlr.runtime.RecognitionException;
+import org.json.JSONObject;
 import org.junit.Test;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONException;
-
 import com.senseidb.bql.parsers.BQLCompiler;
-import com.senseidb.util.JsonTemplateProcessor;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import com.senseidb.util.JsonTemplateProcessor;
 
 public class TestBQL extends TestCase {
 
-  private BQLCompiler _compiler;
-  private JsonComparator _comp = new JsonComparator(1);
+  private final BQLCompiler _compiler;
+  private final JsonComparator _comp = new JsonComparator(1);
 
   public TestBQL() {
     super();
@@ -217,6 +213,7 @@ public class TestBQL extends TestCase {
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInPred3() throws Exception {
     System.out.println("testInPred3");
@@ -272,6 +269,7 @@ public class TestBQL extends TestCase {
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testPathPred2() throws Exception {
     System.out.println("testPathPred2");
@@ -302,8 +300,6 @@ public class TestBQL extends TestCase {
   public void testNotEqualForRange() throws Exception {
     System.out.println("testNotEqualForRange");
     System.out.println("==================================================");
-
-    long now = System.currentTimeMillis();
 
     JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE year <> 2000");
     JSONObject expected = new JSONObject(
@@ -463,6 +459,7 @@ public class TestBQL extends TestCase {
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRangePred5() throws Exception {
     System.out.println("testRangePred5");
@@ -587,6 +584,7 @@ public class TestBQL extends TestCase {
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testLikePredicate3() throws Exception {
     System.out.println("testLikePredicate3");
@@ -625,6 +623,7 @@ public class TestBQL extends TestCase {
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testColumnType1() throws Exception {
     System.out.println("testColumnType1");
@@ -639,6 +638,7 @@ public class TestBQL extends TestCase {
     assertEquals(result, 1);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testColumnType2() throws Exception {
     System.out.println("testColumnType2");
@@ -654,6 +654,7 @@ public class TestBQL extends TestCase {
     assertEquals(result, 1);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testColumnType3() throws Exception {
     System.out.println("testColumnType3");
@@ -669,6 +670,7 @@ public class TestBQL extends TestCase {
     assertEquals(result, 1);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testColumnType4() throws Exception {
     System.out.println("testColumnType4");
@@ -820,8 +822,6 @@ public class TestBQL extends TestCase {
     System.out.println("testDateTime1");
     System.out.println("==================================================");
 
-    long now = System.currentTimeMillis();
-
     JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
         + "WHERE time < 2012-01-02 12:10:30");
 
@@ -837,8 +837,6 @@ public class TestBQL extends TestCase {
     System.out.println("testDateTime2");
     System.out.println("==================================================");
 
-    long now = System.currentTimeMillis();
-
     JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE time < 2012-01-02");
 
     long timeStamp = Long.parseLong(json.getJSONObject("filter").getJSONObject("range")
@@ -852,8 +850,6 @@ public class TestBQL extends TestCase {
     System.out.println("testDateTime3");
     System.out.println("==================================================");
 
-    long now = System.currentTimeMillis();
-
     JSONObject json = _compiler.compile("SELECT * \n" + "FROM cars \n"
         + "WHERE time > 2012-01-02 AND time <= 2012/01/31 \n" + "  AND color = 'red'");
 
@@ -865,8 +861,6 @@ public class TestBQL extends TestCase {
     assertEquals(fromTime, expectedFromTime);
     assertFalse(timeRange.getJSONObject("time").getBoolean("include_lower"));
 
-    long toTime = Long.parseLong(timeRange.getJSONObject("time").getString("from"));
-    long expectedToTime = new SimpleDateFormat("yyyy/MM/dd").parse("2012/01/31").getTime();
     assertEquals(fromTime, expectedFromTime);
     assertTrue(timeRange.getJSONObject("time").getBoolean("include_upper"));
   }
@@ -875,8 +869,6 @@ public class TestBQL extends TestCase {
   public void testUID() throws Exception {
     System.out.println("testUID");
     System.out.println("==================================================");
-
-    long now = System.currentTimeMillis();
 
     JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE _uid IN (123, 124)");
     JSONObject expected = new JSONObject(
@@ -897,6 +889,7 @@ public class TestBQL extends TestCase {
     assertTrue(_comp.isEquals(json, expected));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testCorrectStatement() throws Exception {
     System.out.println("testCorrectStatement");

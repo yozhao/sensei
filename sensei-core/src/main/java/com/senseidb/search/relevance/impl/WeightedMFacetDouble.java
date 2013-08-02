@@ -6,10 +6,9 @@ import com.browseengine.bobo.facets.data.TermDoubleList;
 
 public class WeightedMFacetDouble extends MFacetDouble implements WeightedMFacet {
 
-  public WeightedMFacetDouble(MultiValueFacetDataCache mDataCaches) {
+  public WeightedMFacetDouble(MultiValueFacetDataCache<?> mDataCaches) {
     super(mDataCaches);
-
-    MultiValueWithWeightFacetDataCache wmDataCaches = (MultiValueWithWeightFacetDataCache) mDataCaches;
+    MultiValueWithWeightFacetDataCache<?> wmDataCaches = (MultiValueWithWeightFacetDataCache<?>) mDataCaches;
     _weightArray = wmDataCaches._weightArray;
     weightBuf = new int[1024];
   }

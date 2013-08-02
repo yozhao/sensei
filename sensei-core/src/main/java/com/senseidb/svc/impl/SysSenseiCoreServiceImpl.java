@@ -9,7 +9,7 @@ import zu.finagle.serialize.JOSSSerializer;
 import zu.finagle.serialize.ZuSerializer;
 
 import com.browseengine.bobo.api.BoboBrowser;
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
@@ -30,7 +30,7 @@ public class SysSenseiCoreServiceImpl extends
 
   @Override
   public SenseiSystemInfo handlePartitionedRequest(SenseiRequest request,
-      List<BoboIndexReader> readerList, SenseiQueryBuilderFactory queryBuilderFactory)
+      List<BoboSegmentReader> readerList, SenseiQueryBuilderFactory queryBuilderFactory)
       throws Exception {
     SenseiSystemInfo res = new SenseiSystemInfo();
 

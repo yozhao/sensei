@@ -2,13 +2,14 @@ package com.senseidb.search.query.filters;
 
 import java.io.IOException;
 
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
+import org.apache.lucene.util.Bits;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetFilter;
@@ -23,22 +24,21 @@ public class NullFilterConstructor extends FilterConstructor {
     final String fieldName = json instanceof String ? (String) json : ((JSONObject) json)
         .getString("field");
     return new Filter() {
-
       @Override
-      public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
-        final Object data = ((BoboIndexReader) reader).getFacetData(fieldName);
+      public DocIdSet getDocIdSet(AtomicReaderContext context, Bits acceptDocs) throws IOException {
+        final Object data = ((BoboSegmentReader) context.reader()).getFacetData(fieldName);
         if (data instanceof MultiValueFacetDataCache) {
           return new DocIdSet() {
             @Override
             public DocIdSetIterator iterator() throws IOException {
-              return new MultiValueFacetDocIdSetIterator((MultiValueFacetDataCache) data, 0);
+              return new MultiValueFacetDocIdSetIterator((MultiValueFacetDataCache<?>) data, 0);
             }
           };
         } else if (data instanceof FacetDataCache) {
           return new DocIdSet() {
             @Override
             public DocIdSetIterator iterator() throws IOException {
-              return new FacetFilter.FacetDocIdSetIterator((FacetDataCache) data, 0);
+              return new FacetFilter.FacetDocIdSetIterator((FacetDataCache<?>) data, 0);
             }
           };
         }
@@ -51,7 +51,7 @@ public class NullFilterConstructor extends FilterConstructor {
   public final static class MultiValueFacetDocIdSetIterator extends FacetDocIdSetIterator {
     private final BigNestedIntArray _nestedArray;
 
-    public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int index) {
+    public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache<?> dataCache, int index) {
       super(dataCache, index);
       _nestedArray = dataCache._nestedArray;
     }

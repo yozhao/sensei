@@ -2,8 +2,6 @@ package com.senseidb.search.req.mapred.functions;
 
 import java.util.List;
 
-import javax.management.RuntimeErrorException;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,10 +10,14 @@ import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.IntArray;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class CountMapReduce implements SenseiMapReduce<Double, Double> {
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
 
   @Override
   public void init(JSONObject params) {

@@ -42,17 +42,18 @@ public class MapReduceRegistry {
     return keyToFunction.containsKey(column);
   }
 
+  @SuppressWarnings("unchecked")
   public static SenseiMapReduce get(String mapReduceKey) {
     try {
       Class<? extends SenseiMapReduce> cls = keyToFunction.get(mapReduceKey);
       if (cls != null) {
-        return (SenseiMapReduce) cls.newInstance();
+        return cls.newInstance();
       }
       if (!mapReduceKey.contains(".")) {
         cls = keyToFunction.get("sensei." + mapReduceKey);
       }
       if (cls != null) {
-        return (SenseiMapReduce) cls.newInstance();
+        return cls.newInstance();
       }
       cls = (Class<? extends SenseiMapReduce>) Class.forName(mapReduceKey);
       keyToFunction.put(mapReduceKey, cls);

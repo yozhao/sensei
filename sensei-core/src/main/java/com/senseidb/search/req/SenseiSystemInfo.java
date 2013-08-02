@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,11 +64,11 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
   public static class SenseiNodeInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private int _id;
-    private int[] _partitions;
+    private final int _id;
+    private final int[] _partitions;
 
-    private String _nodeLink;
-    private String _adminLink;
+    private final String _nodeLink;
+    private final String _adminLink;
 
     public SenseiNodeInfo(int id, int[] partitions, String nodeLink, String adminLink) {
       _id = id;
@@ -94,6 +93,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
       return _adminLink;
     }
 
+    @Override
     public String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append("{id: ").append(_id).append(", partitions: ").append(Arrays.toString(_partitions))
@@ -125,10 +125,12 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     _clusterInfo = null;
   }
 
+  @Override
   public long getTime() {
     return _searchTimeMillis;
   }
 
+  @Override
   public void setTime(long searchTimeMillis) {
     _searchTimeMillis = searchTimeMillis;
   }
@@ -187,6 +189,7 @@ public class SenseiSystemInfo implements AbstractSenseiResult {
     return errors;
   }
 
+  @Override
   public void addError(SenseiError error) {
     if (errors == null) errors = new ArrayList<SenseiError>();
 

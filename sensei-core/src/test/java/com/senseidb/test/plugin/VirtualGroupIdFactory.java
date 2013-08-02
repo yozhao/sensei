@@ -3,7 +3,9 @@ package com.senseidb.test.plugin;
 import java.util.HashSet;
 import java.util.Map;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import proj.zoie.api.ZoieSegmentReader;
+
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.FacetDataFetcher;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
@@ -11,8 +13,6 @@ import com.browseengine.bobo.facets.data.TermFixedLengthLongArrayListFactory;
 import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
 import com.senseidb.plugin.SenseiPluginFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
-
-import proj.zoie.api.ZoieIndexReader;
 
 public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleFacetHandler> {
   @Override
@@ -22,7 +22,7 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
     if ("default".equals(initProperties.get("typeProp"))) {
       HashSet<String> depends = new HashSet<String>();
       depends.add("groupid");
-      return new VirtualSimpleFacetHandler("virtual_groupid", new PredefinedTermListFactory(
+      return new VirtualSimpleFacetHandler("virtual_groupid", new PredefinedTermListFactory<Long>(
           Long.class, "00000000000000000000000000000000000"), facetDataFetcher, depends);
     }
     if ("fixedlengthlongarray".equals(initProperties.get("typeProp"))) {
@@ -35,8 +35,9 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
   }
 
   public static FacetDataFetcher facetDataFetcher = new FacetDataFetcher() {
+    @SuppressWarnings("rawtypes")
     @Override
-    public Object fetch(BoboIndexReader reader, int doc) {
+    public Object fetch(BoboSegmentReader reader, int doc) {
       FacetDataCache dataCache = (FacetDataCache) reader.getFacetData("groupid");
       long ret = (Long) dataCache.valArray.getRawValue(dataCache.orderArray.get(doc));
       if (ret < 0) ret *= -1;
@@ -44,11 +45,12 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
     }
 
     @Override
-    public void cleanup(BoboIndexReader reader) {
+    public void cleanup(BoboSegmentReader reader) {
     }
   };
 
   public static class GroupIdFetcherFactory implements SenseiPluginFactory<FacetDataFetcher> {
+    @Override
     public FacetDataFetcher getBean(Map<String, String> initProperties, String fullPrefix,
         SenseiPluginRegistry pluginRegistry) {
       return VirtualGroupIdFactory.facetDataFetcher;
@@ -57,8 +59,8 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
 
   public static FacetDataFetcher facetDataFetcherFixedLengthLongArray = new FacetDataFetcher() {
     @Override
-    public Object fetch(BoboIndexReader reader, int doc) {
-      long uid = ((ZoieIndexReader) reader.getInnerReader()).getUID(doc);
+    public Object fetch(BoboSegmentReader reader, int doc) {
+      long uid = ((ZoieSegmentReader<?>) reader.getInnerReader()).getUID(doc);
       long[] val = new long[2];
       val[0] = uid;
       if (uid % 4 == 1) val[0] = val[0] - 1;
@@ -69,7 +71,7 @@ public class VirtualGroupIdFactory implements SenseiPluginFactory<VirtualSimpleF
     }
 
     @Override
-    public void cleanup(BoboIndexReader reader) {
+    public void cleanup(BoboSegmentReader reader) {
     }
   };
 }

@@ -8,6 +8,11 @@ import org.json.JSONObject;
 
 public class ListAllUIDs implements SenseiMapReduce<Serializable, Serializable> {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
   @Override
   public void init(JSONObject params) {
     // TODO Auto-generated method stub

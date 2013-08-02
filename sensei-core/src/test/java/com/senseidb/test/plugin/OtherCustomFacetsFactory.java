@@ -17,11 +17,11 @@ public class OtherCustomFacetsFactory implements SenseiPluginFactory<List<FacetH
   public List<FacetHandler<?>> getBean(Map<String, String> initProperties, String fullPrefix,
       SenseiPluginRegistry pluginRegistry) {
     List<FacetHandler<?>> ret = new ArrayList<FacetHandler<?>>();
-    ret.add(new SimpleFacetHandler("handler1", "field1", new PredefinedTermListFactory(Long.class),
+    ret.add(new SimpleFacetHandler("handler1", "field1", new PredefinedTermListFactory<Long>(Long.class),
         new HashSet<String>()));
-    ret.add(new SimpleFacetHandler("handler2", "field2", new PredefinedTermListFactory(Long.class),
+    ret.add(new SimpleFacetHandler("handler2", "field2", new PredefinedTermListFactory<Long>(Long.class),
         new HashSet<String>()));
-    ret.add(new SimpleFacetHandler("handler3", "field3", new PredefinedTermListFactory(Long.class),
+    ret.add(new SimpleFacetHandler("handler3", "field3", new PredefinedTermListFactory<Long>(Long.class),
         new HashSet<String>()));
     return ret;
   }

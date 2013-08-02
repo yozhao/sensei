@@ -7,12 +7,10 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.apache.log4j.Logger;
 
 public class JsonTemplateProcessor {
   public static final String TEMPLATE_MAPPING_PARAM = "templateMapping";
-  private final static Logger logger = Logger.getLogger(JsonTemplateProcessor.class);
-
+  @SuppressWarnings("rawtypes")
   public Map<String, Object> getTemplates(JSONObject request) {
     Map<String, Object> ret = new HashMap<String, Object>();
     JSONObject templatesJson = request.optJSONObject(TEMPLATE_MAPPING_PARAM);

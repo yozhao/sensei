@@ -8,6 +8,7 @@ import org.json.JSONObject;
 public class TermFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "term";
 
+  @SuppressWarnings("unchecked")
   @Override
   protected Filter doConstructFilter(Object param) throws Exception {
     JSONObject json = (JSONObject) param;

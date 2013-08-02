@@ -4,19 +4,20 @@ import java.io.File;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
+import junit.framework.TestCase;
+
 import org.json.JSONObject;
 
 import proj.zoie.impl.indexing.ZoieConfig;
 
+import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.test.SenseiStarter;
 
-import junit.framework.TestCase;
-
 public class ActivityStressTest extends TestCase {
-  private static final long UID_BASE = 10000000000L;
   private File dir;
   private CompositeActivityValues compositeActivityValues;
 
+  @Override
   public void setUp() {
     String pathname = getDirPath();
     SenseiStarter.rmrf(new File("sensei-test"));
@@ -46,7 +47,7 @@ public class ActivityStressTest extends TestCase {
       compositeActivityValues = CompositeActivityValues.createCompositeValues(
         ActivityPersistenceFactory.getInstance(getDirPath()),
         java.util.Arrays.asList(PurgeUnusedActivitiesJobTest.getLikesFieldDefinition()),
-        Collections.EMPTY_LIST, ZoieConfig.DEFAULT_VERSION_COMPARATOR);
+        Collections.<TimeAggregateInfo> emptyList(), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
       if (iteration != 0) {
         long[] arr = new long[5000];
         for (int j = 0; j < arr.length; j++) {

@@ -1,26 +1,19 @@
 package com.senseidb.test.bql.parsers;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+
 import junit.framework.TestCase;
 
-import org.antlr.runtime.*;
-import org.junit.Test;
-
-import org.json.JSONArray;
+import org.antlr.runtime.RecognitionException;
 import org.json.JSONObject;
-import org.json.JSONException;
+import org.junit.Test;
 
 import com.senseidb.bql.parsers.BQLCompiler;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-
 public class TestErrorHandling extends TestCase {
 
-  private BQLCompiler _compiler;
-  private JsonComparator _comp = new JsonComparator(1);
-
+  private final BQLCompiler _compiler;
   public TestErrorHandling() {
     super();
     Map<String, String[]> facetInfoMap = new HashMap<String, String[]>();
@@ -37,6 +30,7 @@ public class TestErrorHandling extends TestCase {
     _compiler = new BQLCompiler(facetInfoMap);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBasicError1() throws Exception {
     System.out.println("testBasicError1");
@@ -55,6 +49,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInconsistentRanges() throws Exception {
     System.out.println("testInconsistentRanges");
@@ -74,6 +69,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInvalidInPred() throws Exception {
     System.out.println("testInvalidInPred");
@@ -93,6 +89,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInvalidInPredValues() throws Exception {
     System.out.println("testInvalidInPredValues");
@@ -112,6 +109,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInvalidInPredExceptValues() throws Exception {
     System.out.println("testInvalidInPredExceptValues");
@@ -131,6 +129,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInvalidContainsAllPred() throws Exception {
     System.out.println("testInvalidContainsAllPred");
@@ -150,6 +149,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInvalidContainsAllPredValues() throws Exception {
     System.out.println("testInvalidContainsAllPredValues");
@@ -169,6 +169,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testInvalidContainsAllPredExceptValues() throws Exception {
     System.out.println("testInvalidContainsAllPredExceptValues");
@@ -189,6 +190,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadDataInEqualPred() throws Exception {
     System.out.println("testBadDataInEqualPred");
@@ -208,6 +210,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testExpectingCOLON() throws Exception {
     System.out.println("testExpectingCOLON");
@@ -225,6 +228,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testUnsupportedProp() throws Exception {
     System.out.println("testUnsupportedProp");
@@ -245,6 +249,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadDataInNotEqualPred() throws Exception {
     System.out.println("testBadDataInNotEqualPred");
@@ -264,6 +269,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testNotEqualOnPath() throws Exception {
     System.out.println("testNotEqualOnPath");
@@ -283,6 +289,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadBetweenPred() throws Exception {
     System.out.println("testBadBetweenPred");
@@ -307,6 +314,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadDataInBetweenPred() throws Exception {
     System.out.println("testBadDataInBetweenPred");
@@ -326,6 +334,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadRangePred() throws Exception {
     System.out.println("testBadRangePred");
@@ -345,6 +354,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadDataInRangePred() throws Exception {
     System.out.println("testBadDataInRangePred");
@@ -364,6 +374,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadDatetime1() throws Exception {
     System.out.println("testBadDatetime1");
@@ -383,6 +394,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadDatetime2() throws Exception {
     System.out.println("testBadDatetime2");
@@ -402,6 +414,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadMatchPred() throws Exception {
     System.out.println("testBadMatchPred");
@@ -421,6 +434,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testEOF() throws Exception {
     System.out.println("testEOF");
@@ -438,6 +452,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testBadSelectList() throws Exception {
     System.out.println("testBadSelectList");
@@ -455,6 +470,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testOrderByOnce() throws Exception {
     System.out.println("testOrderByOnce");
@@ -473,6 +489,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testLimitOnce() throws Exception {
     System.out.println("testLimitOnce");
@@ -491,31 +508,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
-  // @Test
-  // public void testConflictSelections() throws Exception
-  // {
-  // System.out.println("testConflictSelections");
-  // System.out.println("==================================================");
-
-  // boolean caughtException = false;
-  // try
-  // {
-  // JSONObject json = _compiler.compile(
-  // "SELECT color FROM cars WHERE color = 'red' AND color = 'blue'"
-  // );
-  // }
-  // catch (RecognitionException err)
-  // {
-  // caughtException = true;
-  // assertEquals("[line:1, col:14] Expecting IDENT (token=from)",
-  // _compiler.getErrorMessage(err));
-  // }
-  // finally
-  // {
-  // assertTrue(caughtException);
-  // }
-  // }
-
+  @SuppressWarnings("unused")
   @Test
   public void testBadTimePredicate() throws Exception {
     System.out.println("testBadTimePredicate");
@@ -537,6 +530,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testOverflowInteger() throws Exception {
     System.out.println("testOverflowInteger");
@@ -556,6 +550,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRouteByOnce() throws Exception {
     System.out.println("testRouteByOnce");
@@ -574,6 +569,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testSrcdataFetchStoredError1() throws Exception {
     System.out.println("testSrcdataFetchStoredError1");
@@ -593,6 +589,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testSrcdataFetchStoredError2() throws Exception {
     System.out.println("testSrcdataFetchStoredError2");
@@ -612,6 +609,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testUsingRelevanceOnce() throws Exception {
     System.out.println("testUsingRelevanceOnce");
@@ -632,6 +630,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceVarRedefined() throws Exception {
     System.out.println("testRelevanceVarRedefined");
@@ -652,6 +651,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceUndefinedVar1() throws Exception {
     System.out.println("testRelevanceUndefinedVar1");
@@ -672,6 +672,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceUndefinedVar2() throws Exception {
     System.out.println("testRelevanceUndefinedVar2");
@@ -694,6 +695,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceUndefinedVar3() throws Exception {
     System.out.println("testRelevanceUndefinedVar3");
@@ -714,6 +716,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceVarDeclError1() throws Exception {
     System.out.println("testRelevanceVarDeclError1");
@@ -734,6 +737,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceVarDeclError2() throws Exception {
     System.out.println("testRelevanceVarDeclError2");
@@ -754,6 +758,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceVarDeclError3() throws Exception {
     System.out.println("testRelevanceVarDeclError3");
@@ -774,6 +779,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceModelParamError1() throws Exception {
     System.out.println("testRelevanceModelParamError1");
@@ -796,6 +802,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceModelParamError2() throws Exception {
     System.out.println("testRelevanceModelParamError2");
@@ -817,6 +824,7 @@ public class TestErrorHandling extends TestCase {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRelevanceModelParamError3() throws Exception {
     System.out.println("testRelevanceModelParamError3");

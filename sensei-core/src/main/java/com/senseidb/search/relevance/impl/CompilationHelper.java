@@ -23,14 +23,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
-import com.senseidb.search.req.ErrorType;
-
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -39,6 +31,14 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
 import javassist.NotFoundException;
+
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.senseidb.search.relevance.ExternalRelevanceDataStorage;
+import com.senseidb.search.req.ErrorType;
 
 /**
 
@@ -95,7 +95,7 @@ import javassist.NotFoundException;
           "c":[1996,1997],
           "e":0.98,
           "j":{"1":2.3, "2":3.4, "3":2.9}      // A user input hashmap;
-          "jj":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      //  It also supports this method to pass in a map. 
+          "jj":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      //  It also supports this method to pass in a map.
       }
   }
 
@@ -417,6 +417,7 @@ public class CompilationHelper {
   private static int MAX_NUM_MODELS = 10000;
   static HashMap<String, CustomMathModel> hmModels = new HashMap<String, CustomMathModel>();
 
+  @SuppressWarnings("unchecked")
   public static CustomMathModel createCustomMathScorer(JSONObject jsonModel, DataTable dataTable)
       throws RelevanceException, JSONException {
     CustomMathModel cMathModel = null;
@@ -552,10 +553,10 @@ public class CompilationHelper {
           throw new RelevanceException(ErrorType.JsonCompilationError, e.getMessage(), e);
         }
 
-        Class h;
+        Class<?> h;
         try {
           h = CompilationHelper.pool.toClass(ch, new CompilationHelper.CustomLoader(
-              CompilationHelper.class.getClassLoader(), className));
+              CompilationHelper.class.getClassLoader(), className), null);
         } catch (CannotCompileException e) {
           if (hmModels.containsKey(className)) {
             cMathModel = hmModels.get(className);
@@ -589,12 +590,13 @@ public class CompilationHelper {
     }
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static void initializeValues(JSONObject jsonValues, DataTable dataTable)
       throws JSONException {
     HashMap<String, Integer> hm_type = dataTable.hm_type;
-    Iterator it = hm_type.keySet().iterator();
+    Iterator<String> it = hm_type.keySet().iterator();
     while (it.hasNext()) {
-      String symbol = (String) it.next();
+      String symbol = it.next();
       Integer typeNum = dataTable.hm_type.get(symbol);
 
       if (typeNum == RelevanceJSONConstants.TYPENUMBER_INNER_SCORE
@@ -823,7 +825,7 @@ public class CompilationHelper {
   /**
    * check if in the JSON values part the map variable is represented in a json map way or two key and value json array;
    *       "JsonMapway":{"1":2.3, "2":3.4, "3":2.9}      // A user input hashmap;
-   *       "KeyValueJsonArrayPairWay":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      //  It also supports this method to pass in a map. 
+   *       "KeyValueJsonArrayPairWay":{"key":[1,2,3], "value":[2.3, 3.4, 2.9]}      //  It also supports this method to pass in a map.
    * @param values
    * @return boolean
    */
@@ -1006,8 +1008,8 @@ public class CompilationHelper {
 
   public static class CustomLoader extends ClassLoader {
 
-    private ClassLoader _cl;
-    private String _target;
+    private final ClassLoader _cl;
+    private final String _target;
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {

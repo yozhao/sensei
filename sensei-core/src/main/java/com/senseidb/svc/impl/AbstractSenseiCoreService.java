@@ -19,10 +19,10 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.util.NamedThreadFactory;
 
 import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.ZoieIndexReader;
+import proj.zoie.api.ZoieMultiReader;
 import zu.finagle.serialize.ZuSerializer;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
@@ -97,6 +97,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
     return timer;
   }
 
+  @SuppressWarnings("unchecked")
   public Res execute(final Req senseiReq) {
     SearchCounter.mark();
     Set<Integer> partitions = senseiReq == null ? null : senseiReq.getPartitions();
@@ -115,7 +116,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
         logger.debug("serving partitions: " + partitions.toString());
       }
       // we need to release index readers from all partitions only after the merge step
-      final Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReaderCache = new ConcurrentHashMap<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>>();
+      final Map<IndexReaderFactory<BoboSegmentReader>, List<ZoieMultiReader<BoboSegmentReader>>> indexReaderCache = new ConcurrentHashMap<IndexReaderFactory<BoboSegmentReader>, List<ZoieMultiReader<BoboSegmentReader>>>();
       try {
         final ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
         Future<Res>[] futures = new Future[partitions.size() - 1];
@@ -123,13 +124,14 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
         for (final int partition : partitions) {
           final long start = System.currentTimeMillis();
-          final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory = _core
+          final IndexReaderFactory<BoboSegmentReader> readerFactory = _core
               .getIndexReaderFactory(partition);
 
           if (i < partitions.size() - 1) // Search simultaneously.
           {
             try {
-              futures[i] = (Future<Res>) _executorService.submit(new Callable<Res>() {
+              futures[i] = _executorService.submit(new Callable<Res>() {
+                @Override
                 public Res call() throws Exception {
                   Timer timer = getTimer(partition);
 
@@ -201,6 +203,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
         try {
           finalResult = MergeTimer.time(new Callable<Res>() {
+            @Override
             public Res call() throws Exception {
               return mergePartitionedResults(senseiReq, resultList);
             }
@@ -231,9 +234,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   }
 
   private void returnIndexReaders(
-      Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReaderCache) {
-    for (IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> indexReaderFactory : indexReaderCache
-        .keySet()) {
+      Map<IndexReaderFactory<BoboSegmentReader>, List<ZoieMultiReader<BoboSegmentReader>>> indexReaderCache) {
+    for (IndexReaderFactory<BoboSegmentReader> indexReaderFactory : indexReaderCache.keySet()) {
       indexReaderFactory.returnIndexReaders(indexReaderCache.get(indexReaderFactory));
     }
 
@@ -241,14 +243,17 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
   private final Res handleRequest(
       final Req senseiReq,
-      final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> readerFactory,
+      final IndexReaderFactory<BoboSegmentReader> readerFactory,
       final SenseiQueryBuilderFactory queryBuilderFactory,
-      Map<IndexReaderFactory<ZoieIndexReader<BoboIndexReader>>, List<ZoieIndexReader<BoboIndexReader>>> indexReadersToCleanUp)
+      Map<IndexReaderFactory<BoboSegmentReader>, List<ZoieMultiReader<BoboSegmentReader>>> indexReadersToCleanUp)
       throws Exception {
-    List<ZoieIndexReader<BoboIndexReader>> readerList = null;
-    readerList = GetReaderTimer.time(new Callable<List<ZoieIndexReader<BoboIndexReader>>>() {
-      public List<ZoieIndexReader<BoboIndexReader>> call() throws Exception {
-        if (readerFactory == null) return Collections.EMPTY_LIST;
+    List<ZoieMultiReader<BoboSegmentReader>> readerList = null;
+    readerList = GetReaderTimer.time(new Callable<List<ZoieMultiReader<BoboSegmentReader>>>() {
+      @Override
+      public List<ZoieMultiReader<BoboSegmentReader>> call() throws Exception {
+        if (readerFactory == null) {
+          return Collections.emptyList();
+        }
         return readerFactory.getIndexReaders();
       }
     });
@@ -259,16 +264,17 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
     if (readerFactory != null && readerList != null) {
       indexReadersToCleanUp.put(readerFactory, readerList);
     }
-    final List<BoboIndexReader> boboReaders = ZoieIndexReader.extractDecoratedReaders(readerList);
+    final List<BoboSegmentReader> boboReaders = ZoieMultiReader.extractDecoratedReaders(readerList);
 
     return SearchTimer.time(new Callable<Res>() {
+      @Override
       public Res call() throws Exception {
         return handlePartitionedRequest(senseiReq, boboReaders, queryBuilderFactory);
       }
     });
   }
 
-  public abstract Res handlePartitionedRequest(Req r, final List<BoboIndexReader> readerList,
+  public abstract Res handlePartitionedRequest(Req r, final List<BoboSegmentReader> readerList,
       SenseiQueryBuilderFactory queryBuilderFactory) throws Exception;
 
   public abstract Res mergePartitionedResults(Req r, List<Res> reqList);

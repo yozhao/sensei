@@ -12,11 +12,14 @@ import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.IntArray;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.search.req.mapred.SingleFieldAccessor;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private String column;
 
   @Override
@@ -96,6 +99,10 @@ public class MinMapReduce implements SenseiMapReduce<MinResult, MinResult> {
 }
 
 class MinResult implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   public double value;
   public long uid;
 

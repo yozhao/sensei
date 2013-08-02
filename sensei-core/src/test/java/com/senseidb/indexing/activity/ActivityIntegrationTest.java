@@ -4,18 +4,15 @@ import java.util.Collections;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.Ignore;
 
-import proj.zoie.api.ZoieSegmentReader;
 import proj.zoie.impl.indexing.ZoieConfig;
 
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.gateway.file.FileDataProviderWithMocks;
-
+import com.senseidb.indexing.activity.CompositeActivityManager.TimeAggregateInfo;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.time.ActivityIntValuesSynchronizedDecorator;
 import com.senseidb.indexing.activity.time.Clock;
@@ -24,7 +21,6 @@ import com.senseidb.test.SenseiStarter;
 import com.senseidb.test.TestSensei;
 
 public class ActivityIntegrationTest extends TestCase {
-  private static final Logger logger = Logger.getLogger(ActivityIntegrationTest.class);
   private static long initialVersion;
   private static long expectedVersion;
   private static CompositeActivityValues inMemoryColumnData1;
@@ -154,6 +150,7 @@ public class ActivityIntegrationTest extends TestCase {
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances
         .get(2).activityValues;
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
+      @Override
       public boolean evaluate() {
         long v1 = Long.parseLong(inMemoryColumnData1.getVersion());
         long v2 = Long.parseLong(inMemoryColumnData2.getVersion());
@@ -174,6 +171,7 @@ public class ActivityIntegrationTest extends TestCase {
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances
         .get(2).activityValues;
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
+      @Override
       public boolean evaluate() {
         return inMemoryColumnData1.getIntValueByUID(1L, "likes") == 26
             || inMemoryColumnData2.getIntValueByUID(1L, "likes") == 26;
@@ -185,6 +183,7 @@ public class ActivityIntegrationTest extends TestCase {
       expectedVersion++;
     }
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
+      @Override
       public boolean evaluate() {
         return inMemoryColumnData1.getIntValueByUID(1L, "likes") == 51
             || inMemoryColumnData2.getIntValueByUID(1L, "likes") == 51;
@@ -242,7 +241,6 @@ public class ActivityIntegrationTest extends TestCase {
     }
     int initialTime = Clock.getCurrentTimeInMinutes();
     for (int i = 0; i < 10; i++) {
-      final int uid = i;
       Clock.setPredefinedTimeInMinutes(Clock.getCurrentTimeInMinutes() + 1);
       for (int j = 0; j < 10 - i; j++) {
         FileDataProviderWithMocks.add(new JSONObject().put("id", j)
@@ -319,8 +317,8 @@ public class ActivityIntegrationTest extends TestCase {
         .get(1).activityValues;
     final CompositeActivityValues inMemoryColumnData2 = CompositeActivityManager.cachedInstances
         .get(2).activityValues;
-    final TimeAggregatedActivityValues timeAggregatedActivityValues1 = clear(inMemoryColumnData1);
-    final TimeAggregatedActivityValues timeAggregatedActivityValues2 = clear(inMemoryColumnData2);
+    clear(inMemoryColumnData1);
+    clear(inMemoryColumnData2);
     for (int i = 0; i < 10; i++) {
       FileDataProviderWithMocks
           .add(new JSONObject().put("id", i)
@@ -370,7 +368,7 @@ public class ActivityIntegrationTest extends TestCase {
   }
 
   public void test5bIncreaseNonExistingActivityValue() throws Exception {
-    final CompositeActivityManager inMemoryColumnData1 = CompositeActivityManager.cachedInstances
+    CompositeActivityManager.cachedInstances
         .get(1);
     final CompositeActivityManager inMemoryColumnData2 = CompositeActivityManager.cachedInstances
         .get(2);
@@ -488,7 +486,7 @@ public class ActivityIntegrationTest extends TestCase {
     CompositeActivityValues compositeActivityValues = CompositeActivityValues
         .createCompositeValues(
           ActivityPersistenceFactory.getInstance(absolutePath, new ActivityConfig()),
-          java.util.Arrays.asList(fieldDefinition), Collections.EMPTY_LIST,
+          java.util.Arrays.asList(fieldDefinition), Collections.<TimeAggregateInfo> emptyList(),
           ZoieConfig.DEFAULT_VERSION_COMPARATOR);
 
     assertEquals(1, compositeActivityValues.getIntValueByUID(1L, "likes"));

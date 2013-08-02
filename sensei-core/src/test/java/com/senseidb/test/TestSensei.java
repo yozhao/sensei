@@ -375,7 +375,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
 
     assertEquals("numhits is wrong", 4, res.getInt("numhits"));
-    Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[] { 1, 3, 4, 6 }));
+    Set<Integer> expectedIds = new HashSet<Integer>(Arrays.asList(new Integer[] { 1, 3, 4, 6 }));
     for (int i = 0; i < res.getInt("numhits"); ++i) {
       int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
       assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
@@ -596,7 +596,7 @@ public class TestSensei extends TestCase {
     JSONObject res = search(new JSONObject(req));
 
     assertEquals("numhits is wrong", 2, res.getInt("numhits"));
-    Set<Integer> expectedIds = new HashSet(Arrays.asList(new Integer[] { 1, 3 }));
+    Set<Integer> expectedIds = new HashSet<Integer>(Arrays.asList(new Integer[] { 1, 3 }));
     for (int i = 0; i < res.getInt("numhits"); ++i) {
       int uid = res.getJSONArray("hits").getJSONObject(i).getInt("_uid");
       assertTrue("_UID " + uid + " is not expected.", expectedIds.contains(uid));
@@ -1248,25 +1248,23 @@ public class TestSensei extends TestCase {
     req.setFacetSpec("tags", spec);
   }
 
-  // public void testSortBy() throws Exception
-  // {
-  // logger.info("executing test case testSortBy");
-  // String req = "{\"sort\":[{\"color\":\"desc\"},\"_score\"],\"from\":0,\"size\":15000}";
-  // JSONObject res = search(new JSONObject(req));
-  // JSONArray jhits = res.optJSONArray("hits");
-  // ArrayList<String> arColors = new ArrayList<String>();
-  // for(int i=0; i<jhits.length(); i++){
-  // JSONObject jhit = jhits.getJSONObject(i);
-  // JSONArray jcolor = jhit.optJSONArray("color");
-  // if(jcolor != null){
-  // String color = jcolor.optString(0);
-  // if(color != null)
-  // arColors.add(color);
-  // }
-  // }
-  // checkColorOrder(arColors);
-  // // assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
-  // }
+  public void testSortBy() throws Exception {
+    logger.info("executing test case testSortBy");
+    String req = "{\"sort\":[{\"color\":\"desc\"},\"_score\"],\"from\":0,\"size\":15000}";
+    JSONObject res = search(new JSONObject(req));
+    JSONArray jhits = res.optJSONArray("hits");
+    ArrayList<String> arColors = new ArrayList<String>();
+    for (int i = 0; i < jhits.length(); i++) {
+      JSONObject jhit = jhits.getJSONObject(i);
+      JSONArray jcolor = jhit.optJSONArray("color");
+      if (jcolor != null) {
+        String color = jcolor.optString(0);
+        if (color != null) arColors.add(color);
+      }
+    }
+    checkColorOrder(arColors);
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+  }
 
   private void checkColorOrder(ArrayList<String> arColors) {
     assertTrue("must have 15000 results, size is:" + arColors.size(), arColors.size() == 15000);

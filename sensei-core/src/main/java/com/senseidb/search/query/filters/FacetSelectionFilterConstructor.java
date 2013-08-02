@@ -5,12 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
+import org.apache.lucene.util.Bits;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -47,20 +48,21 @@ public class FacetSelectionFilterConstructor extends FilterConstructor {
     final JSONObject json = (JSONObject) obj;
     return new Filter() {
 
+      @SuppressWarnings("unchecked")
       @Override
-      public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
-        if (reader instanceof BoboIndexReader) {
-          BoboIndexReader boboReader = (BoboIndexReader) reader;
+      public DocIdSet getDocIdSet(AtomicReaderContext context, Bits acceptDocs) throws IOException {
+        if (context.reader() instanceof BoboSegmentReader) {
+          BoboSegmentReader boboReader = (BoboSegmentReader) context.reader();
           Iterator<String> iter = json.keys();
           ArrayList<DocIdSet> docSets = new ArrayList<DocIdSet>();
           while (iter.hasNext()) {
             String key = iter.next();
-            FacetHandler facetHandler = boboReader.getFacetHandler(key);
+            FacetHandler<?> facetHandler = boboReader.getFacetHandler(key);
             if (facetHandler != null) {
               try {
                 JSONObject jsonObj = json.getJSONObject(key);
                 BrowseSelection sel = buildFacetSelection(key, jsonObj);
-                docSets.add(facetHandler.buildFilter(sel).getDocIdSet(boboReader));
+                docSets.add(facetHandler.buildFilter(sel).getDocIdSet(boboReader.getContext(), boboReader.getLiveDocs()));
               } catch (Exception e) {
                 throw new IOException(e.getMessage());
               }
@@ -72,10 +74,9 @@ public class FacetSelectionFilterConstructor extends FilterConstructor {
           else if (docSets.size() == 1) return docSets.get(0);
           return new AndDocIdSet(docSets);
         } else {
-          throw new IllegalStateException("reader not instance of " + BoboIndexReader.class);
+          throw new IllegalStateException("reader not instance of " + BoboSegmentReader.class);
         }
       }
-
     };
 
   }

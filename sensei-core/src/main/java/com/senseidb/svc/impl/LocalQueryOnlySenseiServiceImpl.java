@@ -3,7 +3,7 @@ package com.senseidb.svc.impl;
 import java.io.File;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.Version;
 import org.json.JSONObject;
 
@@ -27,6 +27,7 @@ public class LocalQueryOnlySenseiServiceImpl implements SenseiService {
   private CoreSenseiServiceImpl _coreService;
   private final SenseiCore _core;
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public LocalQueryOnlySenseiServiceImpl(File idxDir) throws Exception {
     ZoieConfig zoieConfig = new ZoieConfig();
     zoieConfig.setReadercachefactory(SimpleReaderCache.FACTORY);
@@ -37,8 +38,8 @@ public class LocalQueryOnlySenseiServiceImpl implements SenseiService {
             return null;
           }
         }, zoieConfig);
-    QueryParser queryParser = new QueryParser(Version.LUCENE_35, "contents", new StandardAnalyzer(
-        Version.LUCENE_35));
+    QueryParser queryParser = new QueryParser(Version.LUCENE_43, "contents", new StandardAnalyzer(
+        Version.LUCENE_43));
     DefaultJsonQueryBuilderFactory queryBuilderFactory = new DefaultJsonQueryBuilderFactory(
         queryParser);
     _core = new SenseiCore(1, new int[] { 0 }, zoieFactory, null, queryBuilderFactory,

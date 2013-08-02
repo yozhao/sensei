@@ -1,9 +1,6 @@
 package com.senseidb.indexing.activity.time;
 
-import static org.junit.Assert.assertEquals;
 import junit.framework.TestCase;
-
-import org.junit.Test;
 
 public class IntContainerTest extends TestCase {
 

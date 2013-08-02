@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -21,18 +20,15 @@ import com.browseengine.bobo.facets.attribute.AttributesFacetHandler;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.svc.api.SenseiService;
 
 public class TestSenseiAttributesHandler extends TestCase {
 
   private static final Logger logger = Logger.getLogger(TestSenseiAttributesHandler.class);
 
   private static SenseiBroker broker;
-  private static SenseiService httpRestSenseiService;
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
     broker = SenseiStarter.broker;
-    httpRestSenseiService = SenseiStarter.httpRestSenseiService;
 
   }
 
@@ -169,17 +165,6 @@ public class TestSenseiAttributesHandler extends TestCase {
 
   private void setspec(SenseiRequest req, FacetSpec spec) {
     req.setFacetSpec("tags_attributes", spec);
-
-  }
-
-  private void checkColorOrder(ArrayList<String> arColors) {
-    assertTrue("must have 15000 results, size is:" + arColors.size(), arColors.size() == 15000);
-    for (int i = 0; i < arColors.size() - 1; i++) {
-      String first = arColors.get(i);
-      String next = arColors.get(i + 1);
-      int comp = first.compareTo(next);
-      assertTrue("should >=0 (first= " + first + "  next= " + next + ")", comp >= 0);
-    }
   }
 
 }

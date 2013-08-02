@@ -7,11 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
@@ -26,37 +25,33 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
 import com.senseidb.search.relevance.impl.CompilationHelper;
+import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 import com.senseidb.search.relevance.impl.CustomMathModel;
-import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
 import com.senseidb.search.relevance.impl.MFacetDouble;
 import com.senseidb.search.relevance.impl.MFacetFloat;
 import com.senseidb.search.relevance.impl.MFacetInt;
 import com.senseidb.search.relevance.impl.MFacetLong;
 import com.senseidb.search.relevance.impl.MFacetShort;
 import com.senseidb.search.relevance.impl.MFacetString;
+import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
 import com.senseidb.search.relevance.impl.WeightedMFacetDouble;
 import com.senseidb.search.relevance.impl.WeightedMFacetFloat;
 import com.senseidb.search.relevance.impl.WeightedMFacetInt;
 import com.senseidb.search.relevance.impl.WeightedMFacetLong;
 import com.senseidb.search.relevance.impl.WeightedMFacetShort;
 import com.senseidb.search.relevance.impl.WeightedMFacetString;
-import com.senseidb.search.relevance.impl.CompilationHelper.DataTable;
 
 public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
 
-  private static Logger logger = Logger.getLogger(RuntimeRelevanceFunction.class);
-
   // per request shared data;
-  private DataTable _dt;
+  private final DataTable _dt;
   private CustomMathModel _cModel;
 
   // index reader level data;
   private BigSegmentedArray[] _orderArrays;
-  private TermValueList[] _termLists;
+  private TermValueList<?>[] _termLists;
 
-  private MultiValueFacetDataCache[] _mDataCaches;
-  private TermValueList[] _mTermLists;
-
+  private MultiValueFacetDataCache<?>[] _mDataCaches;
   private ActivityRangeFacetHandler[] _aHandlers;
   private int[][] _aData;
 
@@ -78,8 +73,8 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
   private double[] doubles;
   private boolean[] booleans;
   private String[] strings;
-  private Set[] sets;
-  private Map[] maps;
+  private Set<?>[] sets;
+  private Map<?, ?>[] maps;
   private Object[] objs;
 
   private MFacetInt[] mFacetInts;
@@ -96,13 +91,13 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
     _dt = dt;
   }
 
-  private void initialRunningData(BoboIndexReader boboReader, CustomMathModel cModel, DataTable _dt)
-      throws IOException {
+  private void initialRunningData(BoboSegmentReader boboReader, CustomMathModel cModel,
+      DataTable _dt) throws IOException {
 
     // (1) normal facet;
     int numFacet = _dt.hm_symbol_facet.keySet().size();
     final BigSegmentedArray[] orderArrays = new BigSegmentedArray[numFacet];
-    final TermValueList[] termLists = new TermValueList[numFacet];
+    final TermValueList<?>[] termLists = new TermValueList[numFacet];
 
     Iterator<String> iter_facet = _dt.hm_facet_index.keySet().iterator();
     while (iter_facet.hasNext()) {
@@ -114,14 +109,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
           + facetName + " does not have a valid FacetDataCache.");
 
       int index = _dt.hm_facet_index.get(facetName);
-      orderArrays[index] = ((FacetDataCache) (boboReader.getFacetData(facetName))).orderArray;
-      termLists[index] = ((FacetDataCache) (boboReader.getFacetData(facetName))).valArray;
+      orderArrays[index] = ((FacetDataCache<?>) (boboReader.getFacetData(facetName))).orderArray;
+      termLists[index] = ((FacetDataCache<?>) (boboReader.getFacetData(facetName))).valArray;
     }
 
     // (2) multi-facet;
     int numMultiFacet = _dt.hm_symbol_mfacet.keySet().size();
-    final MultiValueFacetDataCache[] mDataCaches = new MultiValueFacetDataCache[numMultiFacet];
-    final TermValueList[] mTermLists = new TermValueList[numMultiFacet];
+    final MultiValueFacetDataCache<?>[] mDataCaches = new MultiValueFacetDataCache[numMultiFacet];
+    final TermValueList<?>[] mTermLists = new TermValueList[numMultiFacet];
 
     Iterator<String> iter_mfacet = _dt.hm_mfacet_index.keySet().iterator();
     while (iter_mfacet.hasNext()) {
@@ -133,8 +128,8 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
           + mFacetName + " does not have a valid FacetDataCache.");
 
       int index = _dt.hm_mfacet_index.get(mFacetName);
-      mDataCaches[index] = (MultiValueFacetDataCache) (boboReader.getFacetData(mFacetName));
-      mTermLists[index] = ((MultiValueFacetDataCache) (boboReader.getFacetData(mFacetName))).valArray;
+      mDataCaches[index] = (MultiValueFacetDataCache<?>) (boboReader.getFacetData(mFacetName));
+      mTermLists[index] = ((MultiValueFacetDataCache<?>) (boboReader.getFacetData(mFacetName))).valArray;
     }
 
     // (3) activity engine facet;
@@ -146,7 +141,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
       String afacetName = iter_afacet.next();
 
       // validation;
-      FacetHandler arHandler = boboReader.getFacetHandler(afacetName);
+      FacetHandler<?> arHandler = boboReader.getFacetHandler(afacetName);
       Object dataObj = boboReader.getFacetData(afacetName);
       if (!(dataObj instanceof int[])) throw new IllegalArgumentException("Facet " + afacetName
           + " does not have a valid FacetData for activity engine.");
@@ -187,7 +182,6 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
     _arrayIndex = arrayIndex;
 
     _mDataCaches = mDataCaches;
-    _mTermLists = mTermLists;
     _mFacetIndex = mFacetIndex;
     _mArrayIndex = mArrayIndex;
 
@@ -246,10 +240,10 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
         strings[_arrayIndex[i]] = (String) _dt.hm_var.get(_dt.lls_params.get(i));
         break;
       case RelevanceJSONConstants.TYPENUMBER_SET:
-        sets[_arrayIndex[i]] = (Set) _dt.hm_var.get(_dt.lls_params.get(i));
+        sets[_arrayIndex[i]] = (Set<?>) _dt.hm_var.get(_dt.lls_params.get(i));
         break;
       case RelevanceJSONConstants.TYPENUMBER_MAP:
-        maps[_arrayIndex[i]] = (Map) _dt.hm_var.get(_dt.lls_params.get(i));
+        maps[_arrayIndex[i]] = (Map<?, ?>) _dt.hm_var.get(_dt.lls_params.get(i));
         break;
 
       // Custom Object;
@@ -584,7 +578,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
       // activity engine facet;
       case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
         ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
-            .getIntActivityValue((int[]) _aData[_aFacetIndex[dynamicAR[j]]], docID);
+            .getIntActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
         break;
 
       default:
@@ -673,7 +667,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
       // activity engine facet;
       case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
         ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
-            .getIntActivityValue((int[]) _aData[_aFacetIndex[dynamicAR[j]]], docID);
+            .getIntActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
         break;
       default:
         break;
@@ -690,7 +684,7 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
   }
 
   @Override
-  public void initializeReader(BoboIndexReader reader, JSONObject jsonParams) throws IOException {
+  public void initializeReader(BoboSegmentReader reader, JSONObject jsonParams) throws IOException {
     initialRunningData(reader, _cModel, _dt);
   }
 

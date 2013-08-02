@@ -16,6 +16,10 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private String column;
 
   @Override
@@ -92,6 +96,10 @@ public class MaxMapReduce implements SenseiMapReduce<MaxResult, MaxResult> {
 }
 
 class MaxResult implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   public double value;
   public long uid;
 

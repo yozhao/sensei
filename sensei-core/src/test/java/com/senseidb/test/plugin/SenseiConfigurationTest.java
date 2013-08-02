@@ -51,6 +51,7 @@ public class SenseiConfigurationTest extends Assert {
     assertNotNull(analyzer);
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void test4GetBeanList() {
     List<FacetHandler> customFacets = pluginRegistry.resolveBeansByListKey("sensei.custom.facets",

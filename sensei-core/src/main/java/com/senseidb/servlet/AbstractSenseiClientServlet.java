@@ -79,9 +79,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
   private BQLCompiler _compiler = null;
   private LayeredBroker federatedBroker;
 
-  private JsonTemplateProcessor jsonTemplateProcessor = new JsonTemplateProcessor();
-
-  private Timer _statTimer;
+  private final Timer _statTimer;
   private RequestPostProcessor postProcessor;
   private BrokerConfig _brokerConfig;
 
@@ -137,6 +135,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     }
     // Start the stat timer to get some of the sys stat:
     _statTimer.scheduleAtFixedRate(new TimerTask() {
+      @Override
       public void run() {
         int totalDocs = 0;
         try {

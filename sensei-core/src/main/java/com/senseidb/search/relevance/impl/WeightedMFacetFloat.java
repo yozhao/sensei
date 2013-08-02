@@ -6,10 +6,9 @@ import com.browseengine.bobo.facets.data.TermFloatList;
 
 public class WeightedMFacetFloat extends MFacetFloat implements WeightedMFacet {
 
-  public WeightedMFacetFloat(MultiValueFacetDataCache mDataCaches) {
+  public WeightedMFacetFloat(MultiValueFacetDataCache<?> mDataCaches) {
     super(mDataCaches);
-
-    MultiValueWithWeightFacetDataCache wmDataCaches = (MultiValueWithWeightFacetDataCache) mDataCaches;
+    MultiValueWithWeightFacetDataCache<?> wmDataCaches = (MultiValueWithWeightFacetDataCache<?>) mDataCaches;
     _weightArray = wmDataCaches._weightArray;
     weightBuf = new int[1024];
   }

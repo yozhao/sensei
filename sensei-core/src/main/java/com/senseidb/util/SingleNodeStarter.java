@@ -7,7 +7,6 @@ import java.net.URISyntaxException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.mortbay.jetty.Server;
 
-import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiServer;
@@ -32,7 +31,6 @@ public class SingleNodeStarter {
       try {
         PropertiesConfiguration senseiConfiguration = new PropertiesConfiguration(new File(confDir,
             "sensei.properties"));
-        final String indexDir = senseiConfiguration.getString(SenseiConfParams.SENSEI_INDEX_DIR);
         // rmrf(new File(indexDir));
         SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir, null);
         server = senseiServerBuilder.buildServer();

@@ -7,7 +7,7 @@ import java.util.Set;
 
 import proj.zoie.api.DocIDMapper;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
@@ -28,15 +28,15 @@ import com.senseidb.search.req.mapred.impl.SingleFieldAccessorImpl;
 @SuppressWarnings("rawtypes")
 public final class FieldAccessorImpl implements FieldAccessor {
   private final Set<String> facets = new HashSet<String>();
-  private final BoboIndexReader boboIndexReader;
+  private final BoboSegmentReader boboIndexReader;
   private FacetDataCache lastFacetDataCache;
   private String lastFacetDataCacheName;
 
-  private Map<String, FacetDataCache> facetDataMap = new HashMap<String, FacetDataCache>();
+  private final Map<String, FacetDataCache> facetDataMap = new HashMap<String, FacetDataCache>();
 
   private final DocIDMapper mapper;
 
-  public FieldAccessorImpl(Set<SenseiFacetInfo> facetInfos, BoboIndexReader boboIndexReader,
+  public FieldAccessorImpl(Set<SenseiFacetInfo> facetInfos, BoboSegmentReader boboIndexReader,
       DocIDMapper mapper) {
     this.mapper = mapper;
     for (SenseiFacetInfo facetInfo : facetInfos) {
@@ -50,7 +50,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    * @see com.senseidb.search.req.mapred.FieldAccessor1#getValueCache(java.lang.String)
    */
   @Override
-  public final FacetDataCache getValueCache(String name) {
+  public final FacetDataCache<?> getValueCache(String name) {
     if (name.equals(lastFacetDataCacheName)) {
       return lastFacetDataCache;
     }
@@ -261,7 +261,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final Object getByUID(String fieldName, long uid) {
-    return get(fieldName, mapper.quickGetDocID(uid));
+    return get(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -270,7 +270,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final String getStringByUID(String fieldName, long uid) {
-    return getString(fieldName, mapper.quickGetDocID(uid));
+    return getString(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -279,7 +279,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final long getLongByUID(String fieldName, long uid) {
-    return getLong(fieldName, mapper.quickGetDocID(uid));
+    return getLong(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -288,7 +288,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final double getDoubleByUID(String fieldName, long uid) {
-    return getDouble(fieldName, mapper.quickGetDocID(uid));
+    return getDouble(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -297,7 +297,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final short getShortByUID(String fieldName, long uid) {
-    return getShort(fieldName, mapper.quickGetDocID(uid));
+    return getShort(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -306,7 +306,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final int getIntegerByUID(String fieldName, long uid) {
-    return getInteger(fieldName, mapper.quickGetDocID(uid));
+    return getInteger(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -315,7 +315,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final float getFloatByUID(String fieldName, long uid) {
-    return getFloat(fieldName, mapper.quickGetDocID(uid));
+    return getFloat(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -324,7 +324,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    */
   @Override
   public final Object[] getArrayByUID(String fieldName, long uid) {
-    return getArray(fieldName, mapper.quickGetDocID(uid));
+    return getArray(fieldName, mapper.getDocID(uid));
   }
 
   /*
@@ -332,7 +332,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    * @see com.senseidb.search.req.mapred.FieldAccessor1#getTermValueList(java.lang.String)
    */
   @Override
-  public final TermValueList getTermValueList(String fieldName) {
+  public final TermValueList<?> getTermValueList(String fieldName) {
     FacetDataCache valueCache = getValueCache(fieldName);
     if (valueCache == null) {
       return null;
@@ -348,7 +348,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    * @see com.senseidb.search.req.mapred.FieldAccessor1#getFacetHandler(java.lang.String)
    */
   @Override
-  public final FacetHandler getFacetHandler(String facetName) {
+  public final FacetHandler<?> getFacetHandler(String facetName) {
     if (!facetName.equals(lastFacetHandlerName)) {
       lastFacetHandler = boboIndexReader.getFacetHandler(facetName);
       lastFacetHandlerName = facetName;
@@ -365,7 +365,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
    * @see com.senseidb.search.req.mapred.FieldAccessor1#getBoboIndexReader()
    */
   @Override
-  public BoboIndexReader getBoboIndexReader() {
+  public BoboSegmentReader getBoboIndexReader() {
     return boboIndexReader;
   }
 
@@ -378,7 +378,7 @@ public final class FieldAccessorImpl implements FieldAccessor {
     return mapper;
   }
 
-  private Map<String, SingleFieldAccessor> singleFieldAccessors = new HashMap<String, SingleFieldAccessor>();
+  private final Map<String, SingleFieldAccessor> singleFieldAccessors = new HashMap<String, SingleFieldAccessor>();
 
   @Override
   public SingleFieldAccessor getSingleFieldAccessor(String facetName) {

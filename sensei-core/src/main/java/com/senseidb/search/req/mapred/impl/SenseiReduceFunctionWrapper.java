@@ -21,7 +21,8 @@ public class SenseiReduceFunctionWrapper {
    * @param results
    * @return
    */
-  public static MapReduceResult combine(SenseiMapReduce mapReduceFunction,
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static MapReduceResult combine(SenseiMapReduce<?, ?> mapReduceFunction,
       List<MapReduceResult> results) {
     MapReduceResult ret = null;
     if (results.isEmpty()) {
@@ -41,6 +42,7 @@ public class SenseiReduceFunctionWrapper {
    * @param results
    * @return
    */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static MapReduceResult reduce(SenseiMapReduce mapReduceFunction,
       List<MapReduceResult> results) {
     MapReduceResult ret = null;

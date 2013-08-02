@@ -39,7 +39,6 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.servlet.DefaultSenseiJSONServlet;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class TestHttpRestSenseiServiceImpl extends TestCase {
@@ -95,8 +94,7 @@ public class TestHttpRestSenseiServiceImpl extends TestCase {
     Document doc = new Document();
 
     for (int i = 0; i < 10; i++) {
-      doc.add(new org.apache.lucene.document.Field("name" + i, "value" + i, Field.Store.YES,
-          Field.Index.ANALYZED));
+      doc.add(new org.apache.lucene.document.TextField("name" + i, "value" + i, Field.Store.YES));
     }
 
     return doc;
@@ -382,14 +380,14 @@ public class TestHttpRestSenseiServiceImpl extends TestCase {
   SortField[] createSortFields() {
     List<SortField> list = new ArrayList<SortField>();
 
-    list.add(new SortField(null, SortField.DOC));
-    list.add(new SortField(null, SortField.DOC, true));
+    list.add(new SortField(null, SortField.Type.DOC));
+    list.add(new SortField(null, SortField.Type.DOC, true));
 
-    list.add(new SortField(null, SortField.SCORE));
-    list.add(new SortField(null, SortField.SCORE, true));
+    list.add(new SortField(null, SortField.Type.SCORE));
+    list.add(new SortField(null, SortField.Type.SCORE, true));
 
-    list.add(new SortField("fieldCUSTOM", SortField.CUSTOM, false));
-    list.add(new SortField("fieldCUSTOMREV", SortField.CUSTOM, true));
+    list.add(new SortField("fieldCUSTOM", SortField.Type.CUSTOM, false));
+    list.add(new SortField("fieldCUSTOMREV", SortField.Type.CUSTOM, true));
 
     return list.toArray(new SortField[list.size()]);
   }
@@ -456,6 +454,11 @@ public class TestHttpRestSenseiServiceImpl extends TestCase {
     param = new DefaultFacetHandlerInitializerParam();
     for (int i = 0; i < 2; i++) {
       param.putStringParam("stringParam" + i, new ArrayList<String>() {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
         {
           add("woot");
         }

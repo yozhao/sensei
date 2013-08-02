@@ -1,23 +1,20 @@
 package com.senseidb.util;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.parser.ParserConfig;
-import com.alibaba.fastjson.util.FieldInfo;
-import com.alibaba.fastjson.util.TypeUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import proj.zoie.api.DataConsumer.DataEvent;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.util.FieldInfo;
+import com.alibaba.fastjson.util.TypeUtils;
 
 public class JSONUtil {
   public static class FastJSONObject extends JSONObject {
@@ -35,7 +32,7 @@ public class JSONUtil {
       }
     }
 
-    public FastJSONObject(Map value) {
+    public FastJSONObject(Map<?, ?> value) {
       if (value instanceof com.alibaba.fastjson.JSONObject) {
         _inner = (com.alibaba.fastjson.JSONObject) value;
       } else {
@@ -67,6 +64,7 @@ public class JSONUtil {
      * @throws JSONException If the value is an invalid number
      *  or if the key is null.
      */
+    @Override
     public JSONObject accumulate(String key, Object value) throws JSONException {
       Object object = _inner.get(key);
       if (object == null) {
@@ -95,6 +93,7 @@ public class JSONUtil {
      * @throws JSONException If the key is null or if the current value
      *  associated with the key is not a JSONArray.
      */
+    @Override
     public JSONObject append(String key, Object value) throws JSONException {
       Object object = _inner.get(key);
       if (object == null) {
@@ -116,6 +115,7 @@ public class JSONUtil {
      * @return    The object associated with the key.
      * @throws    JSONException if the key is not found.
      */
+    @Override
     public Object get(String key) throws JSONException {
       Object object = this.opt(key);
       if (object == null) {
@@ -132,6 +132,7 @@ public class JSONUtil {
      * @throws    JSONException if the key is not found or
      *  if the value is not a JSONArray.
      */
+    @Override
     public JSONArray getJSONArray(String key) throws JSONException {
       Object object = this.get(key);
       if (object instanceof com.alibaba.fastjson.JSONArray) {
@@ -152,6 +153,7 @@ public class JSONUtil {
      * @throws    JSONException if the key is not found or
      *  if the value is not a JSONObject.
      */
+    @Override
     public JSONObject getJSONObject(String key) throws JSONException {
       Object object = this.get(key);
       if (object instanceof com.alibaba.fastjson.JSONObject) {
@@ -169,6 +171,7 @@ public class JSONUtil {
      * @param key   A key string.
      * @return    true if the key exists in the JSONObject.
      */
+    @Override
     public boolean has(String key) {
       return _inner.containsKey(key);
     }
@@ -178,11 +181,14 @@ public class JSONUtil {
      *
      * @return An iterator of the keys.
      */
-    public Iterator keys() {
+    @Override
+    public Iterator<?> keys() {
       return _inner.keySet().iterator();
     }
 
-    public Iterator sortedKeys() {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public Iterator<?> sortedKeys() {
       return new TreeSet(_inner.keySet()).iterator();
     }
 
@@ -191,6 +197,7 @@ public class JSONUtil {
      *
      * @return The number of keys in the JSONObject.
      */
+    @Override
     public int length() {
       return _inner.size();
     }
@@ -201,6 +208,8 @@ public class JSONUtil {
      * @return A JSONArray containing the key strings, or null if the JSONObject
      * is empty.
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONArray names() {
       JSONArray ja = new FastJSONArray();
       Iterator keys = this.keys();
@@ -215,6 +224,7 @@ public class JSONUtil {
      * @param key   A key string.
      * @return    An object which is the value, or null if there is no value.
      */
+    @Override
     public Object opt(String key) {
       if (key == null) {
         return null;
@@ -243,6 +253,7 @@ public class JSONUtil {
      * @param key   A key string.
      * @return    A JSONArray which is the value.
      */
+    @Override
     public JSONArray optJSONArray(String key) {
       try {
         return this.getJSONArray(key);
@@ -259,6 +270,7 @@ public class JSONUtil {
      * @param key   A key string.
      * @return    A JSONObject which is the value.
      */
+    @Override
     public JSONObject optJSONObject(String key) {
       try {
         return this.getJSONObject(key);
@@ -275,6 +287,7 @@ public class JSONUtil {
      * @param defaultValue   The default.
      * @return    A string which is the value.
      */
+    @Override
     public String optString(String key, String defaultValue) {
       Object object = this.opt(key);
       if (object == null || NULL.equals(object)) {
@@ -291,6 +304,8 @@ public class JSONUtil {
      * @return    this.
      * @throws JSONException
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONObject put(String key, Collection value) throws JSONException {
       this.put(key, (Object) value);
       return this;
@@ -304,6 +319,8 @@ public class JSONUtil {
      * @return    this.
      * @throws JSONException
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONObject put(String key, Map value) throws JSONException {
       this.put(key, (Object) value);
       return this;
@@ -320,6 +337,7 @@ public class JSONUtil {
      * @throws JSONException If the value is non-finite number
      *  or if the key is null.
      */
+    @Override
     public JSONObject put(String key, Object value) throws JSONException {
       if (key == null) {
         throw new JSONException("Null key.");
@@ -347,6 +365,7 @@ public class JSONUtil {
      * @return The value that was associated with the name,
      * or null if there was no value.
      */
+    @Override
     public Object remove(String key) {
       return _inner.remove(key);
     }
@@ -363,6 +382,7 @@ public class JSONUtil {
      *  with <code>{</code>&nbsp;<small>(left brace)</small> and ending
      *  with <code>}</code>&nbsp;<small>(right brace)</small>.
      */
+    @Override
     public String toString() {
       try {
         return _inner.toString();
@@ -374,6 +394,7 @@ public class JSONUtil {
     /**
      * Not a prettyprinted JSON text, just the same as toString().
      */
+    @Override
     public String toString(int indentFactor) throws JSONException {
       return _inner.toString();
     }
@@ -397,6 +418,7 @@ public class JSONUtil {
       }
     }
 
+    @SuppressWarnings("rawtypes")
     public FastJSONArray(Collection value) {
       if (value instanceof com.alibaba.fastjson.JSONArray) {
         _inner = (com.alibaba.fastjson.JSONArray) value;
@@ -420,6 +442,7 @@ public class JSONUtil {
      * @return An object value.
      * @throws JSONException If there is no value for the index.
      */
+    @Override
     public Object get(int index) throws JSONException {
       Object object = this.opt(index);
       if (object == null) {
@@ -435,6 +458,7 @@ public class JSONUtil {
      * @throws JSONException If there is no value for the index. or if the
      * value is not a JSONArray
      */
+    @Override
     public JSONArray getJSONArray(int index) throws JSONException {
       Object object = this.get(index);
       if (object instanceof com.alibaba.fastjson.JSONArray) {
@@ -454,6 +478,7 @@ public class JSONUtil {
      * @throws JSONException If there is no value for the index or if the
      * value is not a JSONObject
      */
+    @Override
     public JSONObject getJSONObject(int index) throws JSONException {
       Object object = this.get(index);
       if (object instanceof com.alibaba.fastjson.JSONObject) {
@@ -471,6 +496,7 @@ public class JSONUtil {
      *
      * @return The length (or size).
      */
+    @Override
     public int length() {
       return _inner.size();
     }
@@ -481,6 +507,7 @@ public class JSONUtil {
      * @return    An object value, or null if there is no
      *        object at that index.
      */
+    @Override
     public Object opt(int index) {
       if (index < 0 || index >= this.length()) {
         return null;
@@ -506,6 +533,7 @@ public class JSONUtil {
      * @return    A JSONArray value, or null if the index has no value,
      * or if the value is not a JSONArray.
      */
+    @Override
     public JSONArray optJSONArray(int index) {
       try {
         return this.getJSONArray(index);
@@ -522,6 +550,7 @@ public class JSONUtil {
      * @param index The index must be between 0 and length() - 1.
      * @return    A JSONObject value.
      */
+    @Override
     public JSONObject optJSONObject(int index) {
       try {
         return this.getJSONObject(index);
@@ -538,6 +567,7 @@ public class JSONUtil {
      * @param defaultValue   The default value.
      * @return    A String value.
      */
+    @Override
     public String optString(int index, String defaultValue) {
       Object object = this.opt(index);
       if (object == null || JSONObject.NULL.equals(object)) {
@@ -552,6 +582,8 @@ public class JSONUtil {
      * @param value A Collection value.
      * @return    this.
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONArray put(Collection value) {
       this.put((Object) value);
       return this;
@@ -563,6 +595,8 @@ public class JSONUtil {
      * @param value A Map value.
      * @return    this.
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONArray put(Map value) {
       this.put((Object) value);
       return this;
@@ -575,6 +609,7 @@ public class JSONUtil {
      *  JSONObject.NULL object.
      * @return this.
      */
+    @Override
     public JSONArray put(Object value) {
       if (value instanceof FastJSONObject) {
         _inner.add(((FastJSONObject) value).getInnerJSONObject());
@@ -599,6 +634,8 @@ public class JSONUtil {
      * @throws JSONException If the index is negative or if the value is
      * not finite.
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONArray put(int index, Collection value) throws JSONException {
       this.put(index, (Object) value);
       return this;
@@ -613,6 +650,8 @@ public class JSONUtil {
      * @throws JSONException If the index is negative or if the the value is
      *  an invalid number.
      */
+    @SuppressWarnings("rawtypes")
+    @Override
     public JSONArray put(int index, Map value) throws JSONException {
       this.put(index, (Object) value);
       return this;
@@ -630,6 +669,7 @@ public class JSONUtil {
      * @throws JSONException If the index is negative or if the the value is
      *  an invalid number.
      */
+    @Override
     public JSONArray put(int index, Object value) throws JSONException {
       if (index < 0) {
         throw new JSONException("JSONArray[" + index + "] not found.");
@@ -678,6 +718,7 @@ public class JSONUtil {
      * @return a printable, displayable, transmittable
      *  representation of the array.
      */
+    @Override
     public String toString() {
       try {
         return _inner.toString();
@@ -689,6 +730,7 @@ public class JSONUtil {
     /**
      * Not a prettyprinted JSON text, just the same as toString().
      */
+    @Override
     public String toString(int indentFactor) throws JSONException {
       return this.toString();
     }
@@ -705,7 +747,7 @@ public class JSONUtil {
     }
 
     if (javaObject instanceof JSON) {
-      return (JSON) javaObject;
+      return javaObject;
     }
 
     if (javaObject instanceof FastJSONObject) {

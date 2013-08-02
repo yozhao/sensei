@@ -15,6 +15,10 @@ import com.senseidb.search.req.mapred.SingleFieldAccessor;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class AvgMapReduce implements SenseiMapReduce<AvgResult, AvgResult> {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private String column;
 
   @Override
@@ -89,6 +93,10 @@ public class AvgMapReduce implements SenseiMapReduce<AvgResult, AvgResult> {
 }
 
 class AvgResult implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   public double value;
   public int count;
 

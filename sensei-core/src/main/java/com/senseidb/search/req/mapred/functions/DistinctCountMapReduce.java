@@ -1,7 +1,6 @@
 package com.senseidb.search.req.mapred.functions;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import java.util.List;
 
@@ -19,6 +18,10 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class DistinctCountMapReduce implements SenseiMapReduce<IntOpenHashSet, Integer> {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private String column;
 
   @Override

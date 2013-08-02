@@ -1,7 +1,6 @@
 package com.senseidb.search.req.mapred.impl.dictionary;
 
 import com.browseengine.bobo.facets.data.TermFloatList;
-import com.browseengine.bobo.facets.data.TermIntList;
 
 public class FloatDictionaryAccessor implements DictionaryNumberAccessor {
   private final TermFloatList dictionary;

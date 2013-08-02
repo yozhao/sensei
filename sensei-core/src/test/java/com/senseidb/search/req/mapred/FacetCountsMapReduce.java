@@ -12,8 +12,6 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.util.BigSegmentedArray;
-
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class FacetCountsMapReduce implements
@@ -21,6 +19,7 @@ public class FacetCountsMapReduce implements
   private static final long serialVersionUID = 1L;
   private String column;
 
+  @Override
   public void init(JSONObject params) {
     try {
       column = params.getString("column");
@@ -29,6 +28,7 @@ public class FacetCountsMapReduce implements
     }
   }
 
+  @Override
   public HashMap<String, IntContainer> map(IntArray docIds, int docIdCount, long[] uids,
       FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     if (!facetCountAccessor.areFacetCountsPresent()) {
@@ -36,7 +36,7 @@ public class FacetCountsMapReduce implements
     }
     BigSegmentedArray countDistribution = facetCountAccessor.getFacetCollector(column)
         .getCountDistribution();
-    TermValueList termValueList = accessor.getTermValueList(column);
+    TermValueList<?> termValueList = accessor.getTermValueList(column);
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>(countDistribution.size());
     for (int i = 0; i < countDistribution.size(); i++) {
       ret.put(termValueList.get(i), new IntContainer(countDistribution.get(i)));
@@ -44,14 +44,7 @@ public class FacetCountsMapReduce implements
     return ret;
   }
 
-  private String getKey(String[] columns, FieldAccessor fieldAccessor, int docId) {
-    StringBuilder key = new StringBuilder(fieldAccessor.get(columns[0], docId).toString());
-    for (int i = 1; i < columns.length; i++) {
-      key.append(":").append(fieldAccessor.get(columns[i], docId).toString());
-    }
-    return key.toString();
-  }
-
+  @SuppressWarnings("unchecked")
   @Override
   public List<HashMap<String, IntContainer>> combine(
       List<HashMap<String, IntContainer>> mapResults, CombinerStage combinerStage) {
@@ -75,6 +68,7 @@ public class FacetCountsMapReduce implements
     return java.util.Arrays.asList(ret);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public ArrayList<GroupedValue> reduce(List<HashMap<String, IntContainer>> combineResults) {
     if (combineResults == null || combineResults.isEmpty()) return new ArrayList<GroupedValue>();
@@ -98,6 +92,7 @@ public class FacetCountsMapReduce implements
     return ret;
   }
 
+  @Override
   public JSONObject render(ArrayList<GroupedValue> reduceResult) {
     try {
       JSONObject ret = new FastJSONObject();
@@ -112,6 +107,10 @@ public class FacetCountsMapReduce implements
 }
 
 class IntContainer implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   public int value;
 
   public IntContainer(int value) {

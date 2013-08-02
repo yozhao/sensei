@@ -8,7 +8,7 @@ import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.facets.data.TermValueList;
 
 public class AccessorFactory {
-  public static DictionaryNumberAccessor get(TermValueList dictionary) {
+  public static DictionaryNumberAccessor get(TermValueList<?> dictionary) {
     if (dictionary instanceof TermShortList) {
       return new ShortDictionaryAccessor((TermShortList) dictionary);
     }

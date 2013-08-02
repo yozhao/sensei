@@ -3,7 +3,6 @@ package com.senseidb.svc.impl;
 import java.util.Comparator;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
 
 import zu.core.cluster.ZuCluster;
 
@@ -17,8 +16,6 @@ import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.api.SenseiService;
 
 public class ClusteredSenseiServiceImpl implements SenseiService {
-  private static final Logger logger = Logger.getLogger(ClusteredSenseiServiceImpl.class);
-
   private SenseiBroker _senseiBroker;
   private AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo> _senseiSysBroker;
   private BrokerConfig _brokerConfig;
@@ -31,6 +28,7 @@ public class ClusteredSenseiServiceImpl implements SenseiService {
     _senseiSysBroker = _brokerConfig.buildSysSenseiBroker(versionComparator);
   }
 
+  @Override
   public SenseiResult doQuery(SenseiRequest req) throws SenseiException {
     return _senseiBroker.browse(req);
   }

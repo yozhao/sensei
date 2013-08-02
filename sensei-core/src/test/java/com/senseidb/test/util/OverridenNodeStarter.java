@@ -5,7 +5,6 @@ import java.io.File;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.mortbay.jetty.Server;
 
-import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiServer;
@@ -26,7 +25,6 @@ public class OverridenNodeStarter {
     this.senseiConfiguration = senseiConfiguration;
     if (!serverStarted) {
       try {
-        final String indexDir = senseiConfiguration.getString(SenseiConfParams.SENSEI_INDEX_DIR);
         // rmrf(new File(indexDir));
         SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(senseiConfiguration);
         server = senseiServerBuilder.buildServer();

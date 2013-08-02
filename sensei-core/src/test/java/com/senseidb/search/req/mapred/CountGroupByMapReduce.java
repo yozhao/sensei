@@ -16,6 +16,7 @@ public class CountGroupByMapReduce implements
   private static final long serialVersionUID = 1L;
   private String[] columns;
 
+  @Override
   public void init(JSONObject params) {
     try {
       JSONArray columnsJson = params.getJSONArray("columns");
@@ -28,10 +29,10 @@ public class CountGroupByMapReduce implements
     }
   }
 
+  @Override
   public HashMap<String, IntContainer> map(IntArray docIds, int docIdCount, long[] uids,
       FieldAccessor accessor, FacetCountAccessor facetCountAccessor) {
     HashMap<String, IntContainer> ret = new HashMap<String, IntContainer>();
-    int duplicatedUids = 0;
     for (int i = 0; i < docIdCount; i++) {
       String key = getKey(columns, accessor, docIds.get(i));
       IntContainer count = ret.get(key);
@@ -97,6 +98,7 @@ public class CountGroupByMapReduce implements
     return ret;
   }
 
+  @Override
   public JSONObject render(ArrayList<GroupedValue> reduceResult) {
     try {
       List<JSONObject> ret = new ArrayList<JSONObject>();
@@ -111,6 +113,7 @@ public class CountGroupByMapReduce implements
 
 }
 
+@SuppressWarnings("rawtypes")
 class GroupedValue implements Comparable {
   String key;
   int value;

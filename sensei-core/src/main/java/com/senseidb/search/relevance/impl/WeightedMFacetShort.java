@@ -6,10 +6,9 @@ import com.browseengine.bobo.facets.data.TermShortList;
 
 public class WeightedMFacetShort extends MFacetShort implements WeightedMFacet {
 
-  public WeightedMFacetShort(MultiValueFacetDataCache mDataCaches) {
+  public WeightedMFacetShort(MultiValueFacetDataCache<?> mDataCaches) {
     super(mDataCaches);
-
-    MultiValueWithWeightFacetDataCache wmDataCaches = (MultiValueWithWeightFacetDataCache) mDataCaches;
+    MultiValueWithWeightFacetDataCache<?> wmDataCaches = (MultiValueWithWeightFacetDataCache<?>) mDataCaches;
     _weightArray = wmDataCaches._weightArray;
     weightBuf = new int[1024];
   }

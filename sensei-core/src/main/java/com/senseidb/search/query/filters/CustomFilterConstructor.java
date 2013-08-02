@@ -16,7 +16,7 @@ public class CustomFilterConstructor extends FilterConstructor {
   protected Filter doConstructFilter(Object json) throws Exception {
     try {
       String className = ((JSONObject) json).getString(CLASS_PARAM);
-      Class filterClass = Class.forName(className);
+      Class<?> filterClass = Class.forName(className);
 
       Filter f = (Filter) filterClass.newInstance();
       return f;

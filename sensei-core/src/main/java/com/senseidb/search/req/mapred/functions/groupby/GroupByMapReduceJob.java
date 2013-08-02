@@ -15,7 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.senseidb.search.req.mapred.CombinerStage;
 import com.senseidb.search.req.mapred.FacetCountAccessor;
@@ -26,16 +26,21 @@ import com.senseidb.search.req.mapred.SingleFieldAccessor;
 import com.senseidb.util.JSONUtil;
 
 class MapResult implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
   @SuppressWarnings("rawtypes")
-  public MapResult(int initialCapacity, TermValueList[] dictionaries, BoboIndexReader indexReader) {
+  public MapResult(int initialCapacity, TermValueList[] dictionaries, BoboSegmentReader indexReader) {
     this.dictionaries = dictionaries;
     this.indexReader = indexReader;
     results = new Long2ObjectOpenHashMap<GroupedValue>(initialCapacity);
   }
 
   public Long2ObjectOpenHashMap<GroupedValue> results;
-  public TermValueList[] dictionaries;
-  public BoboIndexReader indexReader;
+  public TermValueList<?>[] dictionaries;
+  public BoboSegmentReader indexReader;
 
   @Override
   public String toString() {
@@ -48,10 +53,15 @@ class MapResult implements Serializable {
 public class GroupByMapReduceJob implements
     SenseiMapReduce<Serializable, HashMap<String, GroupedValue>> {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   public static final int TRIM_SIZE = 200;
   private String[] columns;
   private String metric;
   private String function;
+  @SuppressWarnings("rawtypes")
   private AggregateFunction aggregateFunction;
   private int top = 10;
 
@@ -79,7 +89,7 @@ public class GroupByMapReduceJob implements
     SingleFieldAccessor singleFieldAccessor = "count".equalsIgnoreCase(function) ? null : accessor
         .getSingleFieldAccessor(metric);
 
-    TermValueList[] dictionaries = new TermValueList[columns.length];
+    TermValueList<?>[] dictionaries = new TermValueList[columns.length];
     for (int i = 0; i < columns.length; i++) {
       dictionaries[i] = accessor.getTermValueList(columns[i]);
     }
@@ -118,7 +128,7 @@ public class GroupByMapReduceJob implements
     return mapResult;
   }
 
-  private long getKey(TermValueList[] dictionaries, SingleFieldAccessor[] orders, int[] numBits,
+  private long getKey(TermValueList<?>[] dictionaries, SingleFieldAccessor[] orders, int[] numBits,
       int docId) {
     long ret = 0L;
     int i = 0;
@@ -141,7 +151,7 @@ public class GroupByMapReduceJob implements
     return ret;
   }
 
-  private String decodeKey(String[] str, TermValueList[] dictionaries, int[] numBits, long key) {
+  private String decodeKey(String[] str, TermValueList<?>[] dictionaries, int[] numBits, long key) {
     int i = numBits.length - 1;
     while (i >= 0) {
       long number = key & (-1L >>> (64 - numBits[i]));
@@ -159,6 +169,7 @@ public class GroupByMapReduceJob implements
     return builder.toString();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
     // System.out.println("Combine - " + mapResults);
@@ -170,13 +181,13 @@ public class GroupByMapReduceJob implements
      */
     if (combinerStage == CombinerStage.partitionLevel) {
       if (mapResults.size() == 0) {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
       }
       if (mapResults.size() == 1) {
         HashMap<String, GroupedValue> ret = convert((MapResult) mapResults.get(0));
         return java.util.Arrays.asList((Serializable) ret);
       }
-      HashMap<BoboIndexReader, MapResult> results = new HashMap<BoboIndexReader, MapResult>();
+      HashMap<BoboSegmentReader, MapResult> results = new HashMap<BoboSegmentReader, MapResult>();
       for (int i = 0; i < mapResults.size(); i++) {
         MapResult current = (MapResult) mapResults.get(i);
         if (results.get(current.indexReader) != null) {
@@ -200,7 +211,7 @@ public class GroupByMapReduceJob implements
         }
       }
       HashMap<String, GroupedValue> ret = null;
-      for (BoboIndexReader key : results.keySet()) {
+      for (BoboSegmentReader key : results.keySet()) {
         if (ret == null) {
           ret = convert(results.get(key));
         } else {
@@ -212,7 +223,7 @@ public class GroupByMapReduceJob implements
       return java.util.Arrays.asList((Serializable) ret);
     }
     if (mapResults.size() == 0) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     if (mapResults.size() == 1) {
       HashMap<String, GroupedValue> ret = (HashMap<String, GroupedValue>) mapResults.get(0);
@@ -252,6 +263,7 @@ public class GroupByMapReduceJob implements
 
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public HashMap<String, GroupedValue> reduce(List<Serializable> combineResultsRaw) {
     List<HashMap<String, GroupedValue>> combineResults = (List) combineResultsRaw;
@@ -271,10 +283,11 @@ public class GroupByMapReduceJob implements
 
   /**
    * Tries to trim the map to smaller size
-   * 
+   *
    * @param map
    * @param count
    */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private static void trimToSize(Map<String, ? extends Comparable> map, int count) {
 
     if (map.size() < count) {
@@ -329,6 +342,7 @@ public class GroupByMapReduceJob implements
     }
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private static void trimToSize(Long2ObjectMap<? extends Comparable> map, int count) {
 
     if (map.size() < count) {
@@ -383,6 +397,7 @@ public class GroupByMapReduceJob implements
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public JSONObject render(HashMap<String, GroupedValue> reduceResult) {
     try {
@@ -405,14 +420,6 @@ public class GroupByMapReduceJob implements
     } catch (JSONException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private String getKey(String[] columns, FieldAccessor fieldAccessor, int docId) {
-    StringBuilder key = new StringBuilder(fieldAccessor.get(columns[0], docId).toString());
-    for (int i = 1; i < columns.length; i++) {
-      key.append(":").append(fieldAccessor.get(columns[i], docId).toString());
-    }
-    return key.toString();
   }
 
 }

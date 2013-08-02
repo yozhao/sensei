@@ -41,9 +41,9 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_E
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HITS_EXPL_VALUE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_DOCID;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_EXPLANATION;
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPHITSCOUNT;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPFIELD;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_GROUPVALUE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SCORE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_SRC_DATA;
@@ -108,13 +108,12 @@ import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Fieldable;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.util.Assert;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
@@ -134,7 +133,6 @@ import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
-import com.senseidb.util.JSONUtil;
 import com.senseidb.util.RequestConverter;
 
 public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
@@ -357,8 +355,8 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
       Document doc = hit.getStoredFields();
       if (doc != null) {
         List<JSONObject> storedData = new ArrayList<JSONObject>();
-        List<Fieldable> fields = doc.getFields();
-        for (Fieldable field : fields) {
+        List<IndexableField> fields = doc.getFields();
+        for (IndexableField field : fields) {
           if (req.getStoredFieldsToFetch() != null
               && !req.getStoredFieldsToFetch().contains(field.name())) {
             continue;
@@ -384,12 +382,12 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
           String field = entry.getKey();
           JSONArray tvArray = new FastJSONArray();
           tvObj.put(field, tvArray);
-          String[] terms = entry.getValue().terms;
-          int[] freqs = entry.getValue().freqs;
-          for (int i = 0; i < terms.length; ++i) {
+          List<String> terms = entry.getValue().terms;
+          List<Integer> freqs = entry.getValue().freqs;
+          for (int i = 0; i < terms.size(); ++i) {
             JSONObject tv = new FastJSONObject();
-            tv.put("term", terms[i]);
-            tv.put("freq", freqs[i]);
+            tv.put("term", terms.get(i));
+            tv.put("freq", freqs.get(i));
             tvArray.put(tv);
           }
         }
@@ -407,6 +405,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
     return hitArray;
   }
 
+  @SuppressWarnings("unchecked")
   public static JSONObject buildJSONResult(SenseiRequest req, SenseiResult res) throws Exception {
     JSONObject jsonObj = new FastJSONObject();
     jsonObj.put(PARAM_RESULT_TID, res.getTid());
@@ -540,6 +539,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
     if (routeParam != null && routeParam.length() != 0) senseiReq.setRouteParam(routeParam);
   }
 
+  @SuppressWarnings("unchecked")
   public static void convertPartitionParams(SenseiRequest senseiReq, DataConfiguration params) {
     if (params.containsKey(PARAM_PARTITIONS)) {
       List<Integer> partitions = params.getList(Integer.class, PARAM_PARTITIONS);
@@ -547,6 +547,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public static void convertInitParams(SenseiRequest senseiReq, DataConfiguration params) {
     Map<String, Configuration> facetParamMap = RequestConverter.parseParamConf(params,
       PARAM_DYNAMIC_INIT);
@@ -558,10 +559,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 
       DefaultFacetHandlerInitializerParam facetParams = new DefaultFacetHandlerInitializerParam();
 
-      Iterator paramsIter = facetConf.getKeys();
+      Iterator<String> paramsIter = facetConf.getKeys();
 
       while (paramsIter.hasNext()) {
-        String paramName = (String) paramsIter.next();
+        String paramName = paramsIter.next();
         Configuration paramConf = (Configuration) facetConf.getProperty(paramName);
 
         String type = paramConf.getString(PARAM_DYNAMIC_TYPE);
@@ -673,7 +674,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
         String[] parts = sortString.split(":");
         if (parts.length == 2) {
           boolean reverse = PARAM_SORT_DESC.equals(parts[1]);
-          sf = new SortField(parts[0], SortField.CUSTOM, reverse);
+          sf = new SortField(parts[0], SortField.Type.CUSTOM, reverse);
         } else if (parts.length == 1) {
           if (PARAM_SORT_SCORE.equals(parts[0])) {
             sf = SenseiRequest.FIELD_SCORE;
@@ -684,13 +685,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
           } else if (PARAM_SORT_DOC_REVERSE.equals(parts[0])) {
             sf = SenseiRequest.FIELD_DOC_REVERSE;
           } else {
-            sf = new SortField(parts[0], SortField.CUSTOM, false);
+            sf = new SortField(parts[0], SortField.Type.CUSTOM, false);
           }
         } else {
           throw new IllegalArgumentException("invalid sort string: " + sortString);
         }
 
-        if (sf.getType() != SortField.DOC && sf.getType() != SortField.SCORE
+        if (sf.getType() != SortField.Type.DOC && sf.getType() != SortField.Type.SCORE
             && (sf.getField() == null || sf.getField().isEmpty())) // Empty field name.
         continue;
 

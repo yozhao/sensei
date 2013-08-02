@@ -8,14 +8,15 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.TermRangeFilter;
+import org.apache.lucene.util.Bits;
 import org.json.JSONObject;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
@@ -24,11 +25,11 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;
-import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 
 public class RangeFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "range";
 
+  @SuppressWarnings("unchecked")
   @Override
   protected Filter doConstructFilter(Object obj) throws Exception {
     final JSONObject json = (JSONObject) obj;
@@ -77,12 +78,13 @@ public class RangeFilterConstructor extends FilterConstructor {
     }
 
     return new Filter() {
+      @SuppressWarnings("rawtypes")
       @Override
-      public DocIdSet getDocIdSet(final IndexReader reader) throws IOException {
+      public DocIdSet getDocIdSet(final AtomicReaderContext context, final Bits acceptDocs) throws IOException {
         String fromPadded = from, toPadded = to;
         if (!noOptimize) {
-          if (reader instanceof BoboIndexReader) {
-            BoboIndexReader boboReader = (BoboIndexReader) reader;
+          if (context.reader() instanceof BoboSegmentReader) {
+            BoboSegmentReader boboReader = (BoboSegmentReader) context.reader();
             FacetHandler facetHandler = boboReader.getFacetHandler(field);
             if (facetHandler != null) {
               StringBuilder sb = new StringBuilder();
@@ -106,12 +108,14 @@ public class RangeFilterConstructor extends FilterConstructor {
               } else {
                 filter = facetHandler.buildRandomAccessFilter(sb.toString(), null);
               }
-              return filter.getDocIdSet(reader);
+              return filter.getDocIdSet(context, acceptDocs);
             }
           }
         }
 
-        if (type == null) return EmptyFilter.getInstance().getDocIdSet(reader);
+        if (type == null) {
+          return EmptyFilter.getInstance().getDocIdSet(context, acceptDocs);
+        }
 
         if ("int".equals(type)) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
@@ -167,16 +171,20 @@ public class RangeFilterConstructor extends FilterConstructor {
 
           @Override
           public DocIdSetIterator iterator() throws IOException {
-            return new MatchAllDocIdSetIterator(reader);
+            return new MatchAllDocIdSetIterator(context.reader(), acceptDocs);
           }
         };
-        else return new TermRangeFilter(field, fromPadded, toPadded, false, include_upper)
-            .getDocIdSet(reader);
-        else if (toPadded == null || toPadded.length() == 0) return new TermRangeFilter(field,
-            fromPadded, toPadded, include_lower, false).getDocIdSet(reader);
+        else {
+          return TermRangeFilter.newStringRange(field, fromPadded, toPadded, false, include_upper)
+              .getDocIdSet(context, acceptDocs);
+        }
+        else if (toPadded == null || toPadded.length() == 0) {
+          return TermRangeFilter.newStringRange(field, fromPadded, toPadded, include_lower, false)
+              .getDocIdSet(context, acceptDocs);
+        }
 
-        return new TermRangeFilter(field, fromPadded, toPadded, include_lower, include_upper)
-            .getDocIdSet(reader);
+        return TermRangeFilter.newStringRange(field, fromPadded, toPadded, include_lower,
+          include_upper).getDocIdSet(context, acceptDocs);
       }
     };
   }

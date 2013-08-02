@@ -7,9 +7,9 @@ import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public abstract class MFacet {
-  protected MultiValueFacetDataCache _mDataCaches = null;
+  protected MultiValueFacetDataCache<?> _mDataCaches = null;
   protected BigNestedIntArray _nestedArray = null;
-  protected TermValueList _mTermList = null;
+  protected TermValueList<?> _mTermList = null;
 
   protected int[] _buf = new int[1024];
   protected int _length = 0;
@@ -19,7 +19,7 @@ public abstract class MFacet {
   protected BigNestedIntArray _weightArray = null;
   protected int[] weightBuf = new int[1024];
 
-  public MFacet(MultiValueFacetDataCache mDataCaches) {
+  public MFacet(MultiValueFacetDataCache<?> mDataCaches) {
     _mDataCaches = mDataCaches;
     _mTermList = _mDataCaches.valArray;
     _nestedArray = _mDataCaches._nestedArray;
@@ -33,7 +33,7 @@ public abstract class MFacet {
     return _length;
   }
 
-  abstract public boolean containsAll(Set set);
+  abstract public boolean containsAll(Set<?> set);
 
   abstract public boolean containsAny(Object set);
 }

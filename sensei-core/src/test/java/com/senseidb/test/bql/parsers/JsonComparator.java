@@ -16,12 +16,11 @@ package com.senseidb.test.bql.parsers;
  * limitations under the License.
  */
 
+import java.util.Iterator;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.lang.Math;
-
-import java.util.Iterator;
 
 /**
  * A comparator for comparing json objects. This comparator takes care of
@@ -71,7 +70,7 @@ public class JsonComparator {
       if (b instanceof Long) {
         return isEqualsLong((Long) a, (Long) b);
       } else if (b instanceof Integer) {
-        return isEqualsLong((Long) a, new Long((long) ((Integer) b).intValue()));
+        return isEqualsLong((Long) a, new Long(((Integer) b).intValue()));
       } else {
         return false;
       }
@@ -207,6 +206,7 @@ public class JsonComparator {
     return true;
   }
 
+  @SuppressWarnings("rawtypes")
   private boolean isEqualsJsonObject(JSONObject a, JSONObject b) {
     if (policy == STRICT) {
       if (a.length() != b.length()) {

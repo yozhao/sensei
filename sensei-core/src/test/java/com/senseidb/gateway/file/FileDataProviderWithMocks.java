@@ -2,13 +2,10 @@ package com.senseidb.gateway.file;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +14,7 @@ import proj.zoie.api.DataConsumer.DataEvent;
 
 public class FileDataProviderWithMocks extends LinedJsonFileDataProvider {
 
-  private LinkedBlockingQueue<JSONObject> queue;
+  private final LinkedBlockingQueue<JSONObject> queue;
 
   public FileDataProviderWithMocks(Comparator<String> versionComparator, File file,
       long startingOffset) {

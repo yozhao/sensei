@@ -48,9 +48,6 @@ public class DataConverter {
       fileWriter.append(line + "\n");
     }
     fileWriter.close();
-
-    String value = formDocEntry(numOfElementsPerDoc);
-
   }
 
   private static String formDocEntry(int numOfElementsPerDoc) {

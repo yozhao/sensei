@@ -3,6 +3,10 @@ package com.senseidb.search.req;
 import java.io.Serializable;
 
 public class SenseiError implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private final String message;
   private final ErrorType errorType;
   private final int errorCode;

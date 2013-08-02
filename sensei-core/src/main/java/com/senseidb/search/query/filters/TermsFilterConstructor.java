@@ -11,6 +11,7 @@ import com.senseidb.util.RequestConverter2;
 public class TermsFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "terms";
 
+  @SuppressWarnings("unchecked")
   @Override
   protected Filter doConstructFilter(Object obj) throws Exception {
     JSONObject json = (JSONObject) obj;

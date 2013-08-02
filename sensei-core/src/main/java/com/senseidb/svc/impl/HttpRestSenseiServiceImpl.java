@@ -82,7 +82,6 @@ import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.servlet.SenseiSearchServletParams;
 import com.senseidb.svc.api.SenseiException;
 import com.senseidb.svc.api.SenseiService;
-import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class HttpRestSenseiServiceImpl implements SenseiService {
@@ -134,6 +133,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
     DefaultHttpClient client = new DefaultHttpClient(cm, params);
     if (retryHandler == null) {
       retryHandler = new HttpRequestRetryHandler() {
+        @Override
         public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
           if (executionCount >= _maxRetries) {
             // Do not retry if over max retry count
@@ -160,6 +160,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
     client.setHttpRequestRetryHandler(retryHandler);
 
     client.addRequestInterceptor(new HttpRequestInterceptor() {
+      @Override
       public void process(final HttpRequest request, final HttpContext context)
           throws HttpException, IOException {
         if (!request.containsHeader("Accept-Encoding")) {
@@ -169,6 +170,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
     });
 
     client.addResponseInterceptor(new HttpResponseInterceptor() {
+      @Override
       public void process(final HttpResponse response, final HttpContext context)
           throws HttpException, IOException {
         HttpEntity entity = response.getEntity();
@@ -549,7 +551,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
 
     try {
       JSONObject jsonObj = new FastJSONObject(query.toString());
-      Iterator iter = jsonObj.keys();
+      Iterator<?> iter = jsonObj.keys();
 
       final String format = "%s:%s";
 
@@ -623,7 +625,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
 
   public static String join(Collection<?> s, String delimiter) {
     StringBuilder builder = new StringBuilder();
-    Iterator iter = s.iterator();
+    Iterator<?> iter = s.iterator();
     while (iter.hasNext()) {
       builder.append(iter.next().toString());
       if (!iter.hasNext()) {
@@ -698,7 +700,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
 
   private static Set<SenseiSystemInfo.SenseiFacetInfo> convertFacetInfos(JSONArray array)
       throws JSONException {
-    if (array == null || array.length() == 0) return Collections.EMPTY_SET;
+    if (array == null || array.length() == 0) {
+      return Collections.emptySet();
+    }
 
     Set<SenseiSystemInfo.SenseiFacetInfo> infos = new HashSet<SenseiSystemInfo.SenseiFacetInfo>(
         array.length());
@@ -718,7 +722,9 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
 
   private static Map<String, String> convertJsonToStringMap(JSONObject jsonObject)
       throws JSONException {
-    if (jsonObject == null) return Collections.EMPTY_MAP;
+    if (jsonObject == null) {
+      return Collections.emptyMap();
+    }
 
     @SuppressWarnings("unchecked")
     Iterator<String> nameItr = jsonObject.keys();
@@ -734,9 +740,11 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
 
   private static List<SenseiSystemInfo.SenseiNodeInfo> convertClusterInfo(JSONArray array)
       throws JSONException {
-    if (array == null || array.length() == 0) return Collections.EMPTY_LIST;
+    if (array == null || array.length() == 0) {
+      return Collections.emptyList();
+    }
 
-    List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList(array.length());
+    List<SenseiSystemInfo.SenseiNodeInfo> clusterInfo = new ArrayList<SenseiSystemInfo.SenseiNodeInfo>(array.length());
     for (int i = 0; i < array.length(); ++i) {
       JSONObject node = array.getJSONObject(i);
       JSONArray partitionsArray = node
@@ -762,7 +770,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
       throws JSONException {
     Map<String, FacetAccessible> map = new HashMap<String, FacetAccessible>();
 
-    Iterator iter = jsonObject.sortedKeys();
+    Iterator<?> iter = jsonObject.sortedKeys();
 
     while (iter.hasNext()) {
       String fieldName = (String) iter.next();
@@ -797,7 +805,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
       JSONObject hitObj = (JSONObject) hitsArray.get(i);
 
       SenseiHit hit = new SenseiHit();
-      Iterator keys = hitObj.keys();
+      Iterator<?> keys = hitObj.keys();
       Map<String, String[]> fieldMap = new HashMap<String, String[]>();
       while (keys.hasNext()) {
         String key = (String) keys.next();
@@ -858,8 +866,7 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
           .getString(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_NAME);
       String value = jsonObject
           .getString(SenseiSearchServletParams.PARAM_RESULT_HIT_STORED_FIELDS_VALUE);
-      doc.add(new org.apache.lucene.document.Field(name, value, Field.Store.YES,
-          Field.Index.ANALYZED));
+      doc.add(new org.apache.lucene.document.TextField(name, value, Field.Store.YES));
     }
 
     return doc;

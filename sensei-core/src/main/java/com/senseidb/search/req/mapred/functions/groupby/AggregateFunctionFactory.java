@@ -8,14 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
-import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.SingleFieldAccessor;
 import com.senseidb.util.JSONUtil;
 
 public class AggregateFunctionFactory {
-  public static AggregateFunction valueOf(String name, String column) {
+  public static AggregateFunction<?> valueOf(String name, String column) {
     name = name.toLowerCase();
     if (name.endsWith("avg")) {
       return new AvgAggregationFunction(column);
@@ -37,7 +35,7 @@ public class AggregateFunctionFactory {
 
   public static List<String> sort(final Map<String, ? extends GroupedValue> reduceResult) {
     if (reduceResult == null) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     List<String> ret = new ArrayList<String>(reduceResult.keySet());
     Collections.sort(ret, new Comparator<String>() {
@@ -51,6 +49,10 @@ public class AggregateFunctionFactory {
   }
 
   public static class SumGroupedValue implements GroupedValue {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     long sum = 0;
 
     @Override
@@ -69,10 +71,11 @@ public class AggregateFunctionFactory {
   }
 
   public static class SumAggregationFunction implements AggregateFunction<SumGroupedValue> {
-    private final String column;
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     public SumAggregationFunction(String column) {
-      this.column = column;
     }
 
     @Override
@@ -82,6 +85,7 @@ public class AggregateFunctionFactory {
       return ret;
     }
 
+    @Override
     public Object toJson(HashMap<String, SumGroupedValue> reduceResult) {
       try {
         JSONArray ret = new JSONUtil.FastJSONArray();
@@ -98,6 +102,10 @@ public class AggregateFunctionFactory {
   }
 
   public static class CountGroupedValue implements GroupedValue {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     long count = 0;
 
     @Override
@@ -121,10 +129,11 @@ public class AggregateFunctionFactory {
   }
 
   public static class CountAggregationFunction implements AggregateFunction<CountGroupedValue> {
-    private final String column;
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     public CountAggregationFunction(String column) {
-      this.column = column;
     }
 
     @Override
@@ -134,6 +143,7 @@ public class AggregateFunctionFactory {
       return ret;
     }
 
+    @Override
     public Object toJson(HashMap<String, CountGroupedValue> reduceResult) {
       try {
         JSONArray ret = new JSONUtil.FastJSONArray();
@@ -150,10 +160,11 @@ public class AggregateFunctionFactory {
   }
 
   public static class AvgAggregationFunction implements AggregateFunction<AvgGroupedValue> {
-    private final String column;
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     public AvgAggregationFunction(String column) {
-      this.column = column;
     }
 
     @Override
@@ -164,6 +175,7 @@ public class AggregateFunctionFactory {
       return ret;
     }
 
+    @Override
     public Object toJson(HashMap<String, AvgGroupedValue> reduceResult) {
       try {
         JSONArray ret = new JSONUtil.FastJSONArray();
@@ -181,6 +193,10 @@ public class AggregateFunctionFactory {
   }
 
   public static class AvgGroupedValue implements GroupedValue {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     double avg = 0;
     int count = 0;
 
@@ -203,10 +219,11 @@ public class AggregateFunctionFactory {
   }
 
   public static class MaxAggregationFunction implements AggregateFunction<MaxGroupedValue> {
-    private final String column;
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     public MaxAggregationFunction(String column) {
-      this.column = column;
     }
 
     @Override
@@ -217,6 +234,7 @@ public class AggregateFunctionFactory {
       return ret;
     }
 
+    @Override
     public Object toJson(HashMap<String, MaxGroupedValue> reduceResult) {
       try {
         JSONArray ret = new JSONUtil.FastJSONArray();
@@ -234,6 +252,10 @@ public class AggregateFunctionFactory {
   }
 
   public static class MaxGroupedValue implements GroupedValue {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     double max = 0;
     long uid;
 
@@ -263,10 +285,11 @@ public class AggregateFunctionFactory {
   }
 
   public static class MinAggregationFunction implements AggregateFunction<MinGroupedValue> {
-    private final String column;
-
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     public MinAggregationFunction(String column) {
-      this.column = column;
     }
 
     @Override
@@ -295,6 +318,10 @@ public class AggregateFunctionFactory {
   }
 
   public static class MinGroupedValue implements GroupedValue {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     double min = 0;
     long uid;
 

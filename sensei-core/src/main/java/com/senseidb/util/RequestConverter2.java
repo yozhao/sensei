@@ -2,7 +2,6 @@ package com.senseidb.util;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,10 +23,8 @@ import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
-
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;
-import com.senseidb.search.query.filters.FacetSelectionFilterConstructor;
 import com.senseidb.search.query.filters.FilterConstructor;
 import com.senseidb.search.req.SenseiJSONQuery;
 import com.senseidb.search.req.SenseiRequest;
@@ -35,7 +32,6 @@ import com.senseidb.search.req.mapred.SenseiMapReduce;
 import com.senseidb.search.req.mapred.functions.CompositeMapReduce;
 import com.senseidb.search.req.mapred.impl.MapReduceRegistry;
 import com.senseidb.util.JSONUtil.FastJSONArray;
-import com.senseidb.util.JSONUtil.FastJSONObject;
 
 public class RequestConverter2 {
 
@@ -124,19 +120,6 @@ public class RequestConverter2 {
     return strArray;
   }
 
-  private static int[] getInts(JSONObject obj, String field, int defaultVal) {
-    int[] intArray = null;
-    JSONArray array = obj.optJSONArray(field);
-    if (array != null) {
-      int count = array.length();
-      intArray = new int[count];
-      for (int i = 0; i < count; ++i) {
-        intArray[i] = array.optInt(i, defaultVal);
-      }
-    }
-    return intArray;
-  }
-
   private static Set<Integer> getIntSet(JSONObject obj, String field, int defaultVal) {
     HashSet<Integer> intSet = null;
     JSONArray array = obj.optJSONArray(field);
@@ -180,6 +163,7 @@ public class RequestConverter2 {
    *        the data type (like "int" or "long").
    * @return The built SenseiRequest.
    */
+  @SuppressWarnings("unchecked")
   public static SenseiRequest fromJSON(JSONObject json, final Map<String, String[]> facetInfoMap)
       throws Exception {
     json = jsonTemplateProcessor.substituteTemplates(json);
@@ -272,7 +256,7 @@ public class RequestConverter2 {
     if (mapReduceObj instanceof JSONObject) {
       JSONObject mapReduceJson = (JSONObject) mapReduceObj;
       String key = mapReduceJson.getString(MAP_REDUCE_FUNCTION);
-      SenseiMapReduce senseiMapReduce = MapReduceRegistry.get(key);
+      SenseiMapReduce<?, ?> senseiMapReduce = MapReduceRegistry.get(key);
       senseiMapReduce.init(mapReduceJson.optJSONObject(MAP_REDUCE_PARAMETERS));
       req.setMapReduceFunction(senseiMapReduce);
     } else if (mapReduceObj instanceof JSONArray) {
@@ -378,7 +362,7 @@ public class RequestConverter2 {
           String order = ((JSONObject) obj).optString(field);
           boolean rev = false;
           if (RequestConverter2.SORT_DESC.equals(order)) rev = true;
-          sortFieldList.add(new SortField(field, SortField.CUSTOM, rev));
+          sortFieldList.add(new SortField(field, SortField.Type.CUSTOM, rev));
           continue;
         } else if (obj instanceof String) {
           if (SORT_SCORE.equals(obj)) {
@@ -470,6 +454,7 @@ public class RequestConverter2 {
     return values;
   }
 
+  @SuppressWarnings("unchecked")
   private static void addSelection(String type, JSONObject jsonSel, SenseiRequest req,
       final Map<String, String[]> facetInfoMap) throws Exception {
     // we process "term", "terms", "range", "path", "custom" selection types;
@@ -588,6 +573,7 @@ public class RequestConverter2 {
 
   }
 
+  @SuppressWarnings("unchecked")
   private static Map<String, String> createFacetProperties(JSONObject facetJson) {
     Map<String, String> ret = new HashMap<String, String>();
     JSONObject params = facetJson.optJSONObject("properties");

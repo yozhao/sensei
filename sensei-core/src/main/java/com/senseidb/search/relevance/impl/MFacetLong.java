@@ -9,12 +9,12 @@ import com.browseengine.bobo.facets.data.TermLongList;
 
 public class MFacetLong extends MFacet {
 
-  public MFacetLong(MultiValueFacetDataCache mDataCaches) {
+  public MFacetLong(MultiValueFacetDataCache<?> mDataCaches) {
     super(mDataCaches);
   }
 
   @Override
-  public boolean containsAll(Set set) {
+  public boolean containsAll(Set<?> set) {
     throw new UnsupportedOperationException("not implemented yet");
   }
 

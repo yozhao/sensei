@@ -1,6 +1,6 @@
 package com.senseidb.search.req.mapred.impl;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
@@ -10,15 +10,15 @@ import com.senseidb.search.req.mapred.impl.dictionary.AccessorFactory;
 import com.senseidb.search.req.mapred.impl.dictionary.DictionaryNumberAccessor;
 
 public class SingleFieldAccessorImpl implements SingleFieldAccessor {
-  private BigSegmentedArray orderArray;
-  private DictionaryNumberAccessor dictionaryNumberAccessor;
-  private TermValueList valArray;
-  private final FacetHandler facetHandler;
-  private final BoboIndexReader reader;
+  private final BigSegmentedArray orderArray;
+  private final DictionaryNumberAccessor dictionaryNumberAccessor;
+  private final TermValueList<?> valArray;
+  private final FacetHandler<?> facetHandler;
+  private final BoboSegmentReader reader;
 
   @SuppressWarnings("rawtypes")
   public SingleFieldAccessorImpl(FacetDataCache dataCache, FacetHandler facetHandler,
-      BoboIndexReader reader) {
+      BoboSegmentReader reader) {
     this.facetHandler = facetHandler;
     this.reader = reader;
     orderArray = dataCache.orderArray;

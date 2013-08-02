@@ -9,12 +9,12 @@ import com.browseengine.bobo.facets.data.TermDoubleList;
 
 public class MFacetDouble extends MFacet {
 
-  public MFacetDouble(MultiValueFacetDataCache mDataCaches) {
+  public MFacetDouble(MultiValueFacetDataCache<?> mDataCaches) {
     super(mDataCaches);
   }
 
   @Override
-  public boolean containsAll(Set set) {
+  public boolean containsAll(Set<?> set) {
     throw new UnsupportedOperationException("not implemented yet");
   }
 

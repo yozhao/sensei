@@ -42,7 +42,7 @@ public class HttpUtil {
   public static void main(String[] args) {
     String reqstring = "q=cool&start=0&rows=10&facet.city.expand=true&facet.city.minhit=1&facet.city.max=10&facet.city.order=hits&facet.makemodel.expand=true&facet.makemodel.minhit=1&facet.makemodel.max=10&facet.makemodel.order=hits&facet.tags.expand=false&facet.tags.minhit=1&facet.tags.max=10&facet.tags.order=hits&facet.color.expand=true&facet.color.minhit=1&facet.color.max=10&facet.color.order=hits&facet.category.expand=true&facet.category.minhit=1&facet.category.max=10&facet.category.order=hits&facet.year.expand=true&facet.year.minhit=1&facet.year.max=10&facet.year.order=hits&facet.price.expand=true&facet.price.minhit=1&facet.price.max=10&facet.price.order=hits&facet.mileage.expand=true&facet.mileage.minhit=1&facet.mileage.max=10&facet.mileage.order=hits&sort=relevance";
 
-    Map map = buildRequestMap(reqstring);
+    Map<?, ?> map = buildRequestMap(reqstring);
 
     System.out.println(map);
   }

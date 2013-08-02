@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
+import org.apache.lucene.util.Bits;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -25,10 +26,6 @@ import com.kamikaze.docidset.impl.OrDocIdSet;
 
 public class SenseiTermFilter extends Filter {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(SenseiTermFilter.class);
 
   private final String _name;
@@ -46,7 +43,7 @@ public class SenseiTermFilter extends Filter {
     _noAutoOptimize = noAutoOptimize;
   }
 
-  private static DocIdSet buildDefaultDocIdSets(final BoboIndexReader reader, final String name,
+  private static DocIdSet buildDefaultDocIdSets(final BoboSegmentReader reader, final String name,
       final String[] vals, boolean isAnd) {
     if (vals == null) return null;
     ArrayList<DocIdSet> docSetList = new ArrayList<DocIdSet>(vals.length);
@@ -72,7 +69,7 @@ public class SenseiTermFilter extends Filter {
     }
   }
 
-  private static DocIdSet buildLuceneDefaultDocIdSet(final BoboIndexReader reader,
+  private static DocIdSet buildLuceneDefaultDocIdSet(final BoboSegmentReader reader,
       final String name, final String[] vals, String[] nots, boolean isAnd) throws IOException {
     if (reader.getRuntimeFacetHandlerFactoryMap().containsKey(name)) {
       // Skip runtime facet handlers
@@ -84,7 +81,7 @@ public class SenseiTermFilter extends Filter {
 
         @Override
         public DocIdSetIterator iterator() throws IOException {
-          return new MatchAllDocIdSetIterator(reader);
+          return new MatchAllDocIdSetIterator(reader, reader.getLiveDocs());
         }
       };
     }
@@ -116,16 +113,16 @@ public class SenseiTermFilter extends Filter {
   }
 
   @Override
-  public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
-    if (reader instanceof BoboIndexReader) {
-      BoboIndexReader boboReader = (BoboIndexReader) reader;
-      FacetHandler facetHandler = (FacetHandler) boboReader.getFacetHandler(_name);
+  public DocIdSet getDocIdSet(AtomicReaderContext context, Bits acceptDocs) throws IOException {
+    if (context.reader() instanceof BoboSegmentReader) {
+      BoboSegmentReader boboReader = (BoboSegmentReader) context.reader();
+      FacetHandler<?> facetHandler = boboReader.getFacetHandler(_name);
       Object obj = null;
       if (facetHandler != null) {
         obj = facetHandler.getFacetData(boboReader);
         if (_noAutoOptimize && obj != null && obj instanceof FacetDataCache) {
-          FacetDataCache facetData = (FacetDataCache) obj;
-          TermValueList valArray = facetData.valArray;
+          FacetDataCache<?> facetData = (FacetDataCache<?>) obj;
+          TermValueList<?> valArray = facetData.valArray;
           // copy vals
           ArrayList<String> validVals = new ArrayList<String>(_vals.length);
           for (String val : _vals) {
@@ -146,8 +143,7 @@ public class SenseiTermFilter extends Filter {
 
         Filter filter = facetHandler.buildFilter(sel);
         if (filter == null) filter = EmptyFilter.getInstance();
-
-        return filter.getDocIdSet(boboReader);
+        return filter.getDocIdSet(context, acceptDocs);
 
       } else {
         if (logger.isDebugEnabled()) {
@@ -156,8 +152,7 @@ public class SenseiTermFilter extends Filter {
         return buildLuceneDefaultDocIdSet(boboReader, _name, _vals, _not, _isAnd);
       }
     } else {
-      throw new IllegalStateException("read not instance of " + BoboIndexReader.class);
+      throw new IllegalStateException("read not instance of " + BoboSegmentReader.class);
     }
   }
-
 }

@@ -1,14 +1,10 @@
 package com.senseidb.search.req;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import antlr.collections.List;
 
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
 import com.senseidb.util.JSONUtil;

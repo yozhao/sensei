@@ -1,12 +1,11 @@
 package com.senseidb.search.req.mapred.impl.dictionary;
 
-import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermValueList;
 
 public class StringDictionaryAccessor implements DictionaryNumberAccessor {
-  private final TermValueList dictionary;
+  private final TermValueList<?> dictionary;
 
-  public StringDictionaryAccessor(TermValueList dictionary) {
+  public StringDictionaryAccessor(TermValueList<?> dictionary) {
     this.dictionary = dictionary;
   }
 

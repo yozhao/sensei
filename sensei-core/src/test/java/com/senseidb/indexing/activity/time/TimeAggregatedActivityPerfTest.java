@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import proj.zoie.impl.indexing.ZoieConfig;
 
+import com.senseidb.conf.SenseiSchema.FieldDefinition;
 import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.CompositeActivityManager;
 import com.senseidb.indexing.activity.CompositeActivityValues;
@@ -47,7 +48,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
   public void test1Perf10mInsertsAndUpdateAfterwards() throws Exception {
     Clock.setPredefinedTimeInMinutes(0);
     CompositeActivityValues activityValues = CompositeActivityValues.createCompositeValues(
-      ActivityPersistenceFactory.getInstance(getDirPath()), Collections.EMPTY_LIST, Arrays
+      ActivityPersistenceFactory.getInstance(getDirPath()), Collections.<FieldDefinition> emptyList(), Arrays
           .asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m",
             "5m", "2m"))), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     TimeAggregatedActivityValues timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues
@@ -61,7 +62,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     for (int i = 0; i < numOfEvents; i++) {
       Clock.setPredefinedTimeInMinutes(i);
       for (int j = 0; j < recordsCount; j++) {
-        activityValues.update((long) j, String.valueOf(i * recordsCount + j), jsonActivityUpdate);
+        activityValues.update(j, String.valueOf(i * recordsCount + j), jsonActivityUpdate);
         if (j % 100000 == 0) {
           System.out.println("Inserted next 100k events j = " + j);
         }
@@ -89,7 +90,7 @@ public class TimeAggregatedActivityPerfTest extends Assert {
     activityValues.close();
 
     activityValues = CompositeActivityValues.createCompositeValues(ActivityPersistenceFactory
-        .getInstance(getDirPath()), Collections.EMPTY_LIST, Arrays
+        .getInstance(getDirPath()), Collections.<FieldDefinition> emptyList(), Arrays
         .asList(new CompositeActivityManager.TimeAggregateInfo("likes", Arrays.asList("10m", "5m",
           "2m"))), ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     timeAggregatedActivityValues = (TimeAggregatedActivityValues) activityValues

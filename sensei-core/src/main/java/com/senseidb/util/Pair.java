@@ -3,6 +3,10 @@ package com.senseidb.util;
 import java.io.Serializable;
 
 public class Pair<FIRST, SECOND> implements Serializable {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   private FIRST first;
   private SECOND second;
 

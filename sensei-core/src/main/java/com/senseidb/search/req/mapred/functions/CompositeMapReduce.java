@@ -25,12 +25,22 @@ import com.senseidb.util.JSONUtil;
 import com.senseidb.util.Pair;
 
 public class CompositeMapReduce implements SenseiMapReduce<Serializable, Serializable> {
-  private List<Pair<String, SenseiMapReduce>> innerFunctions = new ArrayList<Pair<String, SenseiMapReduce>>();
-  private Map<Key, Pair<String, SenseiMapReduce>> innerFunctionsRefs = new LinkedHashMap<Key, Pair<String, SenseiMapReduce>>();
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+  @SuppressWarnings("rawtypes")
+  private final List<Pair<String, SenseiMapReduce>> innerFunctions = new ArrayList<Pair<String, SenseiMapReduce>>();
+  @SuppressWarnings("rawtypes")
+  private final Map<Key, Pair<String, SenseiMapReduce>> innerFunctionsRefs = new LinkedHashMap<Key, Pair<String, SenseiMapReduce>>();
 
   public static class Key implements Serializable {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
     private static AtomicLong atomicLong = new AtomicLong();
-    private long value;
+    private final long value;
 
     public Key() {
       value = atomicLong.incrementAndGet();
@@ -56,6 +66,7 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
 
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public void init(JSONObject params) {
     try {
@@ -67,7 +78,7 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
             continue;
           }
           String function = mapRed.getString("mapReduce");
-          SenseiMapReduce senseiMapReduce = MapReduceRegistry.get(function);
+          SenseiMapReduce<?, ?> senseiMapReduce = MapReduceRegistry.get(function);
           Assert.notNull(senseiMapReduce,
             "Could not retrieve map reduce function by the identifier");
           innerFunctions.add(new Pair(function, senseiMapReduce));
@@ -79,7 +90,7 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
         while (keys.hasNext()) {
           String key = keys.next();
           JSONObject innerFunctionParams = params.optJSONObject(key);
-          SenseiMapReduce senseiMapReduce = MapReduceRegistry.get(key);
+          SenseiMapReduce<?, ?> senseiMapReduce = MapReduceRegistry.get(key);
           Assert.notNull(senseiMapReduce,
             "Could not retrieve map reduce function by the identifier");
           innerFunctions.add(new Pair(key, senseiMapReduce));
@@ -97,19 +108,21 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
 
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public Serializable map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor,
       FacetCountAccessor facetCountsAccessor) {
     HashMap<Key, Serializable> mapResults = new HashMap<Key, Serializable>();
     for (Key id : innerFunctionsRefs.keySet()) {
       Pair<String, SenseiMapReduce> pair = innerFunctionsRefs.get(id);
-      SenseiMapReduce senseiMapReduce = pair.getSecond();
+      SenseiMapReduce<?, ?> senseiMapReduce = pair.getSecond();
       mapResults.put(id,
         senseiMapReduce.map(docIds, docIdCount, uids, accessor, facetCountsAccessor));
     }
     return mapResults;
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
     if (mapResults.size() < 1) {
@@ -132,6 +145,7 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
     return ret;
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public Serializable reduce(List<Serializable> combineResults) {
     if (combineResults.size() == 0) {
@@ -145,11 +159,12 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
     for (Key key : resultsPerFunction.keySet()) {
       SenseiMapReduce function = MapReduceRegistry.get(innerFunctionsRefs.get(key).getFirst());
 
-      firstResult.put(key, (Serializable) function.reduce(resultsPerFunction.get(key)));
+      firstResult.put(key, function.reduce(resultsPerFunction.get(key)));
     }
     return firstResult;
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private HashMap<Key, ArrayList<Serializable>> aggregate(List<Serializable> mapResults,
       Set<Key> keys, boolean isPartitionLevel) {
     HashMap<Key, ArrayList<Serializable>> resultsPerFunction = new HashMap<Key, ArrayList<Serializable>>(
@@ -171,6 +186,7 @@ public class CompositeMapReduce implements SenseiMapReduce<Serializable, Seriali
     return resultsPerFunction;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public JSONObject render(Serializable reduceResultRaw) {
     try {

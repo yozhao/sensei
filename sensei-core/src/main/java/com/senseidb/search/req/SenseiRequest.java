@@ -31,8 +31,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   */
   private long tid = -1;
 
-  private HashMap<String, BrowseSelection> _selections;
-  private ArrayList<SortField> _sortSpecs;
+  private final HashMap<String, BrowseSelection> _selections;
+  private final ArrayList<SortField> _sortSpecs;
   private Map<String, FacetSpec> _facetSpecMap;
   private Map<String, Integer> _origFacetSpecMaxCounts;
   private SenseiQuery _query;
@@ -55,7 +55,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   private Set<String> _termVectorsToFetch;
   private List<String> _selectList; // Select list (mostly used in BQL)
   private transient Set<String> _selectSet;
-  private SenseiMapReduce mapReduceFunction;
+  private SenseiMapReduce<?, ?> mapReduceFunction;
   private List<SenseiError> errors;
   private Set<String> _storedFieldsToFetch;
 
@@ -119,10 +119,12 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
     _showExplanation = showExplanation;
   }
 
+  @Override
   public void setPartitions(Set<Integer> partitions) {
     _partitions = partitions;
   }
 
+  @Override
   public Set<Integer> getPartitions() {
     return _partitions;
   }
@@ -131,6 +133,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
     _routeParam = routeParam;
   }
 
+  @Override
   public String getRouteParam() {
     if (_routeParam != null) return _routeParam;
 
@@ -383,7 +386,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   /**
    * Add a sort spec
    * @param sortSpec sort spec
-   * @see #getSort() 
+   * @see #getSort()
    * @see #setSort(SortField[])
    */
   public void addSortField(SortField sortSpec) {
@@ -451,12 +454,12 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   }
 
   /** Represents sorting by document score (relevancy). */
-  public static final SortField FIELD_SCORE = new SortField(null, SortField.SCORE);
-  public static final SortField FIELD_SCORE_REVERSE = new SortField(null, SortField.SCORE, true);
+  public static final SortField FIELD_SCORE = new SortField(null, SortField.Type.SCORE);
+  public static final SortField FIELD_SCORE_REVERSE = new SortField(null, SortField.Type.SCORE, true);
 
   /** Represents sorting by document number (index order). */
-  public static final SortField FIELD_DOC = new SortField(null, SortField.DOC);
-  public static final SortField FIELD_DOC_REVERSE = new SortField(null, SortField.DOC, true);
+  public static final SortField FIELD_DOC = new SortField(null, SortField.Type.DOC);
+  public static final SortField FIELD_DOC_REVERSE = new SortField(null, SortField.Type.DOC, true);
 
   @Override
   public String toString() {
@@ -625,11 +628,12 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
         && (a.getSelectionProperties().equals(b.getSelectionProperties()));
   }
 
+  @SuppressWarnings("rawtypes")
   public SenseiMapReduce getMapReduceFunction() {
     return mapReduceFunction;
   }
 
-  public void setMapReduceFunction(SenseiMapReduce mapReduceFunction) {
+  public void setMapReduceFunction(SenseiMapReduce<?, ?> mapReduceFunction) {
     this.mapReduceFunction = mapReduceFunction;
   }
 
@@ -639,6 +643,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
     return errors;
   }
 
+  @Override
   public void addError(SenseiError error) {
     if (errors == null) errors = new ArrayList<SenseiError>();
 

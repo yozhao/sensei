@@ -2,21 +2,15 @@ package com.senseidb.search.req.mapred;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import com.senseidb.svc.api.SenseiService;
 import com.senseidb.test.SenseiStarter;
 import com.senseidb.test.TestSensei;
 
 public class TestMapReduce extends TestCase {
 
-  private static final Logger logger = Logger.getLogger(TestMapReduce.class);
-
-  private static SenseiService httpRestSenseiService;
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
-    httpRestSenseiService = SenseiStarter.httpRestSenseiService;
   }
 
   public void test2GroupByColorAndGroupId() throws Exception {

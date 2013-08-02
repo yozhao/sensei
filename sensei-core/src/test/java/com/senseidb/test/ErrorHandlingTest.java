@@ -6,7 +6,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Ignore;
@@ -17,36 +16,50 @@ import com.senseidb.search.req.mapred.FacetCountAccessor;
 import com.senseidb.search.req.mapred.FieldAccessor;
 import com.senseidb.search.req.mapred.IntArray;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import com.senseidb.search.req.mapred.TestMapReduce;
-import com.senseidb.svc.api.SenseiService;
 
 public class ErrorHandlingTest extends TestCase {
 
-  private static final Logger logger = Logger.getLogger(TestMapReduce.class);
-
   public static class MapReduceAdapter implements SenseiMapReduce<Serializable, Serializable> {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
+    @Override
     public void init(JSONObject params) {
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
     public Serializable map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor,
         FacetCountAccessor facetCountAccessor) {
       return new ArrayList();
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
       return new ArrayList();
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
     public Serializable reduce(List<Serializable> combineResults) {
       return new ArrayList();
     }
 
+    @Override
     public JSONObject render(Serializable reduceResult) {
       return new JSONObject();
     }
   }
 
   public static class test1JsonError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void init(JSONObject params) {
       throw new RuntimeException("JsonException", new JSONException("JsonException"));
@@ -54,6 +67,11 @@ public class ErrorHandlingTest extends TestCase {
   }
 
   public static class test2BoboError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public Serializable map(IntArray docIds, int docIdCount, long[] uids, FieldAccessor accessor,
         FacetCountAccessor facetCountAccessor) {
@@ -62,6 +80,11 @@ public class ErrorHandlingTest extends TestCase {
   }
 
   public static class test3PartitionLevelError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
       if (combinerStage == CombinerStage.partitionLevel) {
@@ -72,6 +95,11 @@ public class ErrorHandlingTest extends TestCase {
   }
 
   public static class test4NodeLevelError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
       if (combinerStage == CombinerStage.nodeLevel) {
@@ -82,6 +110,11 @@ public class ErrorHandlingTest extends TestCase {
   }
 
   public static class test5BrokerLevelError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public Serializable reduce(List<Serializable> combineResults) {
       throw new RuntimeException("The exception on broker level");
@@ -89,28 +122,39 @@ public class ErrorHandlingTest extends TestCase {
   }
 
   public static class test6NonSerializableError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     public static class NonSerializable implements Serializable {
-      private Object obj = new Object();
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
     }
 
     @Override
     public List<Serializable> combine(List<Serializable> mapResults, CombinerStage combinerStage) {
 
-      return new ArrayList(java.util.Arrays.asList(new NonSerializable()));
+      return new ArrayList<Serializable>(java.util.Arrays.asList(new NonSerializable()));
     }
   }
 
   public static class test7ResponseJsonError extends MapReduceAdapter {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     @Override
     public JSONObject render(Serializable reduceResult) {
       throw new RuntimeException(new JSONException("renderError"));
     }
   }
 
-  private static SenseiService httpRestSenseiService;
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
-    httpRestSenseiService = SenseiStarter.httpRestSenseiService;
   }
 
   public void test1ExceptionOInitLevel() throws Exception {
