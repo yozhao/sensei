@@ -18,9 +18,11 @@
 
 package com.senseidb.indexing.hadoop.util;
 
+import java.util.HashSet;
+
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.lucene.index.IndexFileNameFilter;
+import org.apache.lucene.index.IndexFileNames;
 
 /**
  * A wrapper class to convert an IndexFileNameFilter which implements
@@ -28,8 +30,17 @@ import org.apache.lucene.index.IndexFileNameFilter;
  */
 public class LuceneIndexFileNameFilter implements PathFilter {
 
-  private static final LuceneIndexFileNameFilter singleton =
-      new LuceneIndexFileNameFilter();
+  private static final LuceneIndexFileNameFilter singleton = new LuceneIndexFileNameFilter();
+
+  private final HashSet<String> extensions;
+
+  // Prevent instantiation.
+  private LuceneIndexFileNameFilter() {
+    extensions = new HashSet<String>();
+    for (String ext : IndexFileNames.INDEX_EXTENSIONS) {
+      extensions.add(ext);
+    }
+  }
 
   /**
    * Get a static instance.
@@ -39,17 +50,26 @@ public class LuceneIndexFileNameFilter implements PathFilter {
     return singleton;
   }
 
-  private final IndexFileNameFilter luceneFilter;
-
-  private LuceneIndexFileNameFilter() {
-    luceneFilter = IndexFileNameFilter.getFilter();
-  }
-
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see org.apache.hadoop.fs.PathFilter#accept(org.apache.hadoop.fs.Path)
    */
+  @Override
   public boolean accept(Path path) {
-    return luceneFilter.accept(null, path.getName());
+    String name = path.getName();
+    int i = name.lastIndexOf('.');
+    if (i != -1) {
+      String extension = name.substring(1 + i);
+      if (extensions.contains(extension)) {
+        return true;
+      } else if (extension.startsWith("f") && extension.matches("f\\d+")) {
+        return true;
+      } else if (extension.startsWith("s") && extension.matches("s\\d+")) {
+        return true;
+      }
+    } else if (name.startsWith(IndexFileNames.SEGMENTS)) {
+      return true;
+    }
+    return false;
   }
-
 }
