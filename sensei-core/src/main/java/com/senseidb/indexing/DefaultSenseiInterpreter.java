@@ -187,6 +187,8 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
         FieldType fieldType = new FieldType();
         fieldType.setStored(true);
         fieldType.setIndexed(false);
+        fieldType.setTokenized(false);
+
         fieldType.setStoreTermVectors(false);
         fieldType.setStoreTermVectorOffsets(false);
         fieldType.setStoreTermVectorPositions(false);

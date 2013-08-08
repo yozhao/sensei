@@ -21,7 +21,7 @@ import com.senseidb.test.util.OverridenNodeStarter;
 
 @Ignore
 public class StabilityTest extends TestCase {
-  private List<OverridenNodeStarter> nodes = new ArrayList<OverridenNodeStarter>();
+  private final List<OverridenNodeStarter> nodes = new ArrayList<OverridenNodeStarter>();
 
   public static class ConfigHolder {
     String nodeId;
