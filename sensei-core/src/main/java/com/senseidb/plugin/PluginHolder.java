@@ -3,6 +3,8 @@ package com.senseidb.plugin;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.lucene.util.Version;
+
 class PluginHolder {
   private final SenseiPluginRegistry senseiPluginRegistry;
   String pluginCLass;
@@ -33,7 +35,12 @@ class PluginHolder {
     if (instance == null) {
       synchronized (this) {
         try {
-          instance = Class.forName(pluginCLass).newInstance();
+          // Special logic for analyzer
+          if (pluginName.equalsIgnoreCase("analyzer")) {
+            instance = Class.forName(pluginCLass).getConstructor(Version.class).newInstance(Version.LUCENE_43);
+          } else {
+            instance = Class.forName(pluginCLass).newInstance();
+          }
           if (instance instanceof SenseiPlugin) {
             ((SenseiPlugin) instance).init(properties, senseiPluginRegistry);
             // ((SenseiPlugin) instance).start();

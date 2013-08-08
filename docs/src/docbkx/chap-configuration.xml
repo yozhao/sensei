@@ -721,7 +721,7 @@ sensei.index.manager.default.file.path = data/cars.json
 # plugins: from plugins.xml
 
 # analyzer, default: StandardAnalyzer
-# sensei.index.analyzer.class = org.apache.lucene.analysis.WhitespaceAnalyzer
+# sensei.index.analyzer.class = org.apache.lucene.analysis.core.WhitespaceAnalyzer
 
 # similarity, default: DefaultSimilarity
 # sensei.index.similarity.class = com.sensei.plugin.example.MyCustomSimilarity

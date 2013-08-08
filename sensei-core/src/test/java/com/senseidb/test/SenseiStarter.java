@@ -87,6 +87,7 @@ public class SenseiStarter {
       ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
 
       ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
+      System.setProperty("log.home", "../logs");
       org.apache.log4j.PropertyConfigurator.configure("../resources/log4j.properties");
       loadFromSpringContext();
       boolean removeSuccessful = rmrf(IndexDir);
