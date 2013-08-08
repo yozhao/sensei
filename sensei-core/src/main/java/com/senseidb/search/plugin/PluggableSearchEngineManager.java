@@ -163,7 +163,7 @@ public class PluggableSearchEngineManager implements DeletionListener,
   }
 
   private void handleSegment(ZoieSegmentReader<?> segmentReader) {
-    onDelete(segmentReader, segmentReader.getDocIDMapper().getUIDArray());
+    onDelete(segmentReader, segmentReader.getUIDArray());
   }
 
   public void start(SenseiCore senseiCore) {

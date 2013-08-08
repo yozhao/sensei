@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
-import org.apache.lucene.index.NumericDocValues;
 import org.easymock.classextension.EasyMock;
 import org.json.JSONObject;
 
@@ -40,21 +39,9 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     dir.mkdirs();
 
     ZoieSegmentReader reader = EasyMock.createMock(ZoieSegmentReader.class);
-    NumericDocValues uidValues = new NumericDocValues() {
-      @Override
-      public long get(int docID) {
-        if (docID == 0) {
-          return 105L;
-        } else if (docID == 1) {
-          return 107L;
-        } else {
-          return 0;
-        }
-      }
-    };
 
-    EasyMock.expect(reader.getDocIDMapper()).andReturn(new DocIDMapperImpl(uidValues, 2, null))
-        .anyTimes();
+    EasyMock.expect(reader.getDocIDMapper())
+        .andReturn(new DocIDMapperImpl(new long[] { 105L, 107L })).anyTimes();
 
     zoie = org.easymock.EasyMock.createMock(Zoie.class);
     org.easymock.EasyMock.expect(zoie.getIndexReaders()).andReturn(Arrays.asList(reader))

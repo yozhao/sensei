@@ -5,7 +5,6 @@ import java.net.URL;
 
 import javax.management.InstanceAlreadyExistsException;
 
-import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
@@ -14,6 +13,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import zu.core.cluster.ZuCluster;
 
 import com.senseidb.conf.SenseiServerBuilder;
+import com.senseidb.indexing.activity.facet.ActivityRangeFacetHandler;
 import com.senseidb.jmx.JmxSenseiMBeanServer;
 import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.node.SenseiRequestScatterRewriter;
@@ -87,7 +87,7 @@ public class SenseiStarter {
       ConfDir1 = new File(SenseiStarter.class.getClassLoader().getResource(confDir1).toURI());
 
       ConfDir2 = new File(SenseiStarter.class.getClassLoader().getResource(confDir2).toURI());
-      org.apache.log4j.PropertyConfigurator.configure("resources/log4j.properties");
+      org.apache.log4j.PropertyConfigurator.configure("../resources/log4j.properties");
       loadFromSpringContext();
       boolean removeSuccessful = rmrf(IndexDir);
       if (!removeSuccessful) {

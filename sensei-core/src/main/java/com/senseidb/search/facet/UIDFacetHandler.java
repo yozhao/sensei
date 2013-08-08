@@ -267,7 +267,7 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
     IndexReader innerReader = reader.getInnerReader();
     if (innerReader instanceof ZoieSegmentReader) {
       ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>) innerReader;
-      return zoieReader.getDocIDMapper().getUIDArray();
+      return zoieReader.getUIDArray();
     } else {
       throw new IOException("inner reader not instance of " + ZoieSegmentReader.class);
     }

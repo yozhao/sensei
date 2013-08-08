@@ -1960,7 +1960,7 @@ sensei.custom.facets.list= virtual_groupids, my.custom_facets.tags, groupid  </p
 
             <para>This specifies the class name of similarity plug-in for
             Lucene scoring. If not specified,
-            <literal>org.apache.lucene.search.DefaultSimilarity</literal> is
+            <literal>org.apache.lucene.search.similarities.DefaultSimilarity</literal> is
             used.</para>
           </listitem>
         </varlistentry>

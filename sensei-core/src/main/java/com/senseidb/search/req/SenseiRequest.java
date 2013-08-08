@@ -32,7 +32,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   private long tid = -1;
 
   private final HashMap<String, BrowseSelection> _selections;
-  private final ArrayList<SortField> _sortSpecs;
+  private final ArrayList<SerializableSortField> _sortSpecs;
   private Map<String, FacetSpec> _facetSpecMap;
   private Map<String, Integer> _origFacetSpecMaxCounts;
   private SenseiQuery _query;
@@ -62,7 +62,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   public SenseiRequest() {
     _facetInitParamMap = new HashMap<String, FacetHandlerInitializerParam>();
     _selections = new HashMap<String, BrowseSelection>();
-    _sortSpecs = new ArrayList<SortField>();
+    _sortSpecs = new ArrayList<SerializableSortField>();
     _facetSpecMap = new HashMap<String, FacetSpec>();
     _fetchStoredFields = false;
     _fetchStoredValue = false;
@@ -390,7 +390,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
    * @see #setSort(SortField[])
    */
   public void addSortField(SortField sortSpec) {
-    _sortSpecs.add(sortSpec);
+    _sortSpecs.add(new SerializableSortField(sortSpec));
   }
 
   /**
@@ -412,7 +412,11 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
    * @see #addSortField(SortField)
    */
   public SortField[] getSort() {
-    return _sortSpecs.toArray(new SortField[_sortSpecs.size()]);
+    SortField[] fields = new SortField[_sortSpecs.size()];
+    for (int i = 0; i < fields.length; ++i) {
+      fields[i] = _sortSpecs.get(i).getSortField();
+    }
+    return fields;
   }
 
   /**
@@ -424,7 +428,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   public void setSort(SortField[] sorts) {
     _sortSpecs.clear();
     for (int i = 0; i < sorts.length; ++i) {
-      _sortSpecs.add(sorts[i]);
+      addSortField(sorts[i]);
     }
   }
 
@@ -455,7 +459,8 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
 
   /** Represents sorting by document score (relevancy). */
   public static final SortField FIELD_SCORE = new SortField(null, SortField.Type.SCORE);
-  public static final SortField FIELD_SCORE_REVERSE = new SortField(null, SortField.Type.SCORE, true);
+  public static final SortField FIELD_SCORE_REVERSE = new SortField(null, SortField.Type.SCORE,
+      true);
 
   /** Represents sorting by document number (index order). */
   public static final SortField FIELD_DOC = new SortField(null, SortField.Type.DOC);

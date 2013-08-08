@@ -71,7 +71,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   @Override
   public int[] load(BoboSegmentReader reader) throws IOException {
     ZoieSegmentReader<?> zoieReader = (ZoieSegmentReader<?>) (reader.getInnerReader());
-    long[] uidArray = zoieReader.getDocIDMapper().getUIDArray();
+    long[] uidArray = zoieReader.getUIDArray();
     return compositeActivityManager.getActivityValues().precomputeArrayIndexes(uidArray);
   }
 
