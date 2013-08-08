@@ -120,7 +120,7 @@ public class PurgeUnusedActivitiesJob implements Runnable, PurgeUnusedActivities
             continue;
           }
           for (ZoieMultiReader<BoboSegmentReader> zoieIndexReader : indexReaders) {
-            if (DocIDMapper.NOT_FOUND != zoieIndexReader.getDocIDMaper().getDocID(keys[i])) {
+            if (DocIDMapper.NOT_FOUND != zoieIndexReader.getDocIDMapper().getDocID(keys[i])) {
               foundSet.set(i);
               break;
             }

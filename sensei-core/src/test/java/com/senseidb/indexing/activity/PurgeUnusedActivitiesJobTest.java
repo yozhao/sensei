@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieSegmentReader;
+import proj.zoie.api.ZoieMultiReader;
 import proj.zoie.api.impl.DocIDMapperImpl;
 import proj.zoie.impl.indexing.ZoieConfig;
 
@@ -38,7 +38,7 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     dir = new File(pathname);
     dir.mkdirs();
 
-    ZoieSegmentReader reader = EasyMock.createMock(ZoieSegmentReader.class);
+    ZoieMultiReader<BoboSegmentReader> reader = EasyMock.createMock(ZoieMultiReader.class);
 
     EasyMock.expect(reader.getDocIDMapper())
         .andReturn(new DocIDMapperImpl(new long[] { 105L, 107L })).anyTimes();
