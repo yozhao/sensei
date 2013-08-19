@@ -9,9 +9,11 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.SortField;
 
+import proj.zoie.api.indexing.AbstractZoieIndexable;
 import zu.core.cluster.ZuCluster;
 import zu.core.cluster.ZuClusterEventListener;
 
+import com.browseengine.bobo.api.BrowseHit.SerializableField;
 import com.browseengine.bobo.api.FacetSpec;
 import com.senseidb.indexing.DefaultJsonSchemaInterpreter;
 import com.senseidb.search.req.ErrorType;
@@ -51,6 +53,10 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       for (SenseiHit hit : hits) {
         try {
           byte[] dataBytes = hit.getStoredValue();
+          if (dataBytes == null || dataBytes.length == 0) {
+            dataBytes = hit.getFieldBinaryValue(AbstractZoieIndexable.DOCUMENT_STORE_FIELD);
+          }
+
           if (dataBytes != null && dataBytes.length > 0) {
             byte[] data = null;
             try {
@@ -70,7 +76,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
 
         // Remove stored fields since the user is not requesting:
         if (!isFetchStoredFields) {
-          hit.setStoredFields(null);
+          hit.setStoredFields((List<SerializableField>) null);
         }
       }
     }
@@ -80,8 +86,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList) {
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
-    if (request.isFetchStoredFields() || request.isFetchStoredValue()) recoverSrcData(res,
-      res.getSenseiHits(), request.isFetchStoredFields());
+    if (request.isFetchStoredFields() || request.isFetchStoredValue()) {
+      recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
+    }
 
     return res;
   }

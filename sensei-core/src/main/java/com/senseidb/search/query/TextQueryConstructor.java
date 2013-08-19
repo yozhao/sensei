@@ -59,6 +59,8 @@ public class TextQueryConstructor extends QueryConstructor {
     }
 
     TokenStream tokenStream = _analyzer.tokenStream(field, new StringReader(text));
+    // reset the TokenStream to the first token
+    tokenStream.reset();
     CharTermAttribute termAttribute = tokenStream.getAttribute(CharTermAttribute.class);
 
     try {

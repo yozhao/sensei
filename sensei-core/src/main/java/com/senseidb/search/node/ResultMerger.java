@@ -72,14 +72,15 @@ public class ResultMerger {
       }
       ZoieSegmentReader<?> zoieSegmentReader = (ZoieSegmentReader<?>) innerReader;
       SenseiHit hit = new SenseiHit();
-      if (req.isFetchStoredFields() || req.isFetchStoredValue()) {
-        if (req.isFetchStoredFields()) {
-          try {
-            hit.setStoredFields(reader.document(doc));
-          } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-          }
+      if (req.isFetchStoredFields()) {
+        try {
+          hit.setStoredFields(reader.document(doc));
+        } catch (Exception e) {
+          logger.error(e.getMessage(), e);
         }
+      }
+
+      if (req.isFetchStoredFields() || req.isFetchStoredValue()) {
         try {
           BytesRef bytesRef = zoieSegmentReader.getStoredValue(doc);
           if (bytesRef != null) {

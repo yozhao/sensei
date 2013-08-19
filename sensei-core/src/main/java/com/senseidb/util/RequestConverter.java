@@ -29,6 +29,7 @@ public class RequestConverter {
     breq.setFetchStoredFields(req.isFetchStoredFields());
     breq.setShowExplanation(req.isShowExplanation());
     breq.setTermVectorsToFetch(req.getTermVectorsToFetch());
+    breq.setGroupBy(req.getGroupBy());
     breq.setMaxPerGroup(req.getMaxPerGroup());
 
     SenseiQueryBuilder queryBuilder = queryBuilderFactory.getQueryBuilder(req.getQuery());

@@ -715,8 +715,7 @@ public class TestSensei extends TestCase {
     logger.info("executing test case testRangeFilter3");
     String req = "{\"fetchStored\":true,\"selections\":[{\"term\":{\"color\":{\"value\":\"red\"}}}],\"from\":0,\"filter\":{\"query\":{\"query_string\":{\"query\":\"cool AND moon-roof AND hybrid\"}}},\"size\":10}";
     JSONObject res = search(new JSONObject(req));
-    // TODO Sensei returns undeterministic results for this query. Will create a Jira ticket
-    assertTrue("numhits is wrong", res.getInt("numhits") > 10);
+    assertTrue("numhits is wrong", res.getInt("numhits") == 19);
   }
 
   public void testFallbackGroupBy() throws Exception {
@@ -730,21 +729,10 @@ public class TestSensei extends TestCase {
     assertTrue("no group hits", firstHit.getJSONArray("grouphits") != null);
   }
 
-  /*
-   * test fails occasionally, commenting out public void testFallbackGroupByWithDistinct() throws
-   * Exception { logger.info("executing test case testFallbackGroupByWithDistinct"); String req =
-   * "{\"bql\": \"SELECT * FROM sensei DISTINCT category GROUP BY virtual_groupid_fixedlengthlongarray OR color TOP 2 ORDER BY color ASC LIMIT 0, 10\"}"
-   * ; JSONObject res = search(new JSONObject(req)); JSONArray hits = res.getJSONArray("hits");
-   * JSONObject firstHit = hits.getJSONObject(0); assertTrue("groupfield is wrong",
-   * "color".equals(firstHit.getString("groupfield")) ||
-   * "virtual_groupid_fixedlengthlongarray".equals(firstHit.getString("groupfield")));
-   * assertTrue("should be 1 group hit", firstHit.getJSONArray("grouphits").length() == 1); }
-   */
   public void testGetStoreRequest() throws Exception {
     logger.info("executing test case testGetStoreRequest");
     String req = "[1,2,3,5]";
     JSONObject res = searchGet(new JSONArray(req));
-    // TODO Sensei returns undeterministic results for this query. Will create a Jira issue
     assertTrue("numhits is wrong", res.length() == 4);
     assertNotNull("", res.get(String.valueOf(1)));
   }
@@ -1226,12 +1214,8 @@ public class TestSensei extends TestCase {
     while ((line = reader.readLine()) != null)
       sb.append(line);
     String res = sb.toString();
-    // System.out.println("res: " + res);
     res = res.replace('\u0000', '*'); // replace the seperator for test case;
     JSONObject ret = new JSONObject(res);
-    if (ret.opt("totaldocs") != null) {
-      // assertEquals(15000L, ret.getLong("totaldocs"));
-    }
     writer.close();
     reader.close();
     return ret;
@@ -1417,7 +1401,6 @@ public class TestSensei extends TestCase {
     logger.info("Executing test case testBqlExtraFilter");
     String req = "{  \"bql\": \"select * FROM sensei WHERE groupid >= 1 AND groupid<= 1343700000000 ORDER BY groupid ASC limit 0, 500\"}";
     JSONObject res = search(new JSONObject(req));
-    // System.out.println("!!!" + res.toString(1));
     assertEquals("numhits is wrong", 14990, res.getInt("numhits"));
   }
 

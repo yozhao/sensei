@@ -305,7 +305,12 @@ public class DefaultJsonSchemaInterpreter extends AbstractZoieIndexableInterpret
                   } else {
                     strVal = String.valueOf(val);
                   }
-                  Field metaField = new StringField(name, strVal, fldDef.store);
+                  Field metaField = null;
+                  if (fldDef.fieldType != null) {
+                    metaField = new Field(name, strVal, fldDef.fieldType);
+                  } else {
+                    metaField = new StringField(name, strVal, fldDef.store);
+                  }
                   luceneDoc.add(metaField);
                 }
               }
@@ -357,8 +362,11 @@ public class DefaultJsonSchemaInterpreter extends AbstractZoieIndexableInterpret
             if (srcData == null) {
               srcData = src.toString();
             }
-            if (_compressSrcData) data = compress(srcData.getBytes("UTF-8"));
-            else data = srcData.getBytes("UTF-8");
+            if (_compressSrcData) {
+              data = compress(srcData.getBytes("UTF-8"));
+            } else {
+              data = srcData.getBytes("UTF-8");
+            }
           } catch (Exception e) {
             logger.error(e.getMessage(), e);
           }

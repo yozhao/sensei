@@ -107,9 +107,6 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -117,6 +114,8 @@ import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.SerializableExplanation;
+import com.browseengine.bobo.api.BrowseHit.SerializableField;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -146,17 +145,17 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
 
   private static Logger logger = Logger.getLogger(DefaultSenseiJSONServlet.class);
 
-  public static JSONObject convertExpl(Explanation expl) throws JSONException {
+  public static JSONObject convertExpl(SerializableExplanation expl) throws JSONException {
     JSONObject jsonObject = null;
     if (expl != null) {
       jsonObject = new FastJSONObject();
       jsonObject.put(PARAM_RESULT_HITS_EXPL_VALUE, expl.getValue());
       String descr = expl.getDescription();
       jsonObject.put(PARAM_RESULT_HITS_EXPL_DESC, descr == null ? "" : descr);
-      Explanation[] details = expl.getDetails();
+      SerializableExplanation[] details = expl.getDetails();
       if (details != null) {
         JSONArray detailArray = new FastJSONArray();
-        for (Explanation detail : details) {
+        for (SerializableExplanation detail : details) {
           JSONObject subObj = convertExpl(detail);
           if (subObj != null) {
             detailArray.put(subObj);
@@ -352,11 +351,10 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
         }
       }
 
-      Document doc = hit.getStoredFields();
-      if (doc != null) {
+      List<SerializableField> fields = hit.getStoredFields();
+      if (fields != null) {
         List<JSONObject> storedData = new ArrayList<JSONObject>();
-        List<IndexableField> fields = doc.getFields();
-        for (IndexableField field : fields) {
+        for (SerializableField field : fields) {
           if (req.getStoredFieldsToFetch() != null
               && !req.getStoredFieldsToFetch().contains(field.name())) {
             continue;
@@ -393,7 +391,7 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
         }
       }
 
-      Explanation expl = hit.getExplanation();
+      SerializableExplanation expl = hit.getExplanation();
       if (expl != null) {
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_EXPLANATION)) {
           hitObj.put(PARAM_RESULT_HIT_EXPLANATION, convertExpl(expl));

@@ -30,7 +30,7 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.kamikaze.docidset.impl.IntArrayDocIdSet;
+import com.senseidb.search.query.filters.IntArrayDocIdSet;
 
 public class UIDFacetHandler extends FacetHandler<long[]> {
   public UIDFacetHandler(String name) {
@@ -113,7 +113,8 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         LongIterator iter = valSet.iterator();
 
         while (iter.hasNext()) {
-          int docid = docidMapper.getDocID(iter.nextLong());
+          long uid = iter.nextLong();
+          int docid = docidMapper.getDocID(uid);
           if (docid != DocIDMapper.NOT_FOUND) {
             docidList.add(docid);
           }
@@ -135,9 +136,9 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         Collections.sort(docidList);
         final IntArrayDocIdSet intArraySet = new IntArrayDocIdSet(docidList.size());
         boolean deletesPresent = delDocIds != null && delDocIds.length > 0;
-        for (int docid : docidList) {
-          if (!deletesPresent || Arrays.binarySearch(delDocIds, docid) < 0) {
-            intArraySet.addDoc(docid);
+        for (int docId : docidList) {
+          if (!deletesPresent || Arrays.binarySearch(delDocIds, docId) < 0) {
+            intArraySet.addDoc(docId);
           }
         }
         return new RandomAccessDocIdSet() {

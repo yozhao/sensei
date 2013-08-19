@@ -16,9 +16,10 @@ import proj.zoie.api.ZoieSegmentReader;
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.kamikaze.docidset.impl.OrDocIdSet;
+import com.browseengine.bobo.facets.filter.OrDocIdSet;
 import com.senseidb.indexing.DefaultSenseiInterpreter;
 import com.senseidb.indexing.MetaType;
+
 
 public class TimeRetentionFilter extends Filter {
 

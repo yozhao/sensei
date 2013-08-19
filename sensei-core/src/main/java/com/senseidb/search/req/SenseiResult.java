@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.search.Explanation;
-
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.SerializableExplanation;
+import com.browseengine.bobo.api.BrowseHit.SerializableField;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 
@@ -86,12 +85,12 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult {
     return true;
   }
 
-  private boolean storedFieldsAreEqual(Document a, Document b) {
+  private boolean storedFieldsAreEqual(List<SerializableField> a, List<SerializableField> b) {
     if (a == null) return b == null;
-    return a.toString().equals(b.toString());
+    return a.equals(b);
   }
 
-  private boolean expalanationsAreEqual(Explanation a, Explanation b) {
+  private boolean expalanationsAreEqual(SerializableExplanation a, SerializableExplanation b) {
     // TODO: is comparing the document strings adequate?
     return a.toString().equals(b.toString());
   }
@@ -179,6 +178,7 @@ public class SenseiResult extends BrowseResult implements AbstractSenseiResult {
     this.numberOfGroupsLong = numberGroupsLong;
   }
 
+  @Override
   public void addError(SenseiError error) {
     if (errors == null) errors = new ArrayList<SenseiError>();
 

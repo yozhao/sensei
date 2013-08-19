@@ -18,11 +18,11 @@ import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.facets.filter.AndDocIdSet;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
+import com.browseengine.bobo.facets.filter.NotDocIdSet;
+import com.browseengine.bobo.facets.filter.OrDocIdSet;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
-import com.kamikaze.docidset.impl.AndDocIdSet;
-import com.kamikaze.docidset.impl.NotDocIdSet;
-import com.kamikaze.docidset.impl.OrDocIdSet;
 
 public class SenseiTermFilter extends Filter {
 
