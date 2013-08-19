@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.lucene.search.Sort;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,13 +13,12 @@ import com.senseidb.search.client.json.JsonSerializer;
 import com.senseidb.search.client.req.SenseiClientRequest;
 import com.senseidb.search.node.SenseiServer;
 
-
 public class TestRunner {
   static  int generatedUid = 0;
   private static ArrayList<JSONObject> jsons;
   private static int size;
    static int readUid = 0;
-   
+
   public static void main(String[] args) throws Exception {
     org.apache.log4j.PropertyConfigurator.configure("conf-perf/log4j-perf.properties");
     SenseiServer.main(new String[]{"conf-perf"});
@@ -34,18 +32,19 @@ public class TestRunner {
       }
       size = jsons.size();
       Thread thread = new Thread() {
+        @Override
         public void run() {
           while(true) {
             putNextDoc();
-           
+
           }
         };
       };
-      thread.start();  
+      thread.start();
       Thread[] queryThreads = new Thread[1];
       final SenseiServiceProxy proxy = new SenseiServiceProxy("localhost", 8080);
       Runnable query = new Runnable() {
-        
+
         @Override
         public void run() {
           while (true) {
@@ -56,7 +55,7 @@ public class TestRunner {
               Thread.sleep(500);
               if (numihits == 0) {
                 System.out.println("!!!!numihits is 0");
-                
+
                 //System.exit(0);
               }
             } catch (Exception e) {
@@ -64,7 +63,7 @@ public class TestRunner {
               e.printStackTrace();
             }
           }
-          
+
         }
       };
       for (int i = 0; i < queryThreads.length; i++) {
@@ -74,6 +73,7 @@ public class TestRunner {
       Thread.sleep(60 * 60 * 60 * 1000);
       thread.join();
   }
+
   public static void putNextDoc() {
     if (readUid == size) {
       readUid = 0;
@@ -89,10 +89,10 @@ public class TestRunner {
     } catch (Exception  e) {
       System.out.println("Error " + e.getMessage());
     }
-    
-  } 
-    
-    
+
+  }
+
+
     private static JSONObject clone(JSONObject obj) {
       JSONObject ret = new JSONObject();
       for (String key : JSONObject.getNames(obj)) {
