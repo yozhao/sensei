@@ -22,6 +22,7 @@ import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
+import com.browseengine.bobo.docidset.IntArrayDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -30,7 +31,7 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.senseidb.search.query.filters.IntArrayDocIdSet;
+
 
 public class UIDFacetHandler extends FacetHandler<long[]> {
   public UIDFacetHandler(String name) {

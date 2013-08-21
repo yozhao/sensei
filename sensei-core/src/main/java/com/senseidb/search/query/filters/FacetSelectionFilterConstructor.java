@@ -14,8 +14,8 @@ import org.json.JSONObject;
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
+import com.browseengine.bobo.docidset.AndDocIdSet;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.filter.AndDocIdSet;
 import com.senseidb.util.RequestConverter2;
 
 public class FacetSelectionFilterConstructor extends FilterConstructor {

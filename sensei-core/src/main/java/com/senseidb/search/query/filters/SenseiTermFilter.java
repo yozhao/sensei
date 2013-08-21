@@ -15,13 +15,13 @@ import org.apache.lucene.util.Bits;
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
+import com.browseengine.bobo.docidset.AndDocIdSet;
+import com.browseengine.bobo.docidset.NotDocIdSet;
+import com.browseengine.bobo.docidset.OrDocIdSet;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
-import com.browseengine.bobo.facets.filter.AndDocIdSet;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
-import com.browseengine.bobo.facets.filter.NotDocIdSet;
-import com.browseengine.bobo.facets.filter.OrDocIdSet;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
 
 public class SenseiTermFilter extends Filter {
