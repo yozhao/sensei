@@ -75,11 +75,11 @@ public class TestNegativeNumbers extends TestCase {
     req.setFacetSpec("groupid", fs);
     SenseiResult res = broker.browse(req);
     List<BrowseFacet> facets = res.getFacetAccessor("groupid").getFacets();
-    assertEquals("-0000000000000000000000000000000000015000", facets.get(0).getValue());
+    assertEquals("-00000000000000015000", facets.get(0).getValue());
     assertEquals(1, facets.get(0).getFacetValueHitCount());
-    assertEquals("0000000000000000000000000000000000000000", facets.get(9).getValue());
+    assertEquals("00000000000000000000", facets.get(9).getValue());
     assertEquals(1, facets.get(9).getFacetValueHitCount());
-    assertEquals("0000000000000000000000000000000000000010", facets.get(10).getValue());
+    assertEquals("00000000000000000010", facets.get(10).getValue());
     assertEquals(10, facets.get(10).getFacetValueHitCount());
     for (BrowseFacet facet : facets) {
       if (!facet.getValue().startsWith("-00") && !facet.getValue().startsWith("00")) {
@@ -146,17 +146,17 @@ public class TestNegativeNumbers extends TestCase {
     SenseiResult res = broker.browse(req);
     System.out.println(res);
     List<BrowseFacet> facets = res.getFacetAccessor("groupid_multi").getFacets();
-    assertEquals("-0000000000000000000000000000000000000500", facets.get(0).getValue());
+    assertEquals("-00000000000000000500", facets.get(0).getValue());
     assertEquals(2, facets.get(0).getFacetValueHitCount());
-    assertEquals("-0000000000000000000000000000000000000200", facets.get(1).getValue());
+    assertEquals("-00000000000000000200", facets.get(1).getValue());
     assertEquals(2, facets.get(1).getFacetValueHitCount());
-    assertEquals("-0000000000000000000000000000000000000001", facets.get(2).getValue());
+    assertEquals("-00000000000000000001", facets.get(2).getValue());
     assertEquals(3, facets.get(2).getFacetValueHitCount());
-    assertEquals("0000000000000000000000000000000000000000", facets.get(3).getValue());
+    assertEquals("00000000000000000000", facets.get(3).getValue());
     assertEquals(2, facets.get(3).getFacetValueHitCount());
-    assertEquals("0000000000000000000000000000000000000001", facets.get(4).getValue());
+    assertEquals("00000000000000000001", facets.get(4).getValue());
     assertEquals(1, facets.get(4).getFacetValueHitCount());
-    assertEquals("0000000000000000000000000000000000000500", facets.get(5).getValue());
+    assertEquals("00000000000000000500", facets.get(5).getValue());
     assertEquals(1, facets.get(5).getFacetValueHitCount());
   }
 

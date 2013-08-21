@@ -166,7 +166,7 @@ public class TestMapReduce extends TestCase {
     System.out.println(res.toString(1));
     JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
     JSONObject firstObject = mapReduceResult.getJSONArray("grouped").getJSONObject(0);
-    assertEquals("-0000000000000000000000000000000000015000", firstObject.getString("group"));
+    assertEquals("-00000000000000015000", firstObject.getString("group"));
     assertEquals(-15000, firstObject.getLong("min"));
   }
 
@@ -176,7 +176,7 @@ public class TestMapReduce extends TestCase {
     System.out.println(res.toString(1));
     JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
     JSONObject firstObject = mapReduceResult.getJSONArray("grouped").getJSONObject(0);
-    assertEquals("0000000000000000000000000000000000014990", firstObject.getString("group"));
+    assertEquals("00000000000000014990", firstObject.getString("group"));
     assertEquals(149900, firstObject.getLong("sum"));
   }
 
@@ -186,7 +186,7 @@ public class TestMapReduce extends TestCase {
     System.out.println(res.toString(1));
     JSONObject mapReduceResult = res.getJSONObject("mapReduceResult");
     JSONObject firstObject = mapReduceResult.getJSONArray("grouped").getJSONObject(0);
-    assertEquals("0000000000000000000000000000000000014990", firstObject.getString("group"));
+    assertEquals("00000000000000014990", firstObject.getString("group"));
     assertEquals(14990, firstObject.getLong("max"));
   }
 

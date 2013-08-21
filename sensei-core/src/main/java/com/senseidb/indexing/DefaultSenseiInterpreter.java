@@ -27,12 +27,12 @@ public class DefaultSenseiInterpreter<V> extends AbstractZoieIndexableInterprete
   public static final Map<Class<?>, MetaType> CLASS_METATYPE_MAP = new HashMap<Class<?>, MetaType>();
 
   static {
-    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Integer, "00000000000000000000");
+    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Integer, "0000000000");
     DEFAULT_FORMAT_STRING_MAP.put(MetaType.Short, "00000");
-    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Long, "0000000000000000000000000000000000000000");
+    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Long, "00000000000000000000");
     DEFAULT_FORMAT_STRING_MAP.put(MetaType.Date, "yyyyMMdd-kk:mm");
-    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Float, "00000000000000000000.00");
-    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Double, "0000000000000000000000000000000000000000.00");
+    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Float, "0000000000.00");
+    DEFAULT_FORMAT_STRING_MAP.put(MetaType.Double, "00000000000000000000.0000");
 
     CLASS_METATYPE_MAP.put(String.class, MetaType.String);
     CLASS_METATYPE_MAP.put(int.class, MetaType.Integer);
