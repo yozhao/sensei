@@ -30,7 +30,7 @@ public class PerfFileDataProvider extends LinedJsonFileDataProvider {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    if (_offset % 10000 == 0) {
+    if (_offset % 20000 == 0) {
       System.out.println("Indexed " + _offset + " documents. Queue size = " + queue.size());
     }
     if (object != null) {
