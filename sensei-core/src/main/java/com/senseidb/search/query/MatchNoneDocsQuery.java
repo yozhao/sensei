@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.search.ComplexExplanation;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -67,10 +68,11 @@ public class MatchNoneDocsQuery extends Query {
   }
 
   private class MatchNoneDocsWeight extends Weight {
-    private final Weight innerWeight;
+    private float queryWeight;
+    private float queryNorm;
 
     public MatchNoneDocsWeight(IndexSearcher searcher) throws IOException {
-      innerWeight = searcher.createNormalizedWeight(MatchNoneDocsQuery.this);
+      queryWeight = getBoost();
     }
 
     @Override
@@ -91,17 +93,26 @@ public class MatchNoneDocsQuery extends Query {
 
     @Override
     public Explanation explain(AtomicReaderContext context, int doc) throws IOException {
-      return innerWeight.explain(context, doc);
+      // explain query weight
+      Explanation queryExpl = new ComplexExplanation(true, queryWeight,
+          "MatchNoneDocsQuery, product of:");
+      if (getBoost() != 1.0f) {
+        queryExpl.addDetail(new Explanation(getBoost(), "boost"));
+      }
+      queryExpl.addDetail(new Explanation(queryNorm, "queryNorm"));
+
+      return queryExpl;
     }
 
     @Override
     public float getValueForNormalization() throws IOException {
-      return innerWeight.getValueForNormalization();
+      return queryWeight * queryWeight;
     }
 
     @Override
     public void normalize(float norm, float topLevelBoost) {
-      innerWeight.normalize(norm, topLevelBoost);
+      queryNorm = norm;
+      queryWeight *= queryNorm;
     }
   }
 

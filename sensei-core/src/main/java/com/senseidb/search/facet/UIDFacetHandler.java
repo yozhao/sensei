@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -124,11 +123,10 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         if (docidList.size() == 0) {
           return EmptyDocIdSet.getInstance();
         }
-        int[] delDocIds = zoieReader.getDelDocIds();
+
         if (docidList.size() == 1) {
           int docId = docidList.getInt(0);
-          if (delDocIds == null || delDocIds.length == 0
-              || Arrays.binarySearch(delDocIds, docId) < 0) {
+          if (!zoieReader.isDeletedInMask(docId)) {
             return new SingleDocRandmAccessDocIdSet(docidList.getInt(0));
           } else {
             return EmptyDocIdSet.getInstance();
@@ -136,9 +134,8 @@ public class UIDFacetHandler extends FacetHandler<long[]> {
         }
         Collections.sort(docidList);
         final IntArrayDocIdSet intArraySet = new IntArrayDocIdSet(docidList.size());
-        boolean deletesPresent = delDocIds != null && delDocIds.length > 0;
         for (int docId : docidList) {
-          if (!deletesPresent || Arrays.binarySearch(delDocIds, docId) < 0) {
+          if (!zoieReader.isDeletedInMask(docId)) {
             intArraySet.addDoc(docId);
           }
         }
