@@ -35,15 +35,17 @@ class PluginHolder {
     if (instance == null) {
       synchronized (this) {
         try {
-          // Special logic for analyzer
-          if (pluginName.equalsIgnoreCase("analyzer")) {
-            instance = Class.forName(pluginCLass).getConstructor(Version.class).newInstance(Version.LUCENE_43);
-          } else {
+          try {
             instance = Class.forName(pluginCLass).newInstance();
+          } catch (Exception ex) {
+            // Special logic for analyzer
+            if (pluginName.equalsIgnoreCase("analyzer")) {
+              instance = Class.forName(pluginCLass).getConstructor(Version.class)
+                  .newInstance(Version.LUCENE_43);
+            }
           }
           if (instance instanceof SenseiPlugin) {
             ((SenseiPlugin) instance).init(properties, senseiPluginRegistry);
-            // ((SenseiPlugin) instance).start();
           }
         } catch (Exception ex) {
           throw new RuntimeException(ex);
