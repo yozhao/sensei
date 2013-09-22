@@ -35,8 +35,6 @@ import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.Lock;
 
-import com.senseidb.indexing.hadoop.util.LuceneIndexFileNameFilter;
-
 /**
  * This class implements a Lucene Directory on top of a general FileSystem.
  * Currently it does not support locking.
@@ -99,7 +97,7 @@ public class FileSystemDirectory extends Directory {
     }
 
     // clear old index files
-    FileStatus[] fileStatus = fs.listStatus(directory, LuceneIndexFileNameFilter.getFilter());
+    FileStatus[] fileStatus = fs.listStatus(directory);
     for (int i = 0; i < fileStatus.length; i++) {
       if (!fs.delete(fileStatus[i].getPath(), true)) {
         throw new IOException("Cannot delete index file " + fileStatus[i].getPath());
@@ -113,7 +111,7 @@ public class FileSystemDirectory extends Directory {
    */
   @Override
   public String[] listAll() throws IOException {
-    FileStatus[] fileStatus = fs.listStatus(directory, LuceneIndexFileNameFilter.getFilter());
+    FileStatus[] fileStatus = fs.listStatus(directory);
     String[] result = new String[fileStatus.length];
     for (int i = 0; i < fileStatus.length; i++) {
       result[i] = fileStatus[i].getPath().getName();

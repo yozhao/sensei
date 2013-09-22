@@ -37,7 +37,6 @@ import org.apache.lucene.util.Version;
 
 import com.senseidb.indexing.hadoop.keyvalueformat.IntermediateForm;
 import com.senseidb.indexing.hadoop.keyvalueformat.Shard;
-import com.senseidb.indexing.hadoop.util.LuceneIndexFileNameFilter;
 import com.senseidb.indexing.hadoop.util.SenseiJobConfig;
 
 /**
@@ -153,18 +152,12 @@ public class ShardWriter {
 
   private void moveFromTempToPerm() throws IOException {
 
-    FileStatus[] fileStatus = localFs.listStatus(temp, LuceneIndexFileNameFilter.getFilter());
+    FileStatus[] fileStatus = localFs.listStatus(temp);
 
     // move the files created in temp dir except segments_N and segments.gen
     for (int i = 0; i < fileStatus.length; i++) {
       Path path = fileStatus[i].getPath();
       String name = path.getName();
-
-      // if (fs.exists(new Path(perm, name))) {
-      // moveToTrash(iconf, perm);
-      // }
-      //
-      // fs.copyFromLocalFile(path, new Path(perm, name));
 
       try {
         if (!fs.exists(new Path(perm, name))) {
