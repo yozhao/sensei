@@ -36,7 +36,6 @@ public class SenseiSchema {
   private static Logger logger = Logger.getLogger(SenseiSchema.class);
 
   private String _uidField;
-  private String _srcDataStore;
   private String _srcDataField;
   private boolean _compressSrcData;
   private final List<FacetDefinition> facets = new ArrayList<FacetDefinition>();
@@ -98,10 +97,6 @@ public class SenseiSchema {
     return _srcDataField;
   }
 
-  public String getSrcDataStore() {
-    return _srcDataStore;
-  }
-
   public boolean isCompressSrcData() {
     return _compressSrcData;
   }
@@ -129,7 +124,6 @@ public class SenseiSchema {
     }
 
     schema._uidField = tableElem.getString("uid");
-    schema._srcDataStore = tableElem.optString("src-data-store", "");
     schema._srcDataField = tableElem.optString("src-data-field", "src_data");
     schema._compressSrcData = tableElem.optBoolean("compress-src-data", true);
 

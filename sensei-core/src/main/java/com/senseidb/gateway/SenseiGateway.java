@@ -24,8 +24,6 @@ public abstract class SenseiGateway<V> extends AbstractSenseiPlugin {
     DataSourceFilter<V> dataSourceFilter = pluginRegistry.getBeanByFullPrefix(
       "sensei.gateway.filter", DataSourceFilter.class);
     if (dataSourceFilter != null) {
-      dataSourceFilter.setSrcDataStore(senseiSchema.getSrcDataStore());
-      dataSourceFilter.setSrcDataField(senseiSchema.getSrcDataField());
       return dataSourceFilter;
     }
     return null;
