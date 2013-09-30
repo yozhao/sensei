@@ -639,21 +639,21 @@ public class SenseiServerBuilder implements SenseiConfParams {
     String zkUrl = _senseiConf.getString(SENSEI_CLUSTER_URL);
     int zkTimeout = _senseiConf.getInt(SENSEI_CLUSTER_TIMEOUT, 300000);
 
-    String[] url = zkUrl.split(":");
-    String host = url[0];
-    int zkPort = Integer.parseInt(url[1]);
+    String[] url = zkUrl.split(",");
+    List<InetSocketAddress> address = new ArrayList<InetSocketAddress>();
+    for (int i = 0; i < url.length; ++i) {
+      String[] parts = url[i].split(":");
+      String host = parts[0];
+      int port = Integer.parseInt(parts[1]);
+      address.add(new InetSocketAddress(host, port));
+    }
 
     try {
-      clusterClient = new ZuCluster(host, zkPort, clusterName, zkTimeout);
+      clusterClient = new ZuCluster(address, clusterName, zkTimeout);
     } catch (MonitorException e) {
       throw new RuntimeException(e);
     }
 
     return clusterClient;
   }
-  /*
-   * public HttpAdaptor buildJMXAdaptor(){ int jmxport = _senseiConf.getInt(SENSEI_MX4J_PORT,15555);
-   * HttpAdaptor httpAdaptor = new HttpAdaptor(jmxport); httpAdaptor.setHost("0.0.0.0"); return
-   * httpAdaptor; }
-   */
 }
