@@ -87,7 +87,9 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
     if (request.isFetchStoredFields() || request.isFetchStoredValue()) {
+      long start = System.currentTimeMillis();
       recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
+      res.setTime(res.getTime() + (System.currentTimeMillis() - start));
     }
 
     return res;
