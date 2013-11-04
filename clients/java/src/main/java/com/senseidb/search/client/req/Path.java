@@ -21,5 +21,5 @@ public class Path extends Selection {
   public String getValue() {
     return value;
   }
-  
+
 }

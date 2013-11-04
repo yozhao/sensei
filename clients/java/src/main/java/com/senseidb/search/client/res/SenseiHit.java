@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.JsonField;
+
 @CustomJsonHandler(SenseiHitJsonHandler.class)
 public class SenseiHit {
   @JsonField("_uid")
@@ -28,14 +29,28 @@ public class SenseiHit {
 
   @Override
   public String toString() {
-    return "\n---------------------------------------------------------------------------------------------------------------\n" +
-    		"SenseiHit [uid=" + uid + ", docid=" + docid + ", score=" + score + ", srcdata=" + srcdata
-        + ", grouphitscount=" + grouphitscount + ", \n      groupHits=" + groupHits + ", \n     storedFields=" + storedFields
-        + ", \n     fieldTermFrequencies=" + fieldTermFrequencies + ", \n      explanation=" + explanation + ", \n       fieldValues="
+    return "\n---------------------------------------------------------------------------------------------------------------\n"
+        + "SenseiHit [uid="
+        + uid
+        + ", docid="
+        + docid
+        + ", score="
+        + score
+        + ", srcdata="
+        + srcdata
+        + ", grouphitscount="
+        + grouphitscount
+        + ", \n      groupHits="
+        + groupHits
+        + ", \n     storedFields="
+        + storedFields
+        + ", \n     fieldTermFrequencies="
+        + fieldTermFrequencies
+        + ", \n      explanation="
+        + explanation
+        + ", \n       fieldValues="
         + fieldValues + "]";
   }
-
-
 
   public Long getUid() {
     return uid;

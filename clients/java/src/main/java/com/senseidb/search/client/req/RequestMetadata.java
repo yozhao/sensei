@@ -12,5 +12,5 @@ public class RequestMetadata {
     super();
     this.shownOnlyFields = shownOnlyFields;
   }
-  
+
 }

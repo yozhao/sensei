@@ -34,7 +34,8 @@ public class SpanNear extends Query {
   private boolean collectPayloads;
   private final double boost;
 
-  public SpanNear(List<SpanTerm> clauses, int slop, boolean inOrder, boolean collectPayloads, double boost) {
+  public SpanNear(List<SpanTerm> clauses, int slop, boolean inOrder, boolean collectPayloads,
+      double boost) {
     super();
     this.clauses = clauses;
     this.slop = slop;
