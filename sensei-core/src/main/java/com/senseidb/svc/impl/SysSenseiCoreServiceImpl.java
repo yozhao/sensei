@@ -56,12 +56,15 @@ public class SysSenseiCoreServiceImpl extends
 
   @Override
   public SenseiSystemInfo mergePartitionedResults(SenseiRequest r, List<SenseiSystemInfo> resultList) {
+    long start = System.currentTimeMillis();
     SenseiSystemInfo result = _core.getSystemInfo();
     result.setNumDocs(0);
+    long time = 0;
     for (SenseiSystemInfo res : resultList) {
       result.setNumDocs(result.getNumDocs() + res.getNumDocs());
+      time = Math.max(time, res.getTime());
     }
-
+    result.setTime(time + System.currentTimeMillis() - start);
     return result;
   }
 

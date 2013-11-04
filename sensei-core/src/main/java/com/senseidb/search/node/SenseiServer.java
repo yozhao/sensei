@@ -44,8 +44,6 @@ public class SenseiServer {
   private final SenseiCore _core;
   private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
 
-  // private Server _adminServer;
-
   protected volatile boolean _available = false;
 
   private final SenseiPluginRegistry pluginRegistry;
@@ -81,10 +79,6 @@ public class SenseiServer {
     buffer.append("====================================\n");
     return buffer.toString();
   }
-
-  /*
-   * public Collection<Zoie<BoboIndexReader,?,?>> getZoieSystems(){ return _core.zoieSystems; }
-   */
 
   public DataProvider<?> getDataProvider() {
     return _core.getDataProvider();
@@ -226,20 +220,6 @@ public class SenseiServer {
     return _available;
   }
 
-  /*
-   * private static void loadJars(File extDir) { File[] jarfiles = extDir.listFiles(new
-   * FilenameFilter(){
-   * @Override public boolean accept(File dir, String name) { return name.endsWith(".jar"); } }); if
-   * (jarfiles!=null && jarfiles.length > 0){ try{ URL[] jarURLs = new URL[jarfiles.length];
-   * ClassLoader parentLoader = Thread.currentThread().getContextClassLoader(); for (int
-   * i=0;i<jarfiles.length;++i){ String jarFile = jarfiles[i].getAbsolutePath();
-   * logger.info("loading jar: "+jarFile); jarURLs[i] = new URL("jar:file://" + jarFile + "!/"); }
-   * URLClassLoader classloader = new URLClassLoader(jarURLs,parentLoader);
-   * logger.info("url classloader: "+classloader);
-   * Thread.currentThread().setContextClassLoader(classloader); } catch(MalformedURLException e){
-   * logger.error("problem loading extension: "+e.getMessage(),e); } } }
-   */
-
   public static void main(String[] args) throws Exception {
     if (args.length < 1) {
       System.out.println(help());
@@ -267,26 +247,12 @@ public class SenseiServer {
       }
     }
 
-    /*
-     * File extDir = new File(confDir,"ext"); if (extDir.exists()){
-     * logger.info("loading extension jars..."); loadJars(extDir);
-     * logger.info("finished loading extension jars"); }
-     */
-
     SenseiServerBuilder senseiServerBuilder = new SenseiServerBuilder(confDir, null);
 
     final SenseiServer server = senseiServerBuilder.buildServer();
 
     final Server jettyServer = senseiServerBuilder.buildHttpRestServer();
 
-    /*
-     * final HttpAdaptor httpAdaptor = senseiServerBuilder.buildJMXAdaptor(); final ObjectName
-     * httpAdaptorName = new ObjectName("mx4j:class=mx4j.tools.adaptor.http.HttpAdaptor,id=1"); if
-     * (httpAdaptor!=null){ try{ server.mbeanServer.registerMBean(httpAdaptor, httpAdaptorName);
-     * server.mbeanServer.invoke(httpAdaptorName, "start", null, null); httpAdaptor.setProcessor(new
-     * XSLTProcessor()); logger.info("http adaptor started on port: "+httpAdaptor.getPort()); }
-     * catch(Exception e){ logger.error(e.getMessage(),e); } }
-     */
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -297,17 +263,7 @@ public class SenseiServer {
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
         } finally {
-          try {
-            server.shutdown();
-          } finally {
-            /*
-             * try{ if (httpAdaptor!=null){ httpAdaptor.stop();
-             * server.mbeanServer.invoke(httpAdaptorName, "stop", null, null);
-             * server.mbeanServer.unregisterMBean(httpAdaptorName);
-             * logger.info("http adaptor shutdown"); } } catch(Exception e){
-             * logger.error(e.getMessage(),e); }
-             */
-          }
+          server.shutdown();
         }
       }
     });

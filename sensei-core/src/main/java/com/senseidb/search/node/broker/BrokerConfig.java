@@ -25,10 +25,9 @@ public class BrokerConfig {
   protected int staleRequestTimeoutMins;
   protected int staleRequestCleanupFrequencyMins;
 
-  protected boolean allowPartialMerge;
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
-  private long brokerTimeout;
+  private final long brokerTimeout;
   private ZuCluster clusterClient;
 
   public BrokerConfig(Configuration senseiConf) {
@@ -50,7 +49,6 @@ public class BrokerConfig {
       SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_TIMEOUT_MINS, 10);
     staleRequestCleanupFrequencyMins = senseiConf.getInt(
       SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
-    allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
     brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
   }
 
@@ -78,14 +76,14 @@ public class BrokerConfig {
   }
 
   public SenseiBroker buildSenseiBroker() {
-    senseiBroker = new SenseiBroker(clusterClient, allowPartialMerge);
+    senseiBroker = new SenseiBroker(clusterClient);
     senseiBroker.setTimeout(brokerTimeout);
     return senseiBroker;
   }
 
   public AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo> buildSysSenseiBroker(
       Comparator<String> versionComparator) {
-    senseiSysBroker = new SenseiSysBroker(clusterClient, versionComparator, allowPartialMerge);
+    senseiSysBroker = new SenseiSysBroker(clusterClient, versionComparator);
     return senseiSysBroker;
   }
 
@@ -131,10 +129,6 @@ public class BrokerConfig {
 
   public void setStaleRequestCleanupFrequencyMins(int staleRequestCleanupFrequencyMins) {
     this.staleRequestCleanupFrequencyMins = staleRequestCleanupFrequencyMins;
-  }
-
-  public void setAllowPartialMerge(boolean allowPartialMerge) {
-    this.allowPartialMerge = allowPartialMerge;
   }
 
   public ZuCluster getClusterClient() {

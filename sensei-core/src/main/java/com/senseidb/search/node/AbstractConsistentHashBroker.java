@@ -127,10 +127,6 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    */
   @Override
   public RESULT browse(final REQUEST req) throws SenseiException {
-    // if (_partitions == null){
-    // ErrorMeter.mark();
-    // throw new SenseiException("Browse called before cluster is connected!");
-    // }
     SearchCounter.mark();
     try {
       return TotalTimer.time(new Callable<RESULT>() {
@@ -211,10 +207,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
           ErrorType.BrokerGatherError));
       ErrorMeter.mark();
     }
-
-    if (logger.isDebugEnabled()) {
-      logger.debug("remote search took " + (System.currentTimeMillis() - time) + "ms");
-    }
+    logger.info("remote search took " + (System.currentTimeMillis() - time) + "ms");
 
     return result;
   }
@@ -264,14 +257,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     this._timeout = timeout;
   }
 
-  /**
-   * @return boolean representing whether or not the server can tolerate node failures or timeouts and merge the other
-   * results. It's a tradeoff between fault tolerance and accuracy that may be acceptable for some applications
-   */
-  public abstract boolean allowPartialMerge();
-
   protected List<RESULT> executeRequestsInParallel(
       final Map<Service<REQUEST, RESULT>, REQUEST> serviceToRequest, long timeout) {
+    long start = System.currentTimeMillis();
     final List<Future<RESULT>> futures = new ArrayList<Future<RESULT>>();
     for (Entry<Service<REQUEST, RESULT>, REQUEST> entry : serviceToRequest.entrySet()) {
       futures.add(entry.getKey().apply(entry.getValue())
@@ -288,10 +276,10 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
             }
           }));
     }
-
     Future<List<RESULT>> collected = Future.collect(futures);
     List<RESULT> results = collected.apply(Duration.apply(timeout, TimeUnit.MILLISECONDS));
-    logger.debug(String.format("There are %d responses", results.size()));
+    logger.info(String.format("Getting responses from %d nodes took %dms.", results.size(),
+      (System.currentTimeMillis() - start)));
     return results;
   }
 

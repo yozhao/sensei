@@ -99,6 +99,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
   @SuppressWarnings("unchecked")
   public Res execute(final Req senseiReq) {
+    final long executeStart = System.currentTimeMillis();
     SearchCounter.mark();
     Set<Integer> partitions = senseiReq == null ? null : senseiReq.getPartitions();
     if (partitions == null) {
@@ -123,7 +124,6 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
         int i = 0;
 
         for (final int partition : partitions) {
-          final long start = System.currentTimeMillis();
           final IndexReaderFactory<BoboSegmentReader> readerFactory = _core
               .getIndexReaderFactory(partition);
 
@@ -133,6 +133,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               futures[i] = _executorService.submit(new Callable<Res>() {
                 @Override
                 public Res call() throws Exception {
+                  final long start = System.currentTimeMillis();
                   Timer timer = getTimer(partition);
 
                   Res res = timer.time(new Callable<Res>() {
@@ -147,9 +148,6 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
 
                   long end = System.currentTimeMillis();
                   res.setTime(end - start);
-                  logger.info("searching partition: " + partition + " browse took: "
-                      + res.getTime());
-
                   return res;
                 }
               });
@@ -160,6 +158,7 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           } else // Reuse current thread.
           {
             try {
+              final long start = System.currentTimeMillis();
               Timer timer = getTimer(partition);
               Res res = timer.time(new Callable<Res>() {
 
@@ -174,7 +173,6 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               resultList.add(res);
               long end = System.currentTimeMillis();
               res.setTime(end - start);
-              logger.info("searching partition: " + partition + " browse took: " + res.getTime());
             } catch (Exception e) {
               logger.error(e.getMessage(), e);
               senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));
@@ -208,6 +206,12 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
               return mergePartitionedResults(senseiReq, resultList);
             }
           });
+          String latencyLog = "";
+          i = 0;
+          for (final int partition : partitions) {
+            latencyLog += partition + ":" + resultList.get(i++).getTime() + "ms;";
+          }
+          logger.info("Partitions search latency distribution is " + latencyLog);
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
           finalResult = getEmptyResultInstance(null);
@@ -216,19 +220,24 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
       } finally {
         returnIndexReaders(indexReaderCache);
       }
-    }
-
-    else {
-      if (logger.isInfoEnabled()) {
-        logger.info("no partitions specified");
-      }
+    } else {
+      logger.info("no partitions specified");
       finalResult = getEmptyResultInstance(null);
       finalResult
           .addError(new SenseiError("no partitions specified", ErrorType.PartitionCallError));
     }
-    if (logger.isInfoEnabled()) {
-      logger.info("searching partitions: " + String.valueOf(partitions) + "; route by: "
-          + senseiReq.getRouteParam() + "; took: " + finalResult.getTime());
+    // make the time more precise
+    finalResult.setTime(System.currentTimeMillis() - executeStart);
+    if (this instanceof CoreSenseiServiceImpl) {
+      logger
+          .info("CoreSenseiServiceImpl searching partitions: " + String.valueOf(partitions)
+              + "; route by: " + senseiReq.getRouteParam() + "; took: " + finalResult.getTime()
+              + "ms.");
+    } else {
+      logger
+          .info("SysCoreSenseiServiceImpl searching partitions: " + String.valueOf(partitions)
+              + "; route by: " + senseiReq.getRouteParam() + "; took: " + finalResult.getTime()
+              + "ms.");
     }
     return finalResult;
   }

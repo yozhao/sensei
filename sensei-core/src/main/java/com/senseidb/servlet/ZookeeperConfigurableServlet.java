@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 
 import org.apache.commons.configuration.Configuration;
 
-import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.plugin.SenseiPluginRegistry;
 
 public class ZookeeperConfigurableServlet extends HttpServlet {
@@ -20,7 +19,6 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
   protected Comparator<String> versionComparator;
-  protected boolean allowPartialMerge;
 
   protected Configuration senseiConf;
 
@@ -39,6 +37,5 @@ public class ZookeeperConfigurableServlet extends HttpServlet {
         .getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_VERSION_COMPARATOR);
     pluginRegistry = (SenseiPluginRegistry) ctx
         .getAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY);
-    allowPartialMerge = senseiConf.getBoolean(SenseiConfParams.ALLOW_PARTIAL_MERGE, true);
   }
 }

@@ -109,7 +109,7 @@ public class SenseiStarter {
       logger.info("Node 2 created.");
       broker = null;
       try {
-        broker = new SenseiBroker(clusterClient, true);
+        broker = new SenseiBroker(clusterClient);
       } catch (Exception ne) {
         logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();

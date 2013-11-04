@@ -22,16 +22,13 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     implements ZuClusterEventListener {
   private final static Logger logger = Logger.getLogger(SenseiSysBroker.class);
   private final static long TIMEOUT_MILLIS = 8000L;
-  private long _timeoutMillis = TIMEOUT_MILLIS;
+  private final long _timeoutMillis = TIMEOUT_MILLIS;
   private final Comparator<String> _versionComparator;
-  private final boolean allowPartialMerge;
   private Map<InetSocketAddress, Service<SenseiRequest, SenseiSystemInfo>> _nodeAddressToService;
 
-  public SenseiSysBroker(ZuCluster clusterClient, Comparator<String> versionComparator,
-      boolean allowPartialMerge) {
+  public SenseiSysBroker(ZuCluster clusterClient, Comparator<String> versionComparator) {
     super(clusterClient, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
     _versionComparator = versionComparator;
-    this.allowPartialMerge = allowPartialMerge;
     clusterClient.addClusterEventListener(this);
   }
 
@@ -72,11 +69,6 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   @Override
   public SenseiSystemInfo getEmptyResultInstance() {
     return new SenseiSystemInfo();
-  }
-
-  @Override
-  public boolean allowPartialMerge() {
-    return allowPartialMerge;
   }
 
   @Override

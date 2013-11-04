@@ -1,7 +1,6 @@
 package com.senseidb.search.node;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,15 +35,12 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     implements ZuClusterEventListener {
   private final static Logger logger = Logger.getLogger(SenseiBroker.class);
 
-  private final boolean allowPartialMerge;
-  private Set<InetSocketAddress> nodeAddresses = Collections.emptySet();
   private static Counter numberOfNodesInTheCluster = Metrics.newCounter(new MetricName(
       SenseiBroker.class, "numberOfNodesInTheCluster"));
   private volatile boolean disconnected;
 
-  public SenseiBroker(ZuCluster clusterClient, boolean allowPartialMerge) {
+  public SenseiBroker(ZuCluster clusterClient) {
     super(clusterClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
-    this.allowPartialMerge = allowPartialMerge;
     clusterClient.addClusterEventListener(this);
   }
 
@@ -148,11 +144,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
     return request;
   }
 
-  @Override
-  public boolean allowPartialMerge() {
-    return allowPartialMerge;
-  }
-
   public boolean isDisconnected() {
     return disconnected;
   }
@@ -166,11 +157,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public void clusterChanged(Map<Integer, List<InetSocketAddress>> clusterView) {
     logger.info("clusterChanged(): Received new clusterView from zu " + clusterView);
     Set<InetSocketAddress> nodeAddresses = getNodesAddresses(clusterView);
-    this.nodeAddresses = nodeAddresses;
-    updateNumberOfNodesMetric();
-  }
-
-  public void updateNumberOfNodesMetric() {
     synchronized (SenseiBroker.class) {
       numberOfNodesInTheCluster.clear();
       numberOfNodesInTheCluster.inc(nodeAddresses.size());

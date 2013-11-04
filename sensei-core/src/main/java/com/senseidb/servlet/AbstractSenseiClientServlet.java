@@ -133,6 +133,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }
+
     // Start the stat timer to get some of the sys stat:
     _statTimer.scheduleAtFixedRate(new TimerTask() {
       @Override
@@ -143,7 +144,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           req.setQuery(new SenseiJSONQuery(new FastJSONObject().put("query", "dummy:dummy")));
           SenseiResult res = _senseiBroker.browse(req);
           totalDocs = res.getTotalDocs();
-          _senseiBroker.updateNumberOfNodesMetric();
         } catch (Exception e) {
           logger.warn("Error getting result", e);
         }
@@ -165,7 +165,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
           logger.info("Hit exception trying to get sysinfo", e);
         }
       }
-    }, 60000, 60000); // Every minute.
+    }, 300000, 300000); // Every 5 minutes.
+
 
     logger.info("Cluster: " + _brokerConfig.getClusterName() + " successfully connected ");
   }
