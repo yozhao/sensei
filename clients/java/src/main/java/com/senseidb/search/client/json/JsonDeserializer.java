@@ -19,6 +19,7 @@ public class JsonDeserializer {
     return deserialize(cls, jsonObject, true);
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static <T> T deserialize(Class<T> cls, JSONObject jsonObject,
       boolean handleCustomJsonHandler) {
     try {
@@ -142,6 +143,7 @@ public class JsonDeserializer {
     return map;
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private static List deserializeArray(Type type, JSONArray jsonArray) throws JSONException {
     ArrayList value = new ArrayList(jsonArray.length());
     for (int i = 0; i < jsonArray.length(); i++) {
@@ -153,11 +155,6 @@ public class JsonDeserializer {
       }
     }
     return value;
-  }
-
-  private static Type getGenericType(Field field) {
-    ParameterizedType paramType = (ParameterizedType) field.getGenericType();
-    return paramType.getActualTypeArguments()[0];
   }
 
   private static Type getGenericType(Type cls, int paramIndex) {

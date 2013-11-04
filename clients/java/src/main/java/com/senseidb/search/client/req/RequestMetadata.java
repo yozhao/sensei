@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.senseidb.search.client.json.JsonField;
 
+@SuppressWarnings("unused")
 public class RequestMetadata {
   @JsonField("select_list")
   private List<String> shownOnlyFields;

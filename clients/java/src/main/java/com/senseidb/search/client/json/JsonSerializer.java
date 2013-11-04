@@ -28,12 +28,14 @@ public class JsonSerializer {
     }
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static Object serialize(Object object, boolean handleCustomJsonHandler)
       throws JSONException {
     return serialize(Collections.newSetFromMap(new IdentityHashMap()), object,
       handleCustomJsonHandler);
   }
 
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private static Object serialize(Set<Object> parents, Object object,
       boolean handleCustomJsonHandler) throws JSONException {
     if (object == null) {
@@ -121,6 +123,7 @@ public class JsonSerializer {
       .synchronizedMap(new WeakHashMap<Class<?>, CustomJsonHandler>());
   private static Map<Field, CustomJsonHandler> jsonHandlersByField = Collections
       .synchronizedMap(new WeakHashMap<Field, CustomJsonHandler>());
+  @SuppressWarnings("rawtypes")
   private static Map<Class<? extends JsonHandler>, JsonHandler> jsonHandlers = Collections
       .synchronizedMap(new WeakHashMap<Class<? extends JsonHandler>, JsonHandler>());
 
@@ -141,6 +144,7 @@ public class JsonSerializer {
     return jsonHandlersByField.get(field);
   }
 
+  @SuppressWarnings("rawtypes")
   private static JsonHandler instantiate(Class<? extends JsonHandler> cls) {
     if (!jsonHandlers.containsKey(cls)) {
 

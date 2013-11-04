@@ -7,6 +7,7 @@ import java.util.Set;
 
 public class ReflectionUtil {
 
+  @SuppressWarnings("rawtypes")
   public static Set<Annotation> getAnnotations(Class cls) {
     Set<Annotation> ret = new HashSet<Annotation>();
     ret.addAll(Arrays.asList(cls.getAnnotations()));
@@ -19,6 +20,7 @@ public class ReflectionUtil {
     return ret;
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   public static Annotation getAnnotation(Class cls, Class annotationCls) {
     if (cls == null) {
       return null;

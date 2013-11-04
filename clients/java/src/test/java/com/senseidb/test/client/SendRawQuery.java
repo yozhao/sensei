@@ -12,15 +12,12 @@ import com.senseidb.search.client.res.SenseiResult;
 
 public class SendRawQuery {
   public static void main(String[] args) throws Exception {
-    // String request = new
-    // String(IOUtils.getBytes(SendRawQuery.class.getClassLoader().getResourceAsStream("json/car-query.json")),
-    // "UTF-8");
     SenseiClientRequest senseiRequest = SenseiClientRequest
         .builder()
         .paging(10, 0)
         .fetchStored(true)
         .addSelection(
-          Selection.terms("color", Arrays.asList("red", "blue"), Collections.EMPTY_LIST,
+          Selection.terms("color", Arrays.asList("red", "blue"), Collections.<String> emptyList(),
             Operator.or)).build();
     String requestStr = JsonSerializer.serialize(senseiRequest).toString();
     System.out.println(requestStr);

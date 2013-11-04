@@ -10,8 +10,6 @@ import com.senseidb.search.client.req.SenseiClientRequest;
 public class Test {
   public static void main(String[] args) throws Exception {
     SenseiServiceProxy senseiServiceProxy = new SenseiServiceProxy("localhost", 8080);
-    // SenseiClientRequest clientRequest = SenseiClientRequest.builder().addFacet("account_id",
-    // Facet.builder().minHit(0).max(200).build()).build();
     SenseiClientRequest clientRequest = SenseiClientRequest.builder()
         .filter(Selection.terms("account_id", "1139")).paging(1000, 10)
         .addFacet("account_id", Facet.builder().minHit(0).max(200).build()).build();

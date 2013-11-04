@@ -1,7 +1,6 @@
 package com.senseidb.search.client.req;
 
 import com.senseidb.search.client.json.JsonField;
-import com.senseidb.search.client.req.query.Query;
 
 /**
  * <p>
@@ -76,7 +75,7 @@ public class Range extends Selection {
     this.includeUpper = includeUpper;
   }
 
-  public Range(String from, String to, boolean includeLower, boolean includeUpper, double Doost,
+  public Range(String from, String to, boolean includeLower, boolean includeUpper, double boost,
       boolean noOptimize) {
     super();
 

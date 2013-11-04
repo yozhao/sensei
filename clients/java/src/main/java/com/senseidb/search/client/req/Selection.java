@@ -7,7 +7,6 @@ import java.util.List;
 import org.json.JSONObject;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
-import com.senseidb.search.client.req.filter.Filter;
 import com.senseidb.search.client.req.query.Query;
 
 @CustomJsonHandler(SelectionJsonHandler.class)

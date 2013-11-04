@@ -23,8 +23,6 @@ public class SenseiHitJsonHandler implements JsonHandler<SenseiHit> {
   @Override
   public JSONObject serialize(SenseiHit bean) throws JSONException {
     throw new UnsupportedOperationException();
-    // return (JSONObject) JsonSerializer.serialize(bean);
-
   }
 
   @Override
@@ -33,16 +31,6 @@ public class SenseiHitJsonHandler implements JsonHandler<SenseiHit> {
       return null;
     }
 
-    /*
-     * SenseiHit senseiHit = new SenseiHit(); senseiHit.setDocid(json.optInt("docid"));
-     * senseiHit.setGrouphitscount(json.optInt("grouphitscount"));
-     * senseiHit.setSrcdata(json.optString("srcdata")); senseiHit.setUid(json.optInt("uid"));
-     * senseiHit.setScore(json.optInt("score")); JSONArray groupHitsArr =
-     * json.optJSONArray("groupHits"); if (groupHitsArr != null){ List<SenseiHit> groupHits = new
-     * ArrayList<SenseiHit>(groupHitsArr.length()); for (int i = 0; i< groupHitsArr.length(); i++) {
-     * groupHits.add(deserialize(groupHitsArr.optJSONObject(i))); }
-     * senseiHit.setGroupHits(groupHits); }
-     */
     SenseiHit senseiHit = JsonDeserializer.deserialize(SenseiHit.class, json, false);
     JSONArray storedFieldsArr = json.optJSONArray("_stored");
     if (storedFieldsArr != null) {
@@ -56,6 +44,7 @@ public class SenseiHitJsonHandler implements JsonHandler<SenseiHit> {
       }
       senseiHit.setStoredFields(storedFields);
     }
+    @SuppressWarnings("rawtypes")
     Iterator iterator = json.keys();
     while (iterator.hasNext()) {
       String field = (String) iterator.next();

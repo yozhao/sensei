@@ -10,12 +10,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
-import com.senseidb.search.client.json.JsonField;
 import com.senseidb.search.client.req.filter.Filter;
 import com.senseidb.search.client.req.filter.FilterJsonHandler;
 import com.senseidb.search.client.req.query.Query;
 import com.senseidb.search.client.req.query.QueryJsonHandler;
-import com.senseidb.search.client.req.relevance.Relevance;
 
 /**
  * The sensei request object, that is used to send the Sensei query to the
@@ -45,15 +43,15 @@ public class SenseiClientRequest {
    * Initializing parameters for runtime facet handlers: a map that contains the
    * initializing parameters that are needed by all runtime facet handlers
    */
-  private Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
-  private List<Object> sort = new ArrayList<Object>();
-  private Map<String, Facet> facets = new HashMap<String, Facet>();
+  private final Map<String, Map<String, FacetInit>> facetInit = new HashMap<String, Map<String, FacetInit>>();
+  private final List<Object> sort = new ArrayList<Object>();
+  private final Map<String, Facet> facets = new HashMap<String, Facet>();
   /**
    * Flag indicating whether stored fields are to be fetched
    */
   private boolean fetchStored;
   private List<String> fieldsToFetch;
-  private List<String> termVectors = new ArrayList<String>();
+  private final List<String> termVectors = new ArrayList<String>();
   /**
    * shards of the index to be searched
    */
@@ -85,10 +83,11 @@ public class SenseiClientRequest {
 
   private MapReduce mapReduce;
 
+  @SuppressWarnings("unused")
   private RequestMetadata meta;
 
   public static class Builder {
-    private SenseiClientRequest request = new SenseiClientRequest();
+    private final SenseiClientRequest request = new SenseiClientRequest();
 
     public Builder paging(int size, int offset) {
       request.size = size;

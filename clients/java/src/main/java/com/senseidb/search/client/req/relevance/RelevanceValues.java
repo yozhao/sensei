@@ -33,7 +33,7 @@ public class RelevanceValues {
   }
 
   public static class RelevanceValuesBuilder {
-    private RelevanceValues relevanceValues;
+    private final RelevanceValues relevanceValues;
 
     public RelevanceValuesBuilder() {
       relevanceValues = new RelevanceValues();
@@ -59,6 +59,7 @@ public class RelevanceValues {
       }
     }
 
+    @SuppressWarnings("rawtypes")
     public RelevanceValuesBuilder addMapValue(String variableName, List keys, List values) {
       for (int i = 0; i < keys.size(); i++) {
         checkType(keys.get(i));

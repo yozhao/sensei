@@ -18,6 +18,7 @@ import com.senseidb.search.client.req.query.QueryJsonHandler;
 public class Ids extends Query implements Filter {
   List<String> values;
   List<String> excludes;
+  @SuppressWarnings("unused")
   private double boost;
 
   public Ids(List<String> values, List<String> excludes) {

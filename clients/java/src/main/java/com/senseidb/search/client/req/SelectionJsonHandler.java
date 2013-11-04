@@ -11,6 +11,7 @@ import com.senseidb.search.client.json.JsonDeserializer;
 import com.senseidb.search.client.json.JsonHandler;
 import com.senseidb.search.client.json.JsonSerializer;
 
+@SuppressWarnings("unchecked")
 public class SelectionJsonHandler implements JsonHandler<Selection> {
   public static Map<String, Class<? extends Selection>> selectionClasses = new HashMap<String, Class<? extends Selection>>();
   static {

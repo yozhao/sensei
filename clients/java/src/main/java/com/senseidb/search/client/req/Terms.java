@@ -3,7 +3,6 @@ package com.senseidb.search.client.req;
 import java.util.List;
 
 import com.senseidb.search.client.json.JsonField;
-import com.senseidb.search.client.req.query.Query;
 
 /**
  * <p>
