@@ -207,8 +207,8 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
           ErrorType.BrokerGatherError));
       ErrorMeter.mark();
     }
-    logger.info("remote search took " + (System.currentTimeMillis() - time) + "ms");
-
+    result.setTime(System.currentTimeMillis() - time);
+    logger.info("remote search took " + result.getTime() + "ms");
     return result;
   }
 
