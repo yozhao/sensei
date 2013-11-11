@@ -218,9 +218,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
     Map<Service<REQUEST, RESULT>, REQUEST> serviceToRequest = new HashMap<Service<REQUEST, RESULT>, REQUEST>();
 
+    byte[] routeBytes = getRouteParam(req).getBytes();
     for (Integer shard : shards) {
-      Service<REQUEST, RESULT> service = router.route(getRouteParam(req).getBytes(), shard);
-
+      Service<REQUEST, RESULT> service = router.route(routeBytes, shard);
       if (service == null) {
         logger.warn("router returned null as a destination service");
         continue;
