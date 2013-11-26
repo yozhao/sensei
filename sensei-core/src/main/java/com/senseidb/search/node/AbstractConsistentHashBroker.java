@@ -47,6 +47,7 @@ import com.yammer.metrics.core.Timer;
 public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSenseiRequest, RESULT extends AbstractSenseiResult>
     extends AbstractSenseiBroker<REQUEST, RESULT> {
   private final static Logger logger = Logger.getLogger(AbstractConsistentHashBroker.class);
+  private final static Logger queryLogger = Logger.getLogger("com.sensei.querylog");
 
   protected long _timeout = 8000;
   protected final ZuSerializer<REQUEST, RESULT> _serializer;
@@ -208,7 +209,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       ErrorMeter.mark();
     }
     result.setTime(System.currentTimeMillis() - time);
-    logger.info("remote search took " + result.getTime() + "ms");
+    queryLogger.info("doBrowse took " + result.getTime() + "ms");
     return result;
   }
 

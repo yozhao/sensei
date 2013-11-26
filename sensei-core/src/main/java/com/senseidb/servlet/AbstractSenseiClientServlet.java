@@ -429,9 +429,11 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
   private void sendResponse(HttpServletRequest req, HttpServletResponse resp,
       SenseiRequest senseiReq, SenseiResult res) throws Exception {
+    long start = System.currentTimeMillis();
     OutputStream ostream = resp.getOutputStream();
     convertResult(req, senseiReq, res, ostream);
     ostream.flush();
+    queryLogger.info("sendResponse took " + (System.currentTimeMillis() - start) + "ms");
   }
 
   private void handleStoreGetRequest(HttpServletRequest req, HttpServletResponse resp)
