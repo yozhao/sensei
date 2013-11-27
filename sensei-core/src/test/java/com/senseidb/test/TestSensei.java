@@ -466,14 +466,14 @@ public class TestSensei extends TestCase {
 
   public void testSpanTermQuery() throws Exception {
     logger.info("executing test case testSpanTermQuery");
-    String req = "{\"query\":{\"span_term\":{\"color\":\"red\"}}}";
+    String req = "{\"query\":{\"span_term\":{\"contents\":\"red\"}}}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }
 
   public void testSpanOrQuery() throws Exception {
     logger.info("executing test case testSpanOrQuery");
-    String req = "{\"query\":{\"span_or\":{\"clauses\":[{\"span_term\":{\"color\":\"red\"}},{\"span_term\":{\"color\":\"blue\"}}]}}}";
+    String req = "{\"query\":{\"span_or\":{\"clauses\":[{\"span_term\":{\"contents\":\"red\"}},{\"span_term\":{\"contents\":\"blue\"}}]}}}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 3264, res.getInt("numhits"));
   }
@@ -501,7 +501,7 @@ public class TestSensei extends TestCase {
 
   public void testSpanFirstQuery() throws Exception {
     logger.info("executing test case testSpanFirstQuery");
-    String req = "{\"query\":{\"span_first\":{\"match\":{\"span_term\":{\"color\":\"red\"}},\"end\":2}}}";
+    String req = "{\"query\":{\"span_first\":{\"match\":{\"span_term\":{\"contents\":\"red\"}},\"end\":2}}}";
     JSONObject res = search(new JSONObject(req));
     assertEquals("numhits is wrong", 2160, res.getInt("numhits"));
   }

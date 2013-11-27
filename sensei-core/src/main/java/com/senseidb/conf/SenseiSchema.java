@@ -17,7 +17,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.index.FieldInfo.IndexOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -195,12 +194,6 @@ public class SenseiSchema {
           fdef.formatter = null;
         } else if (t.equals("string")) {
           fdef.formatter = null;
-          fdef.fieldType = new FieldType();
-          fdef.fieldType.setStored(fdef.store == Store.YES);
-          fdef.fieldType.setIndexed(true);
-          fdef.fieldType.setTokenized(false);
-          fdef.fieldType.setOmitNorms(true);
-          fdef.fieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
         } else if (t.equals("boolean")) {
           fdef.formatter = null;
         } else if (t.equals("date")) {

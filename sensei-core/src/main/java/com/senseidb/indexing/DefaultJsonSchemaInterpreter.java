@@ -305,12 +305,7 @@ public class DefaultJsonSchemaInterpreter extends AbstractZoieIndexableInterpret
                   } else {
                     strVal = String.valueOf(val);
                   }
-                  Field metaField = null;
-                  if (fldDef.fieldType != null) {
-                    metaField = new Field(name, strVal, fldDef.fieldType);
-                  } else {
-                    metaField = new StringField(name, strVal, fldDef.store);
-                  }
+                  Field metaField = new StringField(name, strVal, fldDef.store);
                   luceneDoc.add(metaField);
                 }
               }
