@@ -126,7 +126,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
       senseiHit.setGroupValue(hit.getGroupValue());
       senseiHit.setRawGroupValue(hit.getRawGroupValue());
       senseiHit.setGroupHitsCount(hit.getGroupHitsCount());
-      senseiHit.setTermFreqMap(hit.getTermFreqMap());
+      senseiHit.setTermVectorMap(hit.getTermVectorMap());
 
       senseiHits[i] = senseiHit;
     }

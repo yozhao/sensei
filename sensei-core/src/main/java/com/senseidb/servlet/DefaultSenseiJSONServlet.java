@@ -113,7 +113,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.browseengine.bobo.api.BrowseFacet;
-import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.BoboTerm;
 import com.browseengine.bobo.api.BrowseHit.SerializableExplanation;
 import com.browseengine.bobo.api.BrowseHit.SerializableField;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -369,23 +369,25 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
         }
       }
 
-      Map<String, BrowseHit.TermFrequencyVector> tvMap = hit.getTermFreqMap();
+      Map<String, List<BoboTerm>> tvMap = hit.getTermVectorMap();
       if (tvMap != null && tvMap.size() > 0) {
         JSONObject tvObj = new FastJSONObject();
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_TERMVECTORS)) {
           hitObj.put(PARAM_RESULT_HIT_TERMVECTORS, tvObj);
         }
-        Set<Entry<String, BrowseHit.TermFrequencyVector>> entries = tvMap.entrySet();
-        for (Entry<String, BrowseHit.TermFrequencyVector> entry : entries) {
+        Set<Entry<String, List<BoboTerm>>> entries = tvMap.entrySet();
+        for (Entry<String, List<BoboTerm>> entry : entries) {
           String field = entry.getKey();
           JSONArray tvArray = new FastJSONArray();
           tvObj.put(field, tvArray);
-          List<String> terms = entry.getValue().terms;
-          List<Integer> freqs = entry.getValue().freqs;
-          for (int i = 0; i < terms.size(); ++i) {
+          List<BoboTerm> boboTerms = entry.getValue();
+          for (int i = 0; i < boboTerms.size(); ++i) {
             JSONObject tv = new FastJSONObject();
-            tv.put("term", terms.get(i));
-            tv.put("freq", freqs.get(i));
+            tv.put("term", boboTerms.get(i).term);
+            tv.put("freq", boboTerms.get(i).freq);
+            tv.put("positions", boboTerms.get(i).positions);
+            tv.put("startOffsets", boboTerms.get(i).startOffsets);
+            tv.put("endOffsets", boboTerms.get(i).endOffsets);
             tvArray.put(tv);
           }
         }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import com.senseidb.search.client.json.CustomJsonHandler;
 import com.senseidb.search.client.json.JsonField;
@@ -22,10 +24,11 @@ public class SenseiHit {
   private Integer grouphitscount;
   private List<SenseiHit> groupHits = new ArrayList<SenseiHit>();
   private List<FieldValue> storedFields = new ArrayList<FieldValue>();
-  @JsonField("termvectors")
-  private Map<String, List<TermFrequency>> fieldTermFrequencies = new HashMap<String, List<TermFrequency>>();
+
+  @JsonField("_termvectors")
+  private final Map<String, List<FieldTerm>> termVectors = new HashMap<String, List<FieldTerm>>();
   private Explanation explanation;
-  private Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+  private final Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
 
   @Override
   public String toString() {
@@ -44,12 +47,9 @@ public class SenseiHit {
         + groupHits
         + ", \n     storedFields="
         + storedFields
-        + ", \n     fieldTermFrequencies="
-        + fieldTermFrequencies
-        + ", \n      explanation="
-        + explanation
-        + ", \n       fieldValues="
-        + fieldValues + "]";
+        + ", \n     termVectors="
+        + termVectors
+        + ", \n      explanation=" + explanation + ", \n       fieldValues=" + fieldValues + "]";
   }
 
   public Long getUid() {
@@ -108,8 +108,25 @@ public class SenseiHit {
     this.storedFields = storedFields;
   }
 
+  // getFieldTermFrequencies will be removed in next release
+  // Please use getTermVectors instead
+  @Deprecated
   public Map<String, List<TermFrequency>> getFieldTermFrequencies() {
-    return fieldTermFrequencies;
+    Map<String, List<TermFrequency>> res = new HashMap<String, List<TermFrequency>>();
+    Set<Entry<String, List<FieldTerm>>> entries = termVectors.entrySet();
+    for (Entry<String, List<FieldTerm>> entry : entries) {
+      String field = entry.getKey();
+      List<TermFrequency> tf = new ArrayList<TermFrequency>();
+      for (FieldTerm term : entry.getValue()) {
+        tf.add(new TermFrequency(term.getTerm(), term.getFreq()));
+      }
+      res.put(field, tf);
+    }
+    return res;
+  }
+
+  public Map<String, List<FieldTerm>> getTermVectors() {
+    return termVectors;
   }
 
   public Explanation getExplanation() {
