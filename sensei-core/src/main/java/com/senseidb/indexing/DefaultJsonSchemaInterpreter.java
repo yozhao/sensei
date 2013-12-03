@@ -96,10 +96,6 @@ public class DefaultJsonSchemaInterpreter extends AbstractZoieIndexableInterpret
           return 0;
         } else {
           int num = Integer.parseInt(val);
-          /*
-           * if (num<0){ logger.error("we don't yet support negative values, skipping."); return
-           * null; }
-           */
           return num;
         }
       }
@@ -114,10 +110,6 @@ public class DefaultJsonSchemaInterpreter extends AbstractZoieIndexableInterpret
           return 0.0;
         } else {
           double num = Double.parseDouble(val);
-          /*
-           * if (num<0.0){ logger.error("we don't yet support negative values, skipping."); return
-           * null; }
-           */
           return num;
         }
       }
@@ -131,10 +123,6 @@ public class DefaultJsonSchemaInterpreter extends AbstractZoieIndexableInterpret
           return 0.0;
         } else {
           long num = Long.parseLong(val);
-          /*
-           * if (num<0){ logger.error("we don't yet support negative values, skipping."); return
-           * null; }
-           */
           return num;
         }
       }

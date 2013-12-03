@@ -36,10 +36,6 @@ public class SchemaConverter {
       String skipField = tableElem.getAttribute("skip-field");
       if (skipField != null && skipField.length() > 0) tableObj.put("skip-field", skipField);
 
-      String srcDataStore = tableElem.getAttribute("src-data-store");
-      if (srcDataStore != null && srcDataStore.length() > 0) tableObj.put("src-data-store",
-        srcDataStore);
-
       String srcDatafield = tableElem.getAttribute("src-data-field");
       if (srcDatafield != null && srcDatafield.length() > 0) tableObj.put("src-data-field",
         srcDatafield);

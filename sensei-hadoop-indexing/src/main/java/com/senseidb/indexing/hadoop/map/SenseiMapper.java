@@ -23,7 +23,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.util.Version;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,23 +59,23 @@ public class SenseiMapper extends MapReduceBase implements
   @Override
   public void map(Object key, Object value, OutputCollector<Shard, IntermediateForm> output,
       Reporter reporter) throws IOException {
-
     if (_isConfigured == false) throw new IllegalStateException(
         "Mapper's configure method wasn't sucessful. May not get the correct schema or Lucene Analyzer.");
 
     JSONObject json = null;
     try {
       json = _converter.getJsonInput(key, value, _conf);
-      json = _converter.doFilter(json);
+      if (json != null) {
+        json = _converter.doFilter(json);
+      }
     } catch (Exception e) {
       ExceptionUtils.printRootCauseStackTrace(e);
-      throw new IllegalStateException("data conversion or filtering failed inside mapper. \n");
+      throw new IllegalStateException("data conversion or filtering failed inside mapper", e);
     }
 
     if (_defaultInterpreter == null) reporter.incrCounter("Map", "Interpreter_null", 1);
 
     if (_defaultInterpreter != null && json != null && analyzer != null) {
-
       ZoieIndexable indexable = _defaultInterpreter.convertAndInterpret(json);
 
       IndexingReq[] idxReqs = indexable.buildIndexingReqs();
@@ -86,7 +86,7 @@ public class SenseiMapper extends MapReduceBase implements
         if (indexable.isStorable()) {
           byte[] bytes = indexable.getStoreValue();
           if (bytes != null) {
-            doc.add(new Field(AbstractZoieIndexable.DOCUMENT_STORE_FIELD, bytes));
+            doc.add(new StoredField(AbstractZoieIndexable.DOCUMENT_STORE_FIELD, bytes));
           }
         }
 
@@ -124,9 +124,8 @@ public class SenseiMapper extends MapReduceBase implements
       SenseiJobConfig.DISTRIBUTION_POLICY, DummyShardingStrategy.class, ShardingStrategy.class),
       job);
 
-    _converter = ReflectionUtils.newInstance(job.getClass(
-      SenseiJobConfig.MAPINPUT_CONVERTER, DummyMapInputConverter.class, MapInputConverter.class),
-      job);
+    _converter = ReflectionUtils.newInstance(job.getClass(SenseiJobConfig.MAPINPUT_CONVERTER,
+      DummyMapInputConverter.class, MapInputConverter.class), job);
 
     try {
       setSchema(job);
