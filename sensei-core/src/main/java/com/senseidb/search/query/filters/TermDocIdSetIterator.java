@@ -35,6 +35,9 @@ public class TermDocIdSetIterator extends DocIdSetIterator {
    */
   @Override
   public int nextDoc() throws IOException {
+    if (docsEnum == null) {
+      return NO_MORE_DOCS;
+    }
     doc = docsEnum.nextDoc();
     return doc;
   }
@@ -50,6 +53,9 @@ public class TermDocIdSetIterator extends DocIdSetIterator {
    */
   @Override
   public int advance(int target) throws IOException {
+    if (docsEnum == null) {
+      return NO_MORE_DOCS;
+    }
     doc = docsEnum.advance(target);
     return doc;
   }

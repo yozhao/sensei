@@ -64,7 +64,7 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
       ErrorMeter.mark();
       SenseiResult emptyResult = getEmptyResultInstance();
       logger.error("Error running scatter/gather", e);
-      emptyResult.addError(new SenseiError("Error gathering the results" + e.getMessage(), ErrorType.BrokerGatherError));
+      emptyResult.addError(new SenseiError("Error gathering the results, " + e.getMessage(), ErrorType.BrokerGatherError));
       return Arrays.asList(emptyResult);
     }
     return resultList;

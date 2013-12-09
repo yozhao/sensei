@@ -179,7 +179,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       ErrorMeter.mark();
       RESULT emptyResult = getEmptyResultInstance();
       logger.error("Error running scatter/gather", e);
-      emptyResult.addError(new SenseiError("Error gathering the results" + e.getMessage(),
+      emptyResult.addError(new SenseiError("Error gathering the results, " + e.getMessage(),
           ErrorType.BrokerGatherError));
       return emptyResult;
     }
@@ -203,8 +203,8 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       });
     } catch (Exception e) {
       result = getEmptyResultInstance();
-      logger.error("Error gathering the results", e);
-      result.addError(new SenseiError("Error gathering the results" + e.getMessage(),
+      logger.error("Error gathering the results: ", e);
+      result.addError(new SenseiError("Error gathering the results, " + e.getMessage(),
           ErrorType.BrokerGatherError));
       ErrorMeter.mark();
     }
