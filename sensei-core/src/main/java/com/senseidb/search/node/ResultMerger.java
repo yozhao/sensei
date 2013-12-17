@@ -378,60 +378,52 @@ public class ResultMerger {
 
     public SenseiHitComparator(SortField[] sortFields) {
       _sortFields = sortFields;
+      // Default order is relevance
+      if (_sortFields == null || _sortFields.length == 0) {
+        _sortFields = new SortField[] { SortField.FIELD_SCORE };
+      }
     }
 
     @Override
     public int compare(SenseiHit o1, SenseiHit o2) {
-      if (_sortFields.length == 0) {
-        return o1.getDocid() - o2.getDocid();
-      } else {
-        int equalCount = 0;
-        for (int i = 0; i < _sortFields.length; ++i) {
-          String field = _sortFields[i].getField();
-          int reverse = _sortFields[i].getReverse() ? -1 : 1;
-
-          if (_sortFields[i].getType() == SortField.Type.SCORE) {
-            float score1 = o1.getScore();
-            float score2 = o2.getScore();
-            if (score1 == score2) {
-              equalCount++;
-              continue;
-            } else {
-              return (score1 > score2) ? -reverse : reverse;
-            }
-          } else if (_sortFields[i].getType() == SortField.Type.DOC) {
-            return o1.getDocid() - o2.getDocid();
-          } else // A regular sort field
-          {
-            String value1 = o1.getField(field);
-            String value2 = o2.getField(field);
-
-            if (value1 == null && value2 == null) {
-              equalCount++;
-              continue;
-            } else if (value1 == null) return -reverse;
-            else if (value2 == null) return reverse;
-            else {
-              int comp = value1.compareTo(value2);
-              if (value1.startsWith("-") && value2.startsWith("-")) {
-                comp *= -1;
-              }
-              if (comp != 0) {
-                return comp * reverse;
-              } else {
-                equalCount++;
-                continue;
-              }
-            }
-          } // A regular sort field
-        }
-
-        if (equalCount == _sortFields.length) {
+      for (int i = 0; i < _sortFields.length; ++i) {
+        String field = _sortFields[i].getField();
+        int reverse = _sortFields[i].getReverse() ? -1 : 1;
+        if (_sortFields[i].getType() == SortField.Type.SCORE) {
+          float score1 = o1.getScore();
+          float score2 = o2.getScore();
+          if (score1 == score2) {
+            continue;
+          } else {
+            return (score1 > score2) ? -reverse : reverse;
+          }
+        } else if (_sortFields[i].getType() == SortField.Type.DOC) {
           return o1.getDocid() - o2.getDocid();
         } else {
-          return 0;
+          // A regular sort field
+          String value1 = o1.getField(field);
+          String value2 = o2.getField(field);
+          if (value1 == null && value2 == null) {
+            continue;
+          } else if (value1 == null) {
+            return -reverse;
+          } else if (value2 == null) {
+            return reverse;
+          } else {
+            int comp = value1.compareTo(value2);
+            if (value1.startsWith("-") && value2.startsWith("-")) {
+              comp *= -1;
+            }
+            if (comp != 0) {
+              return comp * reverse;
+            } else {
+              continue;
+            }
+          }
         }
       }
+      // All sort fields are tie
+      return o1.getDocid() - o2.getDocid();
     }
   }
 
