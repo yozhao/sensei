@@ -1345,7 +1345,9 @@ select_stmt returns [Object json]
 
                 if (order_by != null) {
                     if ($order_by.isRelevance) {
-                        jsonObj.put("sort", "relevance");
+                        JSONArray sortArray = new FastJSONArray();
+                        sortArray.put("relevance");                    	
+                        jsonObj.put("sort", sortArray);
                     }
                     else {
                         jsonObj.put("sort", $order_by.json);
