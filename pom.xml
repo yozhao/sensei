@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.senseidb</groupId>
 		<artifactId>sensei-parent</artifactId>
-		<version>2.0.1</version>
+		<version>2.0.2-SNAPSHOT</version>
 		<relativePath>sensei-parent/pom.xml</relativePath>
 	</parent>
 
@@ -18,7 +18,8 @@
 		<connection>scm:git:git@github.com:senseidb/sensei.git</connection>
 		<developerConnection>scm:git:git@github.com:senseidb/sensei.git</developerConnection>
 		<url>http://github.com/senseidb/sensei</url>
-	</scm>
+	  <tag>HEAD</tag>
+  </scm>
 
 	<modules>
 		<module>sensei-parent</module>
