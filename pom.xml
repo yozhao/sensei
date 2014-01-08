@@ -18,8 +18,7 @@
 		<connection>scm:git:git@github.com:senseidb/sensei.git</connection>
 		<developerConnection>scm:git:git@github.com:senseidb/sensei.git</developerConnection>
 		<url>http://github.com/senseidb/sensei</url>
-	  <tag>HEAD</tag>
-  </scm>
+	</scm>
 
 	<modules>
 		<module>sensei-parent</module>
@@ -59,11 +58,11 @@
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.2</version>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.4.2</version>
+			</plugin>
 		</plugins>
 	</build>
 
