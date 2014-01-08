@@ -14,6 +14,12 @@
 	<name>sensei</name>
 	<description>sensei parent</description>
 
+	<scm>
+		<connection>scm:git:git@github.com:senseidb/sensei.git</connection>
+		<developerConnection>scm:git:git@github.com:senseidb/sensei.git</developerConnection>
+		<url>http://github.com/senseidb/sensei</url>
+	</scm>
+
 	<modules>
 		<module>sensei-parent</module>
 		<module>sensei-core</module>
@@ -23,7 +29,6 @@
 		<module>sensei-war</module>
 		<module>clients/java</module>
 	</modules>
-
 
 	<build>
 		<plugins>

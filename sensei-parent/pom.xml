@@ -24,12 +24,6 @@
 		</license>
 	</licenses>
 
-	<scm>
-		<connection>scm:git:git@github.com:senseidb/sensei.git</connection>
-		<developerConnection>scm:git:git@github.com:senseidb/sensei.git</developerConnection>
-		<url>http://github.com/javasoze/sensei</url>
-	</scm>
-
 	<developers>
 		<developer>
 			<id>javasoze</id>
