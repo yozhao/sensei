@@ -2,10 +2,8 @@ package com.senseidb.indexing;
 
 import java.util.Map;
 
-import org.json.JSONObject;
 import org.json.JSONException;
-
-import com.senseidb.conf.SenseiSchema;
+import org.json.JSONObject;
 
 import com.senseidb.plugin.SenseiPluginFactory;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -30,10 +28,7 @@ public interface ShardingStrategy {
 
     @Override
     public int caculateShard(int maxShardId, JSONObject dataObj) throws JSONException {
-      JSONObject event = dataObj.optJSONObject(SenseiSchema.EVENT_FIELD);
-      long uid;
-      if (event == null) uid = Long.parseLong(dataObj.getString(_field));
-      else uid = Long.parseLong(event.getString(_field));
+      long uid = Long.parseLong(dataObj.getString(_field));
       return (int) (Math.abs(uid) % maxShardId);
     }
   }

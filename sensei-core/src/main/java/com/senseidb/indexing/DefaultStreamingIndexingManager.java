@@ -254,18 +254,8 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
     }
 
     @SuppressWarnings("unchecked")
-    private JSONObject rewriteData(JSONObject obj, int partNum) {
-      String type = obj.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
-
-      JSONObject event = obj.optJSONObject(SenseiSchema.EVENT_FIELD);
-      if (event == null) event = obj;
-      else if (type != null) {
-        try {
-          event.put(SenseiSchema.EVENT_TYPE_FIELD, type);
-        } catch (Exception e) {
-          logger.error("Should never happen", e);
-        }
-      }
+    private JSONObject rewriteData(JSONObject event, int partNum) {
+      String type = event.optString(SenseiSchema.EVENT_TYPE_FIELD, null);
 
       reportIndexingLatency(event);
 
@@ -280,7 +270,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         }
 
         if (readers == null) {
-          logger.error("Cannot found original doc for and update event: " + obj);
+          logger.error("Cannot found original doc for and update event: " + event);
           return null;
         }
         try {
@@ -301,7 +291,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           }
 
           if (data == null) {
-            logger.error("Cannot found original doc for and update event: " + obj);
+            logger.error("Cannot found original doc for and update event: " + event);
             return null;
           }
 
@@ -319,7 +309,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           zoie.returnIndexReaders(readers);
         }
       }
-
       return event;
     }
 

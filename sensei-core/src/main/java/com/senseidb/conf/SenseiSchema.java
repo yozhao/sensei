@@ -26,8 +26,6 @@ import com.senseidb.indexing.MetaType;
 
 public class SenseiSchema {
   public static final String EVENT_TYPE_FIELD = "type";
-  public static final String EVENT_FIELD = "data";
-  public static final String EVENT_TYPE_ADD = "add";
   public static final String EVENT_TYPE_UPDATE = "update";
   public static final String EVENT_TYPE_DELETE = "delete";
   public static final String EVENT_TYPE_SKIP = "skip";
