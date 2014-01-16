@@ -324,8 +324,6 @@ public class HttpRestSenseiServiceImpl implements SenseiService {
   public static void convertScalarParams(List<NameValuePair> qparams, SenseiRequest req) {
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED, Boolean
         .toString(req.isFetchStoredFields())));
-    qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE, Boolean
-        .toString(req.isFetchStoredValue())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_SHOW_EXPLAIN, Boolean
         .toString(req.isShowExplanation())));
     qparams.add(new BasicNameValuePair(SenseiSearchServletParams.PARAM_OFFSET, Integer.toString(req

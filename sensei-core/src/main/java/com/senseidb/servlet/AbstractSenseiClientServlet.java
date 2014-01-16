@@ -458,7 +458,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       String[] vals = RequestConverter2.getStrings(ids);
       if (vals != null && vals.length != 0) {
         senseiReq = new SenseiRequest();
-        senseiReq.setFetchStoredValue(true);
+        senseiReq.setFetchStoredFields(true);
         senseiReq.setCount(vals.length);
         BrowseSelection sel = new BrowseSelection(SenseiFacetHandlerBuilder.UID_FACET_NAME);
         sel.setValues(vals);

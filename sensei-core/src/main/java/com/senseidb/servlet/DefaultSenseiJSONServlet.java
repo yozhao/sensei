@@ -18,7 +18,6 @@ import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_HITS;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FACET_ORDER_VAL;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED;
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_STORED_VALUE;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FETCH_TERMVECTOR;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_FIELDS_TO_FETCH;
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_GROUP_BY;
@@ -111,6 +110,8 @@ import org.apache.lucene.search.SortField;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import proj.zoie.api.indexing.AbstractZoieIndexable;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit.BoboTerm;
@@ -359,10 +360,13 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
               && !req.getStoredFieldsToFetch().contains(field.name())) {
             continue;
           }
-          JSONObject data = new FastJSONObject();
-          data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
-          data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
-          storedData.add(data);
+          // DOCUMENT_STORE_FIELD is already set to _srcdata
+          if (!field.name().equals(AbstractZoieIndexable.DOCUMENT_STORE_FIELD)) {
+            JSONObject data = new FastJSONObject();
+            data.put(PARAM_RESULT_HIT_STORED_FIELDS_NAME, field.name());
+            data.put(PARAM_RESULT_HIT_STORED_FIELDS_VALUE, field.stringValue());
+            storedData.add(data);
+          }
         }
         if (selectSet == null || selectSet.contains(PARAM_RESULT_HIT_STORED_FIELDS)) {
           hitObj.put(PARAM_RESULT_HIT_STORED_FIELDS, new FastJSONArray(storedData));
@@ -515,7 +519,6 @@ public class DefaultSenseiJSONServlet extends AbstractSenseiRestServlet {
     senseiReq.setCount(params.getInt(PARAM_COUNT, 10));
     senseiReq.setShowExplanation(params.getBoolean(PARAM_SHOW_EXPLAIN, false));
     senseiReq.setFetchStoredFields(params.getBoolean(PARAM_FETCH_STORED, false));
-    senseiReq.setFetchStoredValue(params.getBoolean(PARAM_FETCH_STORED_VALUE, false));
 
     String[] fetchTVs = params.getStringArray(PARAM_FETCH_TERMVECTOR);
     if (fetchTVs != null && fetchTVs.length > 0) {

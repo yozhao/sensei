@@ -82,7 +82,7 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
   public SenseiResult mergeResults(SenseiRequest request, List<SenseiResult> resultList) {
     SenseiResult res = ResultMerger.merge(request, resultList, false);
 
-    if (request.isFetchStoredFields() || request.isFetchStoredValue()) {
+    if (request.isFetchStoredFields()) {
       long start = System.currentTimeMillis();
       recoverSrcData(res, res.getSenseiHits(), request.isFetchStoredFields());
       res.setTime(res.getTime() + (System.currentTimeMillis() - start));
@@ -109,9 +109,6 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
         if (spec != null && spec.getMaxCount() < 50) spec.setMaxCount(50);
       }
     }
-
-    // Rewrite fetchStoredFields for zoie store.
-    if (!request.isFetchStoredFields()) request.setFetchStoredFields(request.isFetchStoredValue());
 
     // Rewrite select list to include sort and group by fields:
     if (request.getSelectSet() != null) {

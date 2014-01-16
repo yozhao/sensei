@@ -388,9 +388,6 @@ public class RequestConverter2 {
       req.setStoredFieldsToFetch(new HashSet<String>(Arrays.asList(fieldsToFetch)));
     }
 
-    boolean fetchStoredValue = json.optBoolean(RequestConverter2.FETCH_STORED_VALUE);
-    req.setFetchStoredValue(fetchStoredValue);
-
     String[] termVectors = getStrings(json, RequestConverter2.TERM_VECTORS);
     if (termVectors != null && termVectors.length > 0) {
       req.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(termVectors)));

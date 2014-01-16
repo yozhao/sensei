@@ -80,7 +80,7 @@ public class ResultMerger {
         }
       }
 
-      if (req.isFetchStoredFields() || req.isFetchStoredValue()) {
+      if (req.isFetchStoredFields()) {
         try {
           BytesRef bytesRef = zoieSegmentReader.getStoredValue(doc);
           if (bytesRef != null) {

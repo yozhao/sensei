@@ -42,7 +42,6 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   private int _origCount;
   private boolean _fetchStoredFields;
   private boolean _origFetchStoredFields;
-  private boolean _fetchStoredValue;
   private Map<String, FacetHandlerInitializerParam> _facetInitParamMap;
   private Set<Integer> _partitions;
   private boolean _showExplanation;
@@ -65,7 +64,6 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
     _sortSpecs = new ArrayList<SerializableSortField>();
     _facetSpecMap = new HashMap<String, FacetSpec>();
     _fetchStoredFields = false;
-    _fetchStoredValue = false;
     _partitions = null;
     _showExplanation = false;
     _routeParam = null;
@@ -260,14 +258,6 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
 
   public void setFetchStoredFields(boolean fetchStoredFields) {
     _fetchStoredFields = fetchStoredFields;
-  }
-
-  public boolean isFetchStoredValue() {
-    return _fetchStoredValue;
-  }
-
-  public void setFetchStoredValue(boolean fetchStoredValue) {
-    _fetchStoredValue = fetchStoredValue;
   }
 
   /**
@@ -478,7 +468,6 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
     if (_groupBy != null) buf.append("group by: ").append(_groupBy).append('\n');
     buf.append("max per group: ").append(_maxPerGroup).append('\n');
     buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
-    buf.append("fetch stored value: ").append(_fetchStoredValue).append('\n');
     return buf.toString();
   }
 
@@ -504,7 +493,6 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
     clone.setOffset(this.getOffset());
     clone.setCount(this.getCount());
     clone.setFetchStoredFields(this.isFetchStoredFields());
-    clone.setFetchStoredValue(this.isFetchStoredValue());
     clone.setFacetHandlerInitParamMap(this.getFacetHandlerInitParamMap());
     clone.setPartitions(this.getPartitions());
     clone.setShowExplanation(this.isShowExplanation());
