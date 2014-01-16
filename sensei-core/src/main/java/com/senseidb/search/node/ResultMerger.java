@@ -527,19 +527,6 @@ public class ResultMerger {
     return false;
   }
 
-  public static void createUniqueDocIds(Collection<SenseiResult> results) {
-    int totalDocs = 0;
-    for (SenseiResult res : results) {
-      SenseiHit[] hits = res.getSenseiHits();
-      if (hits != null) {
-        for (SenseiHit hit : hits) {
-          hit.setDocid(hit.getDocid() + totalDocs);
-        }
-      }
-      totalDocs += res.getTotalDocs();
-    }
-  }
-
   public static List<Iterator<SenseiHit>> flattenHits(Collection<SenseiResult> results) {
     List<Iterator<SenseiHit>> hitList = new ArrayList<Iterator<SenseiHit>>(results.size());
 
@@ -571,9 +558,6 @@ public class ResultMerger {
 
     final String parsedQuery = findParsedQuery(results);
     final boolean hasSortCollector = hasSortCollector(results);
-
-    // Assign each hit document a unique "document id"
-    createUniqueDocIds(results);
 
     // Extract the hits from the results
     List<Iterator<SenseiHit>> hitLists = flattenHits(results);
