@@ -190,10 +190,13 @@ public class SenseiSchema {
           fdef.type = double.class;
         } else if (t.equals("char")) {
           fdef.formatter = null;
+          fdef.type = char.class;
         } else if (t.equals("string")) {
           fdef.formatter = null;
+          fdef.type = String.class;
         } else if (t.equals("boolean")) {
           fdef.formatter = null;
+          fdef.type = boolean.class;
         } else if (t.equals("date")) {
           String f = "";
           try {
