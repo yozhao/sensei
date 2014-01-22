@@ -3,6 +3,7 @@ package com.senseidb.svc.impl;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import zu.finagle.serialize.JOSSSerializer;
@@ -24,8 +25,8 @@ public class SysSenseiCoreServiceImpl extends
 
   private static final Logger logger = Logger.getLogger(SysSenseiCoreServiceImpl.class);
 
-  public SysSenseiCoreServiceImpl(SenseiCore core) {
-    super(core);
+  public SysSenseiCoreServiceImpl(SenseiCore core, Configuration conf) {
+    super(core, conf);
   }
 
   @Override

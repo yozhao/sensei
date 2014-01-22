@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.lucene.util.NamedThreadFactory;
 
@@ -23,6 +24,7 @@ import proj.zoie.api.ZoieMultiReader;
 import zu.finagle.serialize.ZuSerializer;
 
 import com.browseengine.bobo.api.BoboSegmentReader;
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.node.SenseiCore;
 import com.senseidb.search.node.SenseiQueryBuilderFactory;
@@ -77,8 +79,9 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
   private final Map<Integer, Timer> partitionTimerMetricMap = new HashMap<Integer, Timer>();
   protected final Map<Integer, Counter> partitionCalls = new HashMap<Integer, Counter>();
 
-  public AbstractSenseiCoreService(SenseiCore core) {
+  public AbstractSenseiCoreService(SenseiCore core, Configuration conf) {
     _core = core;
+    _timeout = conf.getLong(SenseiConfParams.SENSEI_NODE_PARTITION_TIMEOUT, _timeout);
     initCounters();
   }
 
@@ -120,82 +123,57 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
       final Map<IndexReaderFactory<BoboSegmentReader>, List<ZoieMultiReader<BoboSegmentReader>>> indexReaderCache = new ConcurrentHashMap<IndexReaderFactory<BoboSegmentReader>, List<ZoieMultiReader<BoboSegmentReader>>>();
       try {
         final ArrayList<Res> resultList = new ArrayList<Res>(partitions.size());
-        Future<Res>[] futures = new Future[partitions.size() - 1];
-        int i = 0;
-
-        for (final int partition : partitions) {
+        Future<Res>[] futures = new Future[partitions.size()];
+        final Integer[] partitionArray = partitions.toArray(new Integer[] {});
+        for (int i = 0; i < partitionArray.length; ++i) {
+          final int partition = partitionArray[i];
           final IndexReaderFactory<BoboSegmentReader> readerFactory = _core
               .getIndexReaderFactory(partition);
 
-          if (i < partitions.size() - 1) // Search simultaneously.
-          {
-            try {
-              futures[i] = _executorService.submit(new Callable<Res>() {
-                @Override
-                public Res call() throws Exception {
-                  final long start = System.currentTimeMillis();
-                  Timer timer = getTimer(partition);
+          // Search simultaneously.
+          try {
+            futures[i] = _executorService.submit(new Callable<Res>() {
+              @Override
+              public Res call() throws Exception {
+                final long start = System.currentTimeMillis();
+                Timer timer = getTimer(partition);
 
-                  Res res = timer.time(new Callable<Res>() {
+                Res res = timer.time(new Callable<Res>() {
 
-                    @Override
-                    public Res call() throws Exception {
-                      incrementCallCounter(partition);
-                      return handleRequest(senseiReq, readerFactory,
-                        _core.getQueryBuilderFactory(), indexReaderCache);
-                    }
-                  });
+                  @Override
+                  public Res call() throws Exception {
+                    incrementCallCounter(partition);
+                    return handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(),
+                      indexReaderCache);
+                  }
+                });
 
-                  long end = System.currentTimeMillis();
-                  res.setTime(end - start);
-                  return res;
-                }
-              });
-            } catch (Exception e) {
-              senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));
-              logger.error(e.getMessage(), e);
-            }
-          } else // Reuse current thread.
-          {
-            try {
-              final long start = System.currentTimeMillis();
-              Timer timer = getTimer(partition);
-              Res res = timer.time(new Callable<Res>() {
-
-                @Override
-                public Res call() throws Exception {
-                  incrementCallCounter(partition);
-                  return handleRequest(senseiReq, readerFactory, _core.getQueryBuilderFactory(),
-                    indexReaderCache);
-                }
-              });
-
-              resultList.add(res);
-              long end = System.currentTimeMillis();
-              res.setTime(end - start);
-            } catch (Exception e) {
-              logger.error(e.getMessage(), e);
-              senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));
-
-              resultList.add(getEmptyResultInstance(e));
-            }
+                long end = System.currentTimeMillis();
+                res.setTime(end - start);
+                return res;
+              }
+            });
+          } catch (Exception e) {
+            senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));
+            logger.error(e.getMessage(), e);
           }
-          ++i;
         }
 
-        for (i = 0; i < futures.length; ++i) {
+        for (int i = 0; i < futures.length; ++i) {
           try {
             Res res = futures[i].get(_timeout, TimeUnit.MILLISECONDS);
             resultList.add(res);
           } catch (Exception e) {
-
-            logger.error(e.getMessage(), e);
             if (e instanceof TimeoutException) {
+              logger.error("Getting partition " + partitionArray[i] + " result is timeout.");
               senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.ExecutionTimeout));
             } else {
+              logger.error(e.getMessage(), e);
               senseiReq.addError(new SenseiError(e.getMessage(), ErrorType.BoboExecutionError));
             }
-            resultList.add(getEmptyResultInstance(e));
+            Res res = getEmptyResultInstance(e);
+            res.setTime(-1);
+            resultList.add(res);
           }
         }
 
@@ -207,9 +185,8 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
             }
           });
           String latencyLog = "";
-          i = 0;
-          for (final int partition : partitions) {
-            latencyLog += partition + ":" + resultList.get(i++).getTime() + "ms;";
+          for (int i = 0; i < partitionArray.length; ++i) {
+            latencyLog += partitionArray[i] + ":" + resultList.get(i).getTime() + "ms;";
           }
           logger.info("Partitions search latency distribution is " + latencyLog);
         } catch (Exception e) {

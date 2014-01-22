@@ -27,10 +27,11 @@ public class BrokerConfig {
 
   private SenseiBroker senseiBroker;
   private SenseiSysBroker senseiSysBroker;
-  private final long brokerTimeout;
   private ZuCluster clusterClient;
+  private final Configuration senseiConf;
 
-  public BrokerConfig(Configuration senseiConf) {
+  public BrokerConfig(Configuration conf) {
+    senseiConf = conf;
     clusterName = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_NAME);
     zkurl = senseiConf.getString(SenseiConfParams.SENSEI_CLUSTER_URL);
     zkTimeout = senseiConf.getInt(SenseiConfParams.SENSEI_CLUSTER_TIMEOUT, 300000);
@@ -49,7 +50,6 @@ public class BrokerConfig {
       SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_TIMEOUT_MINS, 10);
     staleRequestCleanupFrequencyMins = senseiConf.getInt(
       SenseiConfigServletContextListener.SENSEI_CONF_NC_STALE_CLEANUP_FREQ_MINS, 10);
-    brokerTimeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
   }
 
   public void init() {
@@ -76,14 +76,13 @@ public class BrokerConfig {
   }
 
   public SenseiBroker buildSenseiBroker() {
-    senseiBroker = new SenseiBroker(clusterClient);
-    senseiBroker.setTimeout(brokerTimeout);
+    senseiBroker = new SenseiBroker(clusterClient, senseiConf);
     return senseiBroker;
   }
 
   public AbstractConsistentHashBroker<SenseiRequest, SenseiSystemInfo> buildSysSenseiBroker(
       Comparator<String> versionComparator) {
-    senseiSysBroker = new SenseiSysBroker(clusterClient, versionComparator);
+    senseiSysBroker = new SenseiSysBroker(clusterClient, versionComparator, senseiConf);
     return senseiSysBroker;
   }
 

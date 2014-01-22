@@ -8,7 +8,7 @@ import com.senseidb.svc.api.SenseiException;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
- * 
+ *
  * @param <REQUEST>
  * @param <RESULT>
  */
@@ -24,19 +24,15 @@ public abstract class AbstractSenseiBroker<REQUEST extends AbstractSenseiRequest
 
   /**
    * The method that provides the search service.
-   * 
+   *
    * @param req
    * @return
    * @throws SenseiException
    */
+  @Override
   public abstract RESULT browse(final REQUEST req) throws SenseiException;
 
   public void shutdown() {
     logger.info("shutting down broker...");
   }
-
-  public abstract void setTimeout(long timeoutMillis);
-
-  public abstract long getTimeout();
-
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.SortField;
 
@@ -39,8 +40,8 @@ public class SenseiBroker extends AbstractConsistentHashBroker<SenseiRequest, Se
       SenseiBroker.class, "numberOfNodesInTheCluster"));
   private volatile boolean disconnected;
 
-  public SenseiBroker(ZuCluster clusterClient) {
-    super(clusterClient, CoreSenseiServiceImpl.JAVA_SERIALIZER);
+  public SenseiBroker(ZuCluster clusterClient, Configuration senseiConf) {
+    super(clusterClient, CoreSenseiServiceImpl.JAVA_SERIALIZER, senseiConf);
     clusterClient.addClusterEventListener(this);
   }
 

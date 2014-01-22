@@ -2,9 +2,11 @@ package com.senseidb.test;
 
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
 
 import javax.management.InstanceAlreadyExistsException;
 
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 import org.springframework.context.ApplicationContext;
@@ -109,7 +111,8 @@ public class SenseiStarter {
       logger.info("Node 2 created.");
       broker = null;
       try {
-        broker = new SenseiBroker(clusterClient);
+        broker = new SenseiBroker(clusterClient,
+            new MapConfiguration(new HashMap<String, Object>()));
       } catch (Exception ne) {
         logger.info("shutting down cluster...", ne);
         clusterClient.shutdown();

@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 
@@ -58,13 +59,13 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
     }
   }
 
-  public CoreSenseiServiceImpl(SenseiCore core) {
-    super(core);
-
+  public CoreSenseiServiceImpl(SenseiCore core, Configuration conf) {
+    super(core, conf);
   }
 
   private SenseiResult browse(SenseiRequest senseiRequest, MultiBoboBrowser browser,
       BrowseRequest req) throws BrowseException {
+
     final SenseiResult result = new SenseiResult();
 
     long start = System.currentTimeMillis();

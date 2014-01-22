@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 
@@ -22,6 +22,7 @@ import zu.finagle.client.ZuFinagleServiceDecorator;
 import zu.finagle.client.ZuTransportClientProxy;
 import zu.finagle.serialize.ZuSerializer;
 
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.metrics.MetricsConstants;
 import com.senseidb.search.req.AbstractSenseiRequest;
 import com.senseidb.search.req.AbstractSenseiResult;
@@ -51,6 +52,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
 
   protected long _timeout = 8000;
   protected final ZuSerializer<REQUEST, RESULT> _serializer;
+  private int _finagleThreadNumber = 20;
 
   private static Timer ScatterTimer = null;
   private static Timer GatherTimer = null;
@@ -98,12 +100,22 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
    *          The serializer used to serialize/deserialize request/response pairs
    */
   public AbstractConsistentHashBroker(ZuCluster clusterClient,
-      ZuSerializer<REQUEST, RESULT> serializer) {
+      ZuSerializer<REQUEST, RESULT> serializer, Configuration senseiConf) {
     super();
     _serializer = serializer;
     ZuTransportClientProxy<REQUEST, RESULT> proxy = new ZuTransportClientProxy<REQUEST, RESULT>(
         getMessageType(), _serializer);
-    serviceDecorator = new ZuFinagleServiceDecorator<REQUEST, RESULT>(proxy);
+    if (this instanceof SenseiSysBroker) {
+      // hard code config for SenseiSysBroker
+      _timeout = 8000;
+      _finagleThreadNumber = 4;
+    } else {
+      _timeout = senseiConf.getLong(SenseiConfParams.SERVER_BROKER_TIMEOUT, 8000);
+      _finagleThreadNumber = senseiConf.getInt(SenseiConfParams.SERVER_BROKER_FINAGLE_THREAD, 20);
+    }
+    serviceDecorator = new ZuFinagleServiceDecorator<REQUEST, RESULT>(proxy, Duration.apply(
+      _timeout, TimeUnit.MILLISECONDS), _finagleThreadNumber);
+
     router = new ConsistentHashRoutingAlgorithm<Service<REQUEST, RESULT>>(serviceDecorator);
     clusterClient.addClusterEventListener(router);
   }
@@ -214,7 +226,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
   }
 
   @SuppressWarnings("unchecked")
-  protected List<RESULT> doCall(REQUEST req) throws ExecutionException {
+  protected List<RESULT> doCall(REQUEST req) {
     Set<Integer> shards = router.getShards();
 
     Map<Service<REQUEST, RESULT>, REQUEST> serviceToRequest = new HashMap<Service<REQUEST, RESULT>, REQUEST>();
@@ -248,37 +260,39 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     logger.info("shutting down broker...");
   }
 
-  @Override
-  public long getTimeout() {
-    return _timeout;
-  }
-
-  @Override
-  public void setTimeout(long timeout) {
-    this._timeout = timeout;
-  }
-
   protected List<RESULT> executeRequestsInParallel(
       final Map<Service<REQUEST, RESULT>, REQUEST> serviceToRequest, long timeout) {
-    long start = System.currentTimeMillis();
+    final long start = System.currentTimeMillis();
     final List<Future<RESULT>> futures = new ArrayList<Future<RESULT>>();
-    for (Entry<Service<REQUEST, RESULT>, REQUEST> entry : serviceToRequest.entrySet()) {
+    final List<RESULT> results = new ArrayList<RESULT>();
+    for (final Entry<Service<REQUEST, RESULT>, REQUEST> entry : serviceToRequest.entrySet()) {
       futures.add(entry.getKey().apply(entry.getValue())
           .addEventListener(new FutureEventListener<RESULT>() {
 
             @Override
             public void onFailure(Throwable t) {
-              logger.error("Failed to get response", t);
+              logger.error("Failed to get response from " + getServiceAddress(entry.getKey()), t);
             }
 
             @Override
             public void onSuccess(RESULT result) {
-              // do nothing as we wait for all results below
+              synchronized (results) {
+                results.add(result);
+              }
+              logger.info(String.format("Getting response from "
+                  + getServiceAddress(entry.getKey()) + " took %dms.",
+                (System.currentTimeMillis() - start)));
             }
           }));
     }
+
     Future<List<RESULT>> collected = Future.collect(futures);
-    List<RESULT> results = collected.apply(Duration.apply(timeout, TimeUnit.MILLISECONDS));
+    try {
+      collected.apply(Duration.apply(timeout, TimeUnit.MILLISECONDS));
+    } catch (Exception e) {
+      logger.error("Failed to get results from all nodes, exception: " + e.getMessage());
+    }
+
     logger.info(String.format("Getting responses from %d nodes took %dms.", results.size(),
       (System.currentTimeMillis() - start)));
     return results;
@@ -291,5 +305,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       nodes.addAll(inetSocketAddressList);
     }
     return nodes;
+  }
+
+  public InetSocketAddress getServiceAddress(Service<REQUEST, RESULT> service) {
+    return router.getServiceAddress(service);
   }
 }

@@ -4,12 +4,14 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.management.MBeanServer;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -86,7 +88,7 @@ public class InMemorySenseiService {
       senseiIndexReaderDecorator = new SenseiIndexReaderDecorator(facets, runtimeFacets);
       mockSenseiCore = new MockSenseiCore(partitions, senseiIndexReaderDecorator);
       pluggableSearchEngineManager.start(mockSenseiCore);
-      coreSenseiServiceImpl = new CoreSenseiServiceImpl(mockSenseiCore);
+      coreSenseiServiceImpl = new CoreSenseiServiceImpl(mockSenseiCore, new MapConfiguration(new HashMap<String, Object>()));
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {

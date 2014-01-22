@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import zu.core.cluster.ZuCluster;
@@ -25,9 +25,11 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   private final long _timeoutMillis = TIMEOUT_MILLIS;
   private final Comparator<String> _versionComparator;
   private Map<InetSocketAddress, Service<SenseiRequest, SenseiSystemInfo>> _nodeAddressToService;
+  private Map<Service<SenseiRequest, SenseiSystemInfo>, InetSocketAddress> _nodeServiceToAddress;
 
-  public SenseiSysBroker(ZuCluster clusterClient, Comparator<String> versionComparator) {
-    super(clusterClient, SysSenseiCoreServiceImpl.JAVA_SERIALIZER);
+  public SenseiSysBroker(ZuCluster clusterClient, Comparator<String> versionComparator,
+      Configuration senseiConf) {
+    super(clusterClient, SysSenseiCoreServiceImpl.JAVA_SERIALIZER, senseiConf);
     _versionComparator = versionComparator;
     clusterClient.addClusterEventListener(this);
   }
@@ -56,7 +58,7 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
   }
 
   @Override
-  protected List<SenseiSystemInfo> doCall(final SenseiRequest req) throws ExecutionException {
+  protected List<SenseiSystemInfo> doCall(final SenseiRequest req) {
 
     Map<Service<SenseiRequest, SenseiSystemInfo>, SenseiRequest> serviceToRequest = new HashMap<Service<SenseiRequest, SenseiSystemInfo>, SenseiRequest>();
     for (Service<SenseiRequest, SenseiSystemInfo> service : _nodeAddressToService.values()) {
@@ -81,15 +83,22 @@ public class SenseiSysBroker extends AbstractConsistentHashBroker<SenseiRequest,
     logger.info("clusterChanged(): Received new clusterView from zu " + clusterView);
     Set<InetSocketAddress> nodes = getNodesAddresses(clusterView);
     Map<InetSocketAddress, Service<SenseiRequest, SenseiSystemInfo>> addressToService = new HashMap<InetSocketAddress, Service<SenseiRequest, SenseiSystemInfo>>();
+    Map<Service<SenseiRequest, SenseiSystemInfo>, InetSocketAddress> serviceToAddress = new HashMap<Service<SenseiRequest, SenseiSystemInfo>, InetSocketAddress>();
     for (InetSocketAddress nodeAddress : nodes) {
       Service<SenseiRequest, SenseiSystemInfo> service = serviceDecorator.decorate(nodeAddress);
       addressToService.put(nodeAddress, service);
+      serviceToAddress.put(service, nodeAddress);
     }
     _nodeAddressToService = addressToService;
+    _nodeServiceToAddress = serviceToAddress;
   }
 
   @Override
   public void nodesRemoved(Set<InetSocketAddress> removedNodes) {
   }
 
+  @Override
+  public InetSocketAddress getServiceAddress(Service<SenseiRequest, SenseiSystemInfo> service) {
+    return _nodeServiceToAddress.get(service);
+  }
 }

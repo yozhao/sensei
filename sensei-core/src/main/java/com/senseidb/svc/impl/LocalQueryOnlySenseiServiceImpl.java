@@ -1,7 +1,9 @@
 package com.senseidb.svc.impl;
 
 import java.io.File;
+import java.util.HashMap;
 
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.Version;
@@ -44,7 +46,7 @@ public class LocalQueryOnlySenseiServiceImpl implements SenseiService {
         queryParser);
     _core = new SenseiCore(1, new int[] { 0 }, zoieFactory, null, queryBuilderFactory,
         new DefaultFieldAccessorFactory(), zoieFactory.getDecorator());
-    _coreService = new CoreSenseiServiceImpl(_core);
+    _coreService = new CoreSenseiServiceImpl(_core, new MapConfiguration(new HashMap<String, Object>()));
     _core.start();
   }
 

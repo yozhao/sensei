@@ -1,6 +1,7 @@
 package com.senseidb.search.node;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -10,6 +11,8 @@ import java.util.Set;
 
 import javax.management.StandardMBean;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.mortbay.jetty.Server;
 
@@ -18,6 +21,7 @@ import zu.core.cluster.ZuCluster;
 import zu.finagle.server.ZuFinagleServer;
 import zu.finagle.server.ZuTransportService;
 
+import com.senseidb.conf.SenseiConfParams;
 import com.senseidb.conf.SenseiServerBuilder;
 import com.senseidb.jmx.JmxUtil;
 import com.senseidb.plugin.SenseiPluginRegistry;
@@ -42,6 +46,7 @@ public class SenseiServer {
   private final int _port;
   private final int[] _partitions;
   private final SenseiCore _core;
+  private final Configuration _senseiConf;
   private final List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> _externalSvc;
 
   protected volatile boolean _available = false;
@@ -52,21 +57,31 @@ public class SenseiServer {
   private final ZuFinagleServer server;
   private final ZuCluster cluster;
 
-  public SenseiServer(int port, SenseiCore senseiCore,
-      List<AbstractSenseiCoreService<AbstractSenseiRequest, AbstractSenseiResult>> externalSvc,
-      SenseiPluginRegistry pluginRegistry, ZuTransportService transport, ZuFinagleServer server,
-      ZuCluster cluster) {
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public SenseiServer(SenseiCore senseiCore, SenseiPluginRegistry pluginRegistry,
+      ZuCluster cluster, Configuration senseiConf) throws ConfigurationException {
     _core = senseiCore;
     this.pluginRegistry = pluginRegistry;
-    this.transportService = transport;
-    this.server = server;
     this.cluster = cluster;
-    _id = senseiCore.getNodeId();
-    _port = port;
+
+    _senseiConf = senseiConf;
+    _id = senseiConf.getInt(SenseiConfParams.NODE_ID);
+    _port = senseiConf.getInt(SenseiConfParams.SERVER_PORT);
     _partitions = senseiCore.getPartitions();
 
-    new CoreSenseiServiceImpl(senseiCore);
-    _externalSvc = externalSvc;
+    this.transportService = new ZuTransportService();
+    int serverPort = senseiConf.getInt(SenseiConfParams.SERVER_PORT);
+    String hostAddress;
+    try {
+      hostAddress = NetUtil.getHostAddress();
+    } catch (Exception e) {
+      throw new ConfigurationException(e.getMessage(), e);
+    }
+    this.server = new ZuFinagleServer("sensei-finagle-server-" + _id, new InetSocketAddress(
+        hostAddress, serverPort), transportService.getService());
+
+    _externalSvc = (List) pluginRegistry.resolveBeansByListKey(SenseiConfParams.SENSEI_PLUGIN_SVCS,
+      AbstractSenseiCoreService.class);
   }
 
   private static String help() {
@@ -112,9 +127,9 @@ public class SenseiServer {
     logger.info("Cluster Id: " + cluster.getClusterId());
 
     AbstractSenseiCoreService<SenseiRequest, SenseiResult> coreSenseiService = new CoreSenseiServiceImpl(
-        _core);
+        _core, _senseiConf);
     AbstractSenseiCoreService<SenseiRequest, SenseiSystemInfo> sysSenseiCoreService = new SysSenseiCoreServiceImpl(
-        _core);
+        _core, _senseiConf);
     SenseiCoreServiceMessageHandler<SenseiRequest, SenseiResult> senseiMsgHandler = new SenseiCoreServiceMessageHandler<SenseiRequest, SenseiResult>(
         coreSenseiService);
     SenseiCoreServiceMessageHandler<SenseiRequest, SenseiSystemInfo> senseiSysMsgHandler = new SenseiCoreServiceMessageHandler<SenseiRequest, SenseiSystemInfo>(

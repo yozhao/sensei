@@ -1,8 +1,7 @@
 package com.senseidb.conf;
 
-import java.util.Comparator;
 
-public interface SenseiConfParams {
+public class SenseiConfParams {
   public static final String NODE_ID = "sensei.node.id";
   public static final String PARTITIONS = "sensei.node.partitions";
 
@@ -67,6 +66,7 @@ public interface SenseiConfParams {
   public static final String SERVER_BROKER_MAXTHREAD = "sensei.broker.maxThread";
   public static final String SERVER_BROKER_MAXWAIT = "sensei.broker.maxWaittime";
   public static final String SERVER_BROKER_TIMEOUT = "sensei.broker.timeout";
+  public static final String SERVER_BROKER_FINAGLE_THREAD = "sensei.broker.finagle.thread";
 
   public static final String SENSEI_BROKER_POLL_INTERVAL = "sensei.broker.pollInterval";
   public static final String SENSEI_BROKER_MIN_RESPONSES = "sensei.broker.minResponses";
@@ -87,33 +87,5 @@ public interface SenseiConfParams {
   public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS = "sensei.index.activity.purge.hours";
   public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_MINUTES = "sensei.index.activity.purge.minutes";
 
-  public static final Comparator<String> DEFAULT_VERSION_STRING_COMPARATOR = new Comparator<String>() {
-    @Override
-    public int compare(String o1, String o2) {
-      if (o1 == null && o2 == null) {
-        return 0;
-      }
-      if (o1 == null) return -1;
-      if (o2 == null) return 1;
-      return o1.compareTo(o2);
-    }
-  };
-
-  public static final Comparator<String> DEFAULT_VERSION_LONG_COMPARATOR = new Comparator<String>() {
-    @Override
-    public int compare(String o1, String o2) {
-      long l1, l2;
-      if (o1 == null || o1.length() == 0) {
-        l1 = 0L;
-      } else {
-        l1 = Long.parseLong(o1);
-      }
-      if (o2 == null || o2.length() == 0) {
-        l2 = 0L;
-      } else {
-        l2 = Long.parseLong(o2);
-      }
-      return Long.valueOf(l1).compareTo(Long.valueOf(l2));
-    }
-  };
+  public static final String SENSEI_NODE_PARTITION_TIMEOUT = "sensei.node.partition.timeout";
 }

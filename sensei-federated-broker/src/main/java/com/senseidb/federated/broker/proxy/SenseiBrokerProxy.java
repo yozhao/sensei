@@ -26,29 +26,31 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
   private final static Logger logger = Logger.getLogger(SenseiBrokerProxy.class);
   private static Timer scatterTimer = null;
   private static Meter ErrorMeter = null;
-  static{
+  static {
     // register metrics monitoring for timers
-    try{
-      MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class,"scatter-time");
-      scatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS,TimeUnit.SECONDS);
-      MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class,"error-meter");
-      ErrorMeter = Metrics.newMeter(errorMetricName, "errors",TimeUnit.SECONDS);
-    }
-    catch(Exception e){
-    logger.error(e.getMessage(),e);
+    try {
+      MetricName scatterMetricName = new MetricName(SenseiBrokerProxy.class, "scatter-time");
+      scatterTimer = Metrics.newTimer(scatterMetricName, TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+      MetricName errorMetricName = new MetricName(SenseiBrokerProxy.class, "error-meter");
+      ErrorMeter = Metrics.newMeter(errorMetricName, "errors", TimeUnit.SECONDS);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
     }
   }
 
-  public SenseiBrokerProxy(ZuCluster clusterClient) {
-    super(clusterClient);
+  public SenseiBrokerProxy(ZuCluster clusterClient, Configuration senseiConf) {
+    super(clusterClient, senseiConf);
   }
 
-  public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration, Map<String, String> overrideProperties, ZuCluster senseiCluster) {
-    BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration, overrideProperties);
+  public static SenseiBrokerProxy valueOf(Configuration senseiConfiguration,
+      Map<String, String> overrideProperties, ZuCluster senseiCluster) {
+    BrokerProxyConfig brokerProxyConfig = new BrokerProxyConfig(senseiConfiguration,
+        overrideProperties);
     brokerProxyConfig.init(senseiCluster);
-    SenseiBrokerProxy ret = new SenseiBrokerProxy(senseiCluster);
+    SenseiBrokerProxy ret = new SenseiBrokerProxy(senseiCluster, senseiConfiguration);
     return ret;
   }
+
   @Override
   public List<SenseiResult> doQuery(final SenseiRequest senseiRequest) {
     final List<SenseiResult> resultList = new ArrayList<SenseiResult>();
@@ -64,7 +66,8 @@ public class SenseiBrokerProxy extends SenseiBroker implements BrokerProxy {
       ErrorMeter.mark();
       SenseiResult emptyResult = getEmptyResultInstance();
       logger.error("Error running scatter/gather", e);
-      emptyResult.addError(new SenseiError("Error gathering the results, " + e.getMessage(), ErrorType.BrokerGatherError));
+      emptyResult.addError(new SenseiError("Error gathering the results, " + e.getMessage(),
+          ErrorType.BrokerGatherError));
       return Arrays.asList(emptyResult);
     }
     return resultList;
