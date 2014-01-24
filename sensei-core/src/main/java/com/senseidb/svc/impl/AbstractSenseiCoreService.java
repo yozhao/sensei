@@ -159,9 +159,11 @@ public abstract class AbstractSenseiCoreService<Req extends AbstractSenseiReques
           }
         }
 
+        long startTime = System.currentTimeMillis();
         for (int i = 0; i < futures.length; ++i) {
+          long now = System.currentTimeMillis();
           try {
-            Res res = futures[i].get(_timeout, TimeUnit.MILLISECONDS);
+            Res res = futures[i].get(_timeout - (now - startTime), TimeUnit.MILLISECONDS);
             resultList.add(res);
           } catch (Exception e) {
             if (e instanceof TimeoutException) {

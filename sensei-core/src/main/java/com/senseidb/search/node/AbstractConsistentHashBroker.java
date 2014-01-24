@@ -265,7 +265,9 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
     final long start = System.currentTimeMillis();
     final List<Future<RESULT>> futures = new ArrayList<Future<RESULT>>();
     final List<RESULT> results = new ArrayList<RESULT>();
+    final Map<Service<REQUEST, RESULT>, Long> latencies = new HashMap<Service<REQUEST, RESULT>, Long>();
     for (final Entry<Service<REQUEST, RESULT>, REQUEST> entry : serviceToRequest.entrySet()) {
+      latencies.put(entry.getKey(), (long) -1);
       futures.add(entry.getKey().apply(entry.getValue())
           .addEventListener(new FutureEventListener<RESULT>() {
 
@@ -278,10 +280,8 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
             public void onSuccess(RESULT result) {
               synchronized (results) {
                 results.add(result);
+                latencies.put(entry.getKey(), System.currentTimeMillis() - start);
               }
-              logger.info(String.format("Getting response from "
-                  + getServiceAddress(entry.getKey()) + " took %dms.",
-                (System.currentTimeMillis() - start)));
             }
           }));
     }
@@ -293,8 +293,17 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       logger.error("Failed to get results from all nodes, exception: " + e.getMessage());
     }
 
-    logger.info(String.format("Getting responses from %d nodes took %dms.", results.size(),
-      (System.currentTimeMillis() - start)));
+    String latencyLog = "";
+    for (final Entry<Service<REQUEST, RESULT>, Long> entry : latencies.entrySet()){
+      if (entry.getValue() == -1) {
+        logger.error("Missed result from " + getServiceAddress(entry.getKey()));
+        continue;
+      }
+      latencyLog += getServiceAddress(entry.getKey()) + ":" + entry.getValue() + "ms;";
+    }
+
+    logger.info(String.format("Getting responses from %d nodes took %dms, nodes latency distribution: %s", results.size(),
+      (System.currentTimeMillis() - start), latencyLog));
     return results;
   }
 
