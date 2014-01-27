@@ -56,7 +56,7 @@ public class SenseiServiceProxy {
       String output = sendBQLRaw(bql);
       return JsonDeserializer.deserialize(SenseiResult.class, jsonResponse(output));
     } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      throw new RuntimeException("Exception in POST to " + url, ex);
     }
   }
 
@@ -67,7 +67,7 @@ public class SenseiServiceProxy {
       String output = sendPostRaw(getSearchUrl(), bqlJson.toString());
       return output;
     } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      throw new RuntimeException("Exception in POST to " + url, ex);
     }
   }
 
@@ -150,14 +150,14 @@ public class SenseiServiceProxy {
       int responseCode = conn.getResponseCode();
 
       if (responseCode != HttpURLConnection.HTTP_OK) {
-        throw new IOException("Failed : HTTP error code : " + responseCode);
+        throw new IOException("Failed to " + url + " : HTTP error code : " + responseCode);
       }
       byte[] bytes = drain(new GZIPInputStream(new BufferedInputStream(conn.getInputStream())));
 
       String output = new String(bytes, "UTF-8");
       return output;
     } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      throw new RuntimeException("Exception in POST to " + url, ex);
     } finally {
       if (conn != null) conn.disconnect();
     }

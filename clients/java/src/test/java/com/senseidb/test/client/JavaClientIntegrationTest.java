@@ -531,6 +531,11 @@ public class JavaClientIntegrationTest extends Assert {
     assertEquals("numhits is wrong", 15000, res.getNumhits().intValue());
   }
 
+  @Test(expected = RuntimeException.class)
+  public void testInvalidUrl() {
+    senseiServiceProxy.sendPostRaw("bogus://bogus:bogus/bogus", "bogus");
+  }
+
   /* Need to fix the bug in bobo and kamikazi, for details see the following two test cases: */
 
   // public void testAndFilter1() throws Exception
