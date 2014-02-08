@@ -55,10 +55,10 @@ public class RangeFilterConstructor extends FilterConstructor {
     type = jsonObj.optString(RANGE_FIELD_TYPE, null);
     dateFormat = jsonObj.optString(RANGE_DATE_FORMAT, null);
 
-    if (gt != null && gt.length() != 0) {
+    if (gt != null) {
       from = gt;
       include_lower = false;
-    } else if (gte != null && gte.length() != 0) {
+    } else if (gte != null) {
       from = gte;
       include_lower = true;
     } else {
@@ -66,10 +66,10 @@ public class RangeFilterConstructor extends FilterConstructor {
       include_lower = jsonObj.optBoolean(INCLUDE_LOWER_PARAM, true);
     }
 
-    if (lt != null && lt.length() != 0) {
+    if (lt != null) {
       to = lt;
       include_upper = false;
-    } else if (lte != null && lte.length() != 0) {
+    } else if (lte != null) {
       to = lte;
       include_upper = true;
     } else {
@@ -88,19 +88,30 @@ public class RangeFilterConstructor extends FilterConstructor {
             FacetHandler facetHandler = boboReader.getFacetHandler(field);
             if (facetHandler != null) {
               StringBuilder sb = new StringBuilder();
-              if (include_lower && from != null && from.length() != 0) sb.append("[");
-              else sb.append("(");
+              if (include_lower && from != null) {
+                sb.append("[");
+              } else {
+                sb.append("(");
+              }
 
-              if (from == null || from.length() == 0) sb.append("*");
-              else sb.append(from);
+              if (from == null) {
+                sb.append("*");
+              } else {
+                sb.append(from);
+              }
               sb.append(" TO ");
-              if (to == null || to.length() == 0) sb.append("*");
-              else sb.append(to);
+              if (to == null) {
+                sb.append("*");
+              } else {
+                sb.append(to);
+              }
 
-              if (include_upper && to != null && to.length() != 0) sb.append("]");
-              else sb.append(")");
+              if (include_upper && to != null) {
+                sb.append("]");
+              } else {
+                sb.append(")");
+              }
               RandomAccessFilter filter = null;
-              ;
               Object facetData = boboReader.getFacetData(field);
               // If it's Sensei's standard facet handler
               if (facetData instanceof FacetDataCache) {
