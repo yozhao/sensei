@@ -224,19 +224,6 @@ public class CompositeActivityValues {
     }
   }
 
-  /**
-   * Propagates the deletes to disk. After calling this method freed array
-   * indexes can be reused for different document uids
-   */
-  /*
-   * private void flushDeletes() { if (pendingDeletes.updates.isEmpty()) { return; } final
-   * UpdateBatch<Update> deleteBatch = pendingDeletes; pendingDeletes = new
-   * UpdateBatch<Update>(activityConfig); executor.submit(new Runnable() {
-   * @Override public void run() { if (closed) { return; } Collections.reverse(deleteBatch.updates);
-   * activityStorage.flush(deleteBatch.updates); synchronized (deletedIndexes) { for (Update update
-   * : deleteBatch.updates) { deletedIndexes.add(update.index); } } } }); }
-   */
-
   public void syncWithPersistentVersion(String version) {
     synchronized (this) {
       while (versionComparator.compare(metadata != null ? metadata.version : lastVersion, version) < 0) {
@@ -360,6 +347,7 @@ public class CompositeActivityValues {
         ret[i] = -1;
         continue;
       }
+
       Lock lock = globalLock.readLock();
       try {
         lock.lock();

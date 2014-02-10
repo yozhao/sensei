@@ -48,10 +48,10 @@ public class CompositeActivityManager implements PluggableSearchEngine {
   private PurgeUnusedActivitiesJob purgeUnusedActivitiesJob;
   private final Map<String, Set<String>> columnToFacetMapping = new HashMap<String, Set<String>>();
   private ActivityPersistenceFactory activityPersistenceFactory;
+  private int shardNumber;
 
   public CompositeActivityManager(ActivityPersistenceFactory activityPersistenceFactory) {
     this.activityPersistenceFactory = activityPersistenceFactory;
-
   }
 
   public CompositeActivityManager() {
@@ -75,6 +75,8 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       ShardingStrategy shardingStrategy) {
     this.senseiSchema = senseiSchema;
     this.shardingStrategy = shardingStrategy;
+    this.shardNumber = pluginRegistry.getConfiguration().getInt(
+      "sensei.index.manager.default.maxpartition.id", 0) + 1;
     try {
       if (activityPersistenceFactory == null) {
         if (indexDirectory == null) {
@@ -167,31 +169,24 @@ public class CompositeActivityManager implements PluggableSearchEngine {
       if (onlyActivityUpdate) {
         event.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
       }
-      long defaultUid = event.getLong(senseiSchema.getUidField());
+      long uid = event.getLong(senseiSchema.getUidField());
       if (event.opt(SenseiSchema.EVENT_TYPE_FIELD) != null
           && event.optString(SenseiSchema.EVENT_TYPE_FIELD).equals(SenseiSchema.EVENT_TYPE_DELETE)) {
-        activityValues.delete(defaultUid);
+        activityValues.delete(uid);
         return event;
       }
-      ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema,
-        shardingStrategy, senseiCore);
+      ActivityFilteredResult activityFilteredResult = activityFilter.filter(event, senseiSchema);
       onlyActivityUpdate = onlyActivityUpdate
           || activityFilteredResult.getFilteredObject() == null
           || activityFilteredResult.getFilteredObject().length() == 0
           || SenseiSchema.EVENT_TYPE_SKIP.equals(activityFilteredResult.getFilteredObject().opt(
             SenseiSchema.EVENT_TYPE_FIELD));
-      for (long uid : activityFilteredResult.getActivityValues().keySet()) {
-        if (activityFilteredResult.getActivityValues().get(uid) == null
-            || activityFilteredResult.getActivityValues().get(uid).size() == 0) {
-          continue;
-        }
-        int previousIndex = activityValues.getIndexByUID(uid);
-        int index = activityValues.update(uid, version, activityFilteredResult.getActivityValues()
-            .get(uid));
-        if (index >= 0 && previousIndex < 0 && (onlyActivityUpdate || defaultUid != uid)) {
-          updateExistingBoboIndexes(uid, index, activityFilteredResult.getActivityValues().get(uid)
-              .keySet());
-        }
+      int previousIndex = activityValues.getIndexByUID(uid);
+      int index = activityValues.update(uid, version, activityFilteredResult.getActivityValues());
+      if (index >= 0 && previousIndex < 0 && onlyActivityUpdate) {
+        int shard = shardingStrategy.caculateShard(shardNumber, event);
+        updateExistingBoboIndexes(shard, uid, index, activityFilteredResult.getActivityValues()
+            .keySet());
       }
       return activityFilteredResult.getFilteredObject();
     } catch (JSONException ex) {
@@ -205,7 +200,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
    * @param index
    * @param columns
    */
-  private void updateExistingBoboIndexes(long uid, int index, Set<String> columns) {
+  private void updateExistingBoboIndexes(int shard, long uid, int index, Set<String> columns) {
     if (columns.isEmpty()) {
       return;
     }
@@ -218,7 +213,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     if (facets.isEmpty()) {
       return;
     }
-    BoboIndexTracker.updateExistingBoboIndexes(senseiCore, uid, index, facets);
+    BoboIndexTracker.updateExistingBoboIndexes(senseiCore, shard, uid, index, facets);
   }
 
   public CompositeActivityValues getActivityValues() {
@@ -283,8 +278,7 @@ public class CompositeActivityManager implements PluggableSearchEngine {
     Set<IndexReaderFactory<BoboSegmentReader>> zoieSystems = new HashSet<IndexReaderFactory<BoboSegmentReader>>();
     for (int partition : senseiCore.getPartitions()) {
       if (senseiCore.getIndexReaderFactory(partition) != null) {
-        zoieSystems.add(senseiCore
-            .getIndexReaderFactory(partition));
+        zoieSystems.add(senseiCore.getIndexReaderFactory(partition));
       }
     }
     int purgeJobFrequencyInMinutes = activityPersistenceFactory.getActivityConfig()

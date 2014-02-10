@@ -20,13 +20,8 @@ import com.yammer.metrics.core.MetricName;
 
 public class BoboIndexTracker {
   private final static Logger logger = Logger.getLogger(PluggableSearchEngineManager.class);
-  // private Object dummyValue = new Object();
-  // private Map<BoboIndexReader, Object> readers = new WeakHashMap<BoboIndexReader, Object>();
   private static Counter recoveredIndexInBoboFacetDataCache;
   private static Counter facetMappingMismatch;
-  // private static Counter numberOfCachedReaders;
-  // private static Counter numberOfDeletedReaders;
-  // private static Counter numberOfCreatedReaders;
 
   static {
     recoveredIndexInBoboFacetDataCache = Metrics.newCounter(new MetricName(
@@ -35,24 +30,26 @@ public class BoboIndexTracker {
         "facetMappingMismatch"));
   }
 
-  public synchronized static void updateExistingBoboIndexes(SenseiCore senseiCore, long uid,
-      int index, Set<String> facets) {
-    for (int partition : senseiCore.getPartitions()) {
-      IndexReaderFactory<BoboSegmentReader> indexReaderFactory = senseiCore
-          .getIndexReaderFactory(partition);
-      List<ZoieMultiReader<BoboSegmentReader>> indexReaders = null;
-      try {
-        indexReaders = indexReaderFactory.getIndexReaders();
-        List<BoboSegmentReader> boboReaders = ZoieMultiReader.extractDecoratedReaders(indexReaders);
-        for (BoboSegmentReader boboSegmentReader : boboReaders) {
-          recoverReaderIfNeeded(uid, index, facets, boboSegmentReader);
-        }
-      } catch (IOException ex) {
-        logger.error(ex.getMessage(), ex);
-      } finally {
-        if (indexReaders != null) {
-          indexReaderFactory.returnIndexReaders(indexReaders);
-        }
+  public synchronized static void updateExistingBoboIndexes(SenseiCore senseiCore, int shard,
+      long uid, int index, Set<String> facets) {
+    IndexReaderFactory<BoboSegmentReader> indexReaderFactory = senseiCore
+        .getIndexReaderFactory(shard);
+    if (indexReaderFactory == null) {
+      logger.error("Can't get index reader factory for shard: " + shard);
+      return;
+    }
+    List<ZoieMultiReader<BoboSegmentReader>> indexReaders = null;
+    try {
+      indexReaders = indexReaderFactory.getIndexReaders();
+      List<BoboSegmentReader> boboReaders = ZoieMultiReader.extractDecoratedReaders(indexReaders);
+      for (BoboSegmentReader boboSegmentReader : boboReaders) {
+        recoverReaderIfNeeded(uid, index, facets, boboSegmentReader);
+      }
+    } catch (IOException ex) {
+      logger.error(ex.getMessage(), ex);
+    } finally {
+      if (indexReaders != null) {
+        indexReaderFactory.returnIndexReaders(indexReaders);
       }
     }
   }

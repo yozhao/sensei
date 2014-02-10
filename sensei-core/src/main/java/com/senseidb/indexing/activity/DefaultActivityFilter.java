@@ -5,13 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.senseidb.conf.SenseiSchema;
 import com.senseidb.conf.SenseiSchema.FieldDefinition;
-import com.senseidb.indexing.ShardingStrategy;
-import com.senseidb.search.node.SenseiCore;
 
 public class DefaultActivityFilter extends BaseActivityFilter {
 
@@ -23,24 +20,15 @@ public class DefaultActivityFilter extends BaseActivityFilter {
   }
 
   @Override
-  public ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema,
-      ShardingStrategy shardingStrategy, SenseiCore senseiCore) {
-    Map<Long, Map<String, Object>> columnValues = new HashMap<Long, Map<String, Object>>();
-    Map<String, Object> innerMap = new HashMap<String, Object>();
-    long uid;
-    try {
-      uid = event.getLong(senseiSchema.getUidField());
-    } catch (JSONException e) {
-      throw new RuntimeException(e);
-    }
+  public ActivityFilteredResult filter(JSONObject event, SenseiSchema senseiSchema) {
+    Map<String, Object> columnValues = new HashMap<String, Object>();
     for (String activityField : getActivities(senseiSchema)) {
       Object obj = event.opt(activityField);
       if (obj != null) {
         event.remove(activityField);
-        innerMap.put(activityField, obj);
+        columnValues.put(activityField, obj);
       }
     }
-    columnValues.put(uid, innerMap);
     ActivityFilteredResult activityFilteredResult = new ActivityFilteredResult(event, columnValues);
     return activityFilteredResult;
   }
