@@ -260,6 +260,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
       reportIndexingLatency(event);
 
       if (SenseiSchema.EVENT_TYPE_UPDATE.equalsIgnoreCase(type)) {
+        logger.info("Receive update event: " + event);
         Zoie<BoboSegmentReader, JSONObject> zoie = _zoieSystemMap.get(partNum);
         List<ZoieMultiReader<BoboSegmentReader>> readers;
         try {
@@ -270,7 +271,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         }
 
         if (readers == null) {
-          logger.error("Cannot found original doc for and update event: " + event);
+          logger.error("Cannot found index readers for update event: " + event);
           return null;
         }
         try {
@@ -283,6 +284,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             }
           }
 
+          if (src == null) {
+            logger.info("Cannot found original doc for event: " + event);
+            return null;
+          }
+
           byte[] data = null;
           if (_senseiSchema.isCompressSrcData()) {
             data = DefaultJsonSchemaInterpreter.decompress(src.bytes);
@@ -291,7 +297,7 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           }
 
           if (data == null) {
-            logger.error("Cannot found original doc for and update event: " + event);
+            logger.error("Cannot found source data of original doc for event: " + event);
             return null;
           }
 
@@ -299,9 +305,13 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
           Iterator<String> keys = event.keys();
           while (keys.hasNext()) {
             String key = keys.next();
+            if (key.equals(SenseiSchema.EVENT_TYPE_FIELD)) {
+              continue;
+            }
             newEvent.put(key, event.get(key));
           }
           event = newEvent;
+          logger.info("New event after rewrite: " + event);
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
           return null;
@@ -323,8 +333,10 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
         for (DataEvent<JSONObject> dataEvt : data) {
           JSONObject obj = dataEvt.getData();
 
-          if (obj == null) // Just ignore this event.
-          continue;
+          // Just ignore this event.
+          if (obj == null) {
+            continue;
+          }
 
           _currentVersion = dataEvt.getVersion();
           if (pluggableSearchEngineManager != null
@@ -358,7 +370,6 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
             if (partDataSet != null) {
               if (partDataSet.size() == 0) {
                 JSONObject markerObj = new FastJSONObject();
-                // markerObj.put(_senseiSchema.getSkipField(), "true");
                 markerObj.put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_SKIP);
                 markerObj.put(_uidField, 0L); // Add a dummy uid
                 partDataSet.add(new DataEvent<JSONObject>(markerObj, _currentVersion));
