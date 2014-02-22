@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 import zu.finagle.serialize.JOSSSerializer;
 import zu.finagle.serialize.ZuSerializer;
 
-import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.senseidb.search.node.SenseiCore;
@@ -37,9 +36,8 @@ public class SysSenseiCoreServiceImpl extends
 
     MultiBoboBrowser browser = null;
     try {
-      browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(readerList));
+      browser = new MultiBoboBrowser(readerList);
       res.setNumDocs(browser.numDocs());
-
       return res;
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

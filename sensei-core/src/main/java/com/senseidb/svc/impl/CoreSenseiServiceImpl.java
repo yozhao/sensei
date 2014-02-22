@@ -18,7 +18,6 @@ import org.apache.lucene.search.Query;
 import zu.finagle.serialize.JOSSSerializer;
 import zu.finagle.serialize.ZuSerializer;
 
-import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
@@ -195,8 +194,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
             });
 
         pruner.sort(validatedSegmentReaders);
-
-        browser = new MultiBoboBrowser(BoboBrowser.createBrowsables(validatedSegmentReaders));
+        browser = new MultiBoboBrowser(validatedSegmentReaders);
         BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
         if (request.getMapReduceFunction() != null) {
           SenseiMapFunctionWrapper mapWrapper = new SenseiMapFunctionWrapper(
