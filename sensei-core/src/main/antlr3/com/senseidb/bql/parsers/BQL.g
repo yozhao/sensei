@@ -1422,14 +1422,20 @@ select_stmt returns [Object json]
 
                 if (rel_model != null) {
                     JSONObject queryPred = jsonObj.optJSONObject("query");
-                    if (queryPred == null) {
-                        queryPred = new FastJSONObject().put("query_string",
-                                                             new FastJSONObject().put("query", "")
-                                                                                 .put("relevance", $rel_model.json));
-                        jsonObj.put("query", queryPred);
+                    JSONObject query_string = null;
+                    if (queryPred != null) {
+                        query_string = (JSONObject)queryPred.get("query_string");
                     }
+                    if (query_string != null) {
+                        queryPred = new FastJSONObject().put("query_string",
+                                                              query_string.put("relevance", $rel_model.json));
+                    } else {
+                        queryPred = new FastJSONObject().put("query_string",
+                                                              new FastJSONObject().put("query", "")
+                                                                                  .put("relevance", $rel_model.json));
+                    }
+                    jsonObj.put("query", queryPred);
                 }
-                
             }
             catch (JSONException err) {
                 throw new FailedPredicateException(input, "select_stmt", "JSONException: " + err.getMessage());
