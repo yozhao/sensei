@@ -51,6 +51,9 @@ public abstract class AbstractScoreAdjuster extends Query {
     public Scorer scorer(AtomicReaderContext context, boolean scoreDocsInOrder, boolean topScorer,
         Bits acceptDocs) throws IOException {
       Scorer innerScorer = _innerWeight.scorer(context, scoreDocsInOrder, topScorer, acceptDocs);
+      if (innerScorer == null) {
+        return null;
+      }
       return createScorer(innerScorer, context);
     }
   }
