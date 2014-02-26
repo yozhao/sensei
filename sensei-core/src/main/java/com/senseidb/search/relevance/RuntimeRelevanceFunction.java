@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,6 +44,7 @@ import com.senseidb.search.relevance.impl.WeightedMFacetString;
 
 public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
 
+  private static Logger logger = Logger.getLogger(RuntimeRelevanceFunction.class);
   // per request shared data;
   private final DataTable _dt;
   private CustomMathModel _cModel;
@@ -368,6 +370,13 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
         arrayIndex[i] = long_index;
         long_index++;
         break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_DOUBLE:
+        facetName = _dt.hm_symbol_facet.get(symbol);
+        index = _dt.hm_facet_index.get(facetName);
+        facetIndex[i] = index; // record the facet index;
+        arrayIndex[i] = double_index;
+        double_index++;
+        break;
       case RelevanceJSONConstants.TYPENUMBER_FACET_FLOAT:
         facetName = _dt.hm_symbol_facet.get(symbol);
         index = _dt.hm_facet_index.get(facetName);
@@ -490,6 +499,9 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
         types[i] = RelevanceJSONConstants.TYPENUMBER_MAP;
         arrayIndex[i] = map_index;
         map_index++;
+        break;
+      default:
+        logger.error("Unsupported type number " + typeNum + " of symbol " + symbol);
         break;
       }
     }
