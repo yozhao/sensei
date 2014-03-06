@@ -2407,9 +2407,9 @@ locals[KeyType type_]
     $key_value_pair::type_ = keyType;
 }
     :   ( { $key_value_pair::type_ == KeyType.STRING_LITERAL ||
-            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}?=> STRING_LITERAL
+            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}? STRING_LITERAL
         | { $key_value_pair::type_ == KeyType.IDENT ||
-            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}?=> IDENT
+            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}? IDENT
         )
         COLON (v=value | vs=python_style_list | vd=python_style_dict)
         {
