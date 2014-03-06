@@ -1044,11 +1044,8 @@ function_name
     :   (min= 'min'|colName=column_name)
     ;
 
-where returns [Object json]
+where
     :   WHERE search_expr
-        {
-            $json = $search_expr.json;
-        }
     ;
 
 order_by_clause returns [boolean isRelevance, Object json]

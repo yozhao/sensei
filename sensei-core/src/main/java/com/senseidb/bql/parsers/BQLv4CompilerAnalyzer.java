@@ -224,4 +224,9 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         }
     }
 
+    @Override
+    public void exitWhere(BQLv4Parser.WhereContext ctx) {
+        jsonProperty.put(ctx, jsonProperty.get(ctx.search_expr));
+    }
+
 }
