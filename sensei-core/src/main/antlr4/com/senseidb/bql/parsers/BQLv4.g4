@@ -1316,7 +1316,7 @@ function_name returns [String text]
         }
     ;
 where returns [Object json]
-    :   WHERE^ search_expr
+    :   WHERE search_expr
         {
             $json = $search_expr.json;
         }
@@ -1609,8 +1609,6 @@ search_expr returns [Object json]
                 throw new FailedPredicateException(input, "search_expr", "JSONException: " + err.getMessage());
             }
         }
-        -> {array.length() > 1}? ^(OR_PRED term_expr+)
-        -> term_expr
     ;
 
 term_expr returns [Object json]
@@ -1647,15 +1645,12 @@ term_expr returns [Object json]
                 throw new FailedPredicateException(input, "term_expr", "JSONException: " + err.getMessage());
             }
         }
-        -> { array.length() > 1}? ^(AND_PRED factor_expr+)
-        -> factor_expr
     ;
 
 factor_expr returns [Object json]
     :   predicate { $json = $predicate.json; }
     |   LPAR search_expr RPAR
         {$json = $search_expr.json;}
-        -> search_expr
     ;
 
 predicate returns [JSONObject json]
@@ -1727,7 +1722,6 @@ in_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "in_predicate", "JSONException: " + err.getMessage());
             }
         }
-        -> ^(IN NOT? ^(column_name value_list) except_clause? predicate_props?)
     ;
 
 empty_predicate returns [JSONObject json]
@@ -1806,7 +1800,6 @@ contains_all_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "contains_all_predicate", "JSONException: " + err.getMessage());
             }
         }
-        -> ^(CONTAINS ^(column_name value_list) except_clause? predicate_props?)
     ;
 
 equal_predicate returns [JSONObject json]
@@ -1861,7 +1854,6 @@ equal_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "equal_predicate", "JSONException: " + err.getMessage());
             }
         }
-        -> ^(EQUAL column_name value predicate_props?)
     ;
 
 not_equal_predicate returns [JSONObject json]
@@ -1907,7 +1899,6 @@ not_equal_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "not_equal_predicate", "JSONException: " + err.getMessage());
             }                                         
         }
-        -> ^(NOT_EQUAL column_name value predicate_props?)
     ;
 
 query_predicate returns [JSONObject json]
@@ -1924,7 +1915,6 @@ query_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "query_predicate", "JSONException: " + err.getMessage());
             }
         }
-        -> ^(QUERY STRING_LITERAL)
     ;
 
 between_predicate returns [JSONObject json]
@@ -1971,7 +1961,6 @@ between_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "between_predicate", "JSONException: " + err.getMessage());
             }
         }
-        -> ^(BETWEEN NOT? $val1 $val2)
     ;
 
 range_predicate returns [JSONObject json]
@@ -2008,7 +1997,6 @@ range_predicate returns [JSONObject json]
                 throw new FailedPredicateException(input, "range_predicate", "JSONException: " + err.getMessage());
             }
         }
-        -> ^($op column_name value)
     ;
 
 time_predicate returns [JSONObject json]
@@ -2375,14 +2363,14 @@ numeric returns [Object val]
     ;
 
 except_clause returns [Object json]
-    :   EXCEPT^ value_list
+    :   EXCEPT value_list
         {
             $json = $value_list.json;
         }
     ;
   
 predicate_props returns [JSONObject json]
-    :   WITH^ prop_list[KeyType.STRING_LITERAL]
+    :   WITH prop_list[KeyType.STRING_LITERAL]
         {
             $json = $prop_list.json;
         }
