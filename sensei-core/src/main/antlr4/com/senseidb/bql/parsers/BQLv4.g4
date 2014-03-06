@@ -1030,15 +1030,9 @@ selection_list
         )*
     ;
 
-aggregation_function returns [String function, String column]
- :   (id=function_name LPAR (columnVar=column_name | '*') RPAR) {
-    $function= $id.text;    
-    if (columnVar != null) {
-        $column = $columnVar.text;
-    } else {
-        $column = ""; 
-    }    
- };
+aggregation_function
+ :   (id=function_name LPAR (columnVar=column_name | '*') RPAR)
+ ;
 
 column_name returns [String text]
 @init {

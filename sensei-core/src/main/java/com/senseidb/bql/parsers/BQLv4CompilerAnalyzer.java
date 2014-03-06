@@ -24,6 +24,8 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     private final ParseTreeProperty<Object> jsonProperty = new ParseTreeProperty<Object>();
     private final ParseTreeProperty<Boolean> fetchStoredProperty = new ParseTreeProperty<Boolean>();
     private final ParseTreeProperty<List<Pair<String, String>>> aggregationFunctionsProperty = new ParseTreeProperty<List<Pair<String, String>>>();
+    private final ParseTreeProperty<String> functionProperty = new ParseTreeProperty<String>();
+    private final ParseTreeProperty<String> columnProperty = new ParseTreeProperty<String>();
 
     @Override
     public void exitStatement(BQLv4Parser.StatementContext ctx) {
@@ -178,6 +180,16 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
         for (BQLv4Parser.Aggregation_functionContext agrFunction : ctx.aggregation_function()) {
             aggregationFunctionsProperty.get(ctx).add(new Pair<String, String>(agrFunction.function, agrFunction.column));
+        }
+    }
+
+    @Override
+    public void exitAggregation_function(BQLv4Parser.Aggregation_functionContext ctx) {
+        functionProperty.put(ctx, ctx.id.text);
+        if (ctx.columnVar != null) {
+            columnProperty.put(ctx, ctx.columnVar.text);
+        } else {
+            columnProperty.put(ctx, "");
         }
     }
 
