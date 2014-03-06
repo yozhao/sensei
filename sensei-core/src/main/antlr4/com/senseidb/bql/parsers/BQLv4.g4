@@ -546,7 +546,7 @@ import com.senseidb.search.req.BQLParserUtils;
                                                                })));
     }
 
-    public BQLParser(TokenStream input, Map<String, String[]> facetInfoMap)
+    public BQLv4Parser(TokenStream input, Map<String, String[]> facetInfoMap)
     {
         this(input);
         _facetInfoMap = facetInfoMap;
@@ -2217,7 +2217,7 @@ like_predicate returns [JSONObject json]
             }
             String orig = $STRING_LITERAL.text;
             orig = orig.substring(1, orig.length() - 1);
-            String likeString = orig.replace('\%', '*').replace('_', '?');
+            String likeString = orig.replace('%', '*').replace('_', '?');
             try {
                 $json = new FastJSONObject().put("query",
                                                  new FastJSONObject().put("wildcard",
