@@ -992,203 +992,6 @@ import com.senseidb.search.req.BQLParserUtils;
     }
 }
 
-fragment DIGIT : '0'..'9' ;
-fragment ALPHA : 'a'..'z' | 'A'..'Z' ;
-
-INTEGER : ('0' | '1'..'9' '0'..'9'*) INTEGER_TYPE_SUFFIX? ;
-REAL : DIGIT+ '.' DIGIT* ;
-LPAR : '(' ;
-RPAR : ')' ;
-COMMA : ',' ;
-COLON : ':' ;
-SEMI : ';' ;
-EQUAL : '=' ;
-GT : '>' ;
-GTE : '>=' ;
-LT : '<' ;
-LTE : '<=';
-NOT_EQUAL : '<>' ;
-
-STRING_LITERAL
-    :   ('"'
-            { StringBuilder builder = new StringBuilder().appendCodePoint('"'); }
-            ('"' '"'               { builder.appendCodePoint('"'); }
-            | ch=~('"'|'\r'|'\n')  { builder.appendCodePoint(ch); }
-            )*
-         '"'
-            { setText(builder.appendCodePoint('"').toString()); }
-        )
-    |
-        ('\''
-            { StringBuilder builder = new StringBuilder().appendCodePoint('\''); }
-            ('\'' '\''             { builder.appendCodePoint('\''); }
-            | ch=~('\''|'\r'|'\n') { builder.appendCodePoint(ch); }
-            )*
-         '\''
-            { setText(builder.appendCodePoint('\'').toString()); }
-        )
-    ;
-
-DATE
-    :   DIGIT DIGIT DIGIT DIGIT ('-'|'/') DIGIT DIGIT ('-'|'/') DIGIT DIGIT 
-    ;
-
-TIME
-    :
-        DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT
-    ;
-
-//
-// BQL Relevance model related
-//
-
-fragment HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
-fragment INTEGER_TYPE_SUFFIX: ('l' | 'L') ;
-fragment EXPONENT : ('e'|'E') ('+'|'-')? ('0'..'9')+ ;
-fragment FLOAT_TYPE_SUFFIX : ('f'|'F'|'d'|'D') ;
-
-fragment
-ESCAPE_SEQUENCE
-    :   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
-    |   UNICODE_ESCAPE
-    |   OCTAL_ESCAPE
-    ;
-
-fragment
-UNICODE_ESCAPE
-    :   '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
-    ;
-
-fragment
-OCTAL_ESCAPE
-    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-    |   '\\' ('0'..'7') ('0'..'7')
-    |   '\\' ('0'..'7')
-    ;
-
-HEX_LITERAL : '0' ('x'|'X') HEX_DIGIT+ INTEGER_TYPE_SUFFIX? ;
-OCTAL_LITERAL : '0' ('0'..'7')+ INTEGER_TYPE_SUFFIX? ;
-
-FLOATING_POINT_LITERAL
-    :   REAL EXPONENT? FLOAT_TYPE_SUFFIX?
-    |   '.' DIGIT+ EXPONENT? FLOAT_TYPE_SUFFIX?
-    |   DIGIT+ EXPONENT FLOAT_TYPE_SUFFIX?
-    |   DIGIT+ FLOAT_TYPE_SUFFIX
-    ;
-
-CHARACTER_LITERAL
-    :   '\'' ( ESCAPE_SEQUENCE | ~('\''|'\\') ) '\''
-    ;
-
-
-//
-// BQL Keywords
-//
-
-ALL : ('A'|'a')('L'|'l')('L'|'l') ;
-AFTER : ('A'|'a')('F'|'f')('T'|'t')('E'|'e')('R'|'r') ;
-AGAINST : ('A'|'a')('G'|'g')('A'|'a')('I'|'i')('N'|'n')('S'|'s')('T'|'t') ;
-AGO : ('A'|'a')('G'|'g')('O'|'o') ;
-AND : ('A'|'a')('N'|'n')('D'|'d') ;
-AS : ('A'|'a')('S'|'s') ;
-ASC : ('A'|'a')('S'|'s')('C'|'c') ;
-BEFORE : ('B'|'b')('E'|'e')('F'|'f')('O'|'o')('R'|'r')('E'|'e') ;
-BEGIN : ('B'|'b')('E'|'e')('G'|'g')('I'|'i')('N'|'n') ;
-BETWEEN : ('B'|'b')('E'|'e')('T'|'t')('W'|'w')('E'|'e')('E'|'e')('N'|'n') ;
-BOOLEAN : ('B'|'b')('O'|'o')('O'|'o')('L'|'l')('E'|'e')('A'|'a')('N'|'n') ;
-BROWSE : ('B'|'b')('R'|'r')('O'|'o')('W'|'w')('S'|'s')('E'|'e') ;
-BY : ('B'|'b')('Y'|'y') ;
-BYTE : ('B'|'b')('Y'|'y')('T'|'t')('E'|'e') ;
-BYTEARRAY : ('B'|'b')('Y'|'y')('T'|'t')('E'|'e')('A'|'a')('R'|'r')('R'|'r')('A'|'a')('Y'|'y') ;
-CONTAINS : ('C'|'c')('O'|'o')('N'|'n')('T'|'t')('A'|'a')('I'|'i')('N'|'n')('S'|'s') ;
-DEFINED : ('D'|'d')('E'|'e')('F'|'f')('I'|'i')('N'|'n')('E'|'e')('D'|'d') ;
-DESC : ('D'|'d')('E'|'e')('S'|'s')('C'|'c') ;
-DESCRIBE : ('D'|'d')('E'|'e')('S'|'s')('C'|'c')('R'|'r')('I'|'i')('B'|'b')('E'|'e') ;
-DISTINCT : ('D'|'d')('I'|'i')('S'|'s')('T'|'t')('I'|'i')('N'|'n')('C'|'c')('T'|'t') ;
-DOUBLE : ('D'|'d')('O'|'o')('U'|'u')('B'|'b')('L'|'l')('E'|'e') ;
-EMPTY : ('E'|'e')('M'|'m')('P'|'p')('T'|'t')('Y'|'y') ;
-ELSE : ('E'|'e')('L'|'l')('S'|'s')('E'|'e') ;
-END : ('E'|'e')('N'|'n')('D'|'d') ;
-EXCEPT : ('E'|'e')('X'|'x')('C'|'c')('E'|'e')('P'|'p')('T'|'t') ;
-EXECUTE : ('E'|'e')('X'|'x')('E'|'e')('C'|'c')('U'|'u')('T'|'t')('E'|'e') ;
-FACET : ('F'|'f')('A'|'a')('C'|'c')('E'|'e')('T'|'t') ;
-FALSE : ('F'|'f')('A'|'a')('L'|'l')('S'|'s')('E'|'e') ;
-FETCHING : ('F'|'f')('E'|'e')('T'|'t')('C'|'c')('H'|'h')('I'|'i')('N'|'n')('G'|'g') ;
-FROM : ('F'|'f')('R'|'r')('O'|'o')('M'|'m') ;
-GROUP : ('G'|'g')('R'|'r')('O'|'o')('U'|'u')('P'|'p') ;
-GIVEN : ('G'|'g')('I'|'i')('V'|'v')('E'|'e')('N'|'n') ;
-HITS : ('H'|'h')('I'|'i')('T'|'t')('S'|'s') ;
-IN : ('I'|'i')('N'|'n') ;
-INT : ('I'|'i')('N'|'n')('T'|'t') ;
-IS : ('I'|'i')('S'|'s') ;
-LAST : ('L'|'l')('A'|'a')('S'|'s')('T'|'t') ;
-LIKE : ('L'|'l')('I'|'i')('K'|'k')('E'|'e') ;
-LIMIT : ('L'|'l')('I'|'i')('M'|'m')('I'|'i')('T'|'t') ;
-LONG : ('L'|'l')('O'|'o')('N'|'n')('G'|'g') ;
-MATCH : ('M'|'m')('A'|'a')('T'|'t')('C'|'c')('H'|'h') ;
-MODEL : ('M'|'m')('O'|'o')('D'|'d')('E'|'e')('L'|'l') ;
-NOT : ('N'|'n')('O'|'o')('T'|'t') ;
-NOW : ('N'|'n')('O'|'o')('W'|'w') ;
-NULL : ('N'|'n')('U'|'u')('L'|'l')('L'|'l') ;
-OR : ('O'|'o')('R'|'r') ;
-ORDER : ('O'|'o')('R'|'r')('D'|'d')('E'|'e')('R'|'r') ;
-PARAM : ('P'|'p')('A'|'a')('R'|'r')('A'|'a')('M'|'m') ;
-QUERY : ('Q'|'q')('U'|'u')('E'|'e')('R'|'r')('Y'|'y') ;
-ROUTE : ('R'|'r')('O'|'o')('U'|'u')('T'|'t')('E'|'e') ;
-RELEVANCE : ('R'|'r')('E'|'e')('L'|'l')('E'|'e')('V'|'v')('A'|'a')('N'|'n')('C'|'c')('E'|'e') ;
-SELECT : ('S'|'s')('E'|'e')('L'|'l')('E'|'e')('C'|'c')('T'|'t') ;
-SINCE : ('S'|'s')('I'|'i')('N'|'n')('C'|'c')('E'|'e') ;
-STORED : ('S'|'s')('T'|'t')('O'|'o')('R'|'r')('E'|'e')('D'|'d') ;
-STRING : ('S'|'s')('T'|'t')('R'|'r')('I'|'i')('N'|'n')('G'|'g') ;
-TOP : ('T'|'t')('O'|'o')('P'|'p') ;
-TRUE : ('T'|'t')('R'|'r')('U'|'u')('E'|'e') ;
-USING : ('U'|'u')('S'|'s')('I'|'i')('N'|'n')('G'|'g') ;
-VALUE : ('V'|'v')('A'|'a')('L'|'l')('U'|'u')('E'|'e') ;
-WHERE : ('W'|'w')('H'|'h')('E'|'e')('R'|'r')('E'|'e') ;
-WITH : ('W'|'w')('I'|'i')('T'|'t')('H'|'h') ;
-
-WEEKS : ('W'|'w')('E'|'e')('E'|'e')('K'|'k')('S'|'s')? ;
-DAYS : ('D'|'d')('A'|'a')('Y'|'y')('S'|'s')? ;
-HOURS : ('H'|'h')('O'|'o')('U'|'u')('R'|'r')('S'|'s')? ;
-MINUTES : ('M'|'m')('I'|'i')('N'|'n')('U'|'u')('T'|'t')('E'|'e')('S'|'s')? ;
-MINS : ('M'|'m')('I'|'i')('N'|'n')('S'|'s')? ;
-SECONDS : ('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
-SECS : ('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
-MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
-MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
-
-FAST_UTIL_DATA_TYPE
-    :   'IntOpenHashSet'
-    |   'FloatOpenHashSet'
-    |   'DoubleOpenHashSet'
-    |   'LongOpenHashSet'
-    |   'ObjectOpenHashSet'
-    |   'Int2IntOpenHashMap'
-    |   'Int2FloatOpenHashMap'
-    |   'Int2DoubleOpenHashMap'
-    |   'Int2LongOpenHashMap'
-    |   'Int2ObjectOpenHashMap'
-    |   'Object2IntOpenHashMap'
-    |   'Object2FloatOpenHashMap'
-    |   'Object2DoubleOpenHashMap'
-    |   'Object2LongOpenHashMap'
-    |   'Object2ObjectOpenHashMap'
-    ;
-
-// Have to define this after the keywords?
-IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
-VARIABLE : '$' (ALPHA | DIGIT | '_')+ ;
-
-WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
-
-COMMENT
-    : '/*' .* '*/' { $channel = HIDDEN; }
-    ;
-
-LINE_COMMENT
-    : '--' ~('\n'|'\r')* '\r'? '\n' { $channel = HIDDEN; }
-    ;
-
 // ***************** parser rules:
 
 statement returns [Object json]
@@ -3340,6 +3143,200 @@ facet_param_type returns [String paramType]
         }
     ;
 
+
+fragment DIGIT : '0'..'9' ;
+fragment ALPHA : 'a'..'z' | 'A'..'Z' ;
+
+INTEGER : ('0' | '1'..'9' '0'..'9'*) INTEGER_TYPE_SUFFIX? ;
+REAL : DIGIT+ '.' DIGIT* ;
+LPAR : '(' ;
+RPAR : ')' ;
+COMMA : ',' ;
+COLON : ':' ;
+SEMI : ';' ;
+EQUAL : '=' ;
+GT : '>' ;
+GTE : '>=' ;
+LT : '<' ;
+LTE : '<=';
+NOT_EQUAL : '<>' ;
+
+STRING_LITERAL
+    :   ('"'
+            { StringBuilder builder = new StringBuilder().appendCodePoint('"'); }
+            ('"' '"'               { builder.appendCodePoint('"'); }
+            | ch=~('"'|'\r'|'\n')  { builder.appendCodePoint(ch); }
+            )*
+         '"'
+            { setText(builder.appendCodePoint('"').toString()); }
+        )
+    |
+        ('\''
+            { StringBuilder builder = new StringBuilder().appendCodePoint('\''); }
+            ('\'' '\''             { builder.appendCodePoint('\''); }
+            | ch=~('\''|'\r'|'\n') { builder.appendCodePoint(ch); }
+            )*
+         '\''
+            { setText(builder.appendCodePoint('\'').toString()); }
+        )
+    ;
+
+DATE
+    :   DIGIT DIGIT DIGIT DIGIT ('-'|'/') DIGIT DIGIT ('-'|'/') DIGIT DIGIT 
+    ;
+
+TIME
+    :
+        DIGIT DIGIT ':' DIGIT DIGIT ':' DIGIT DIGIT
+    ;
+
 //
-// The end of BQL.g
+// BQL Relevance model related
 //
+
+fragment HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
+fragment INTEGER_TYPE_SUFFIX: ('l' | 'L') ;
+fragment EXPONENT : ('e'|'E') ('+'|'-')? ('0'..'9')+ ;
+fragment FLOAT_TYPE_SUFFIX : ('f'|'F'|'d'|'D') ;
+
+fragment
+ESCAPE_SEQUENCE
+    :   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
+    |   UNICODE_ESCAPE
+    |   OCTAL_ESCAPE
+    ;
+
+fragment
+UNICODE_ESCAPE
+    :   '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    ;
+
+fragment
+OCTAL_ESCAPE
+    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7')
+    ;
+
+HEX_LITERAL : '0' ('x'|'X') HEX_DIGIT+ INTEGER_TYPE_SUFFIX? ;
+OCTAL_LITERAL : '0' ('0'..'7')+ INTEGER_TYPE_SUFFIX? ;
+
+FLOATING_POINT_LITERAL
+    :   REAL EXPONENT? FLOAT_TYPE_SUFFIX?
+    |   '.' DIGIT+ EXPONENT? FLOAT_TYPE_SUFFIX?
+    |   DIGIT+ EXPONENT FLOAT_TYPE_SUFFIX?
+    |   DIGIT+ FLOAT_TYPE_SUFFIX
+    ;
+
+CHARACTER_LITERAL
+    :   '\'' ( ESCAPE_SEQUENCE | ~('\''|'\\') ) '\''
+    ;
+
+
+//
+// BQL Keywords
+//
+
+ALL : ('A'|'a')('L'|'l')('L'|'l') ;
+AFTER : ('A'|'a')('F'|'f')('T'|'t')('E'|'e')('R'|'r') ;
+AGAINST : ('A'|'a')('G'|'g')('A'|'a')('I'|'i')('N'|'n')('S'|'s')('T'|'t') ;
+AGO : ('A'|'a')('G'|'g')('O'|'o') ;
+AND : ('A'|'a')('N'|'n')('D'|'d') ;
+AS : ('A'|'a')('S'|'s') ;
+ASC : ('A'|'a')('S'|'s')('C'|'c') ;
+BEFORE : ('B'|'b')('E'|'e')('F'|'f')('O'|'o')('R'|'r')('E'|'e') ;
+BEGIN : ('B'|'b')('E'|'e')('G'|'g')('I'|'i')('N'|'n') ;
+BETWEEN : ('B'|'b')('E'|'e')('T'|'t')('W'|'w')('E'|'e')('E'|'e')('N'|'n') ;
+BOOLEAN : ('B'|'b')('O'|'o')('O'|'o')('L'|'l')('E'|'e')('A'|'a')('N'|'n') ;
+BROWSE : ('B'|'b')('R'|'r')('O'|'o')('W'|'w')('S'|'s')('E'|'e') ;
+BY : ('B'|'b')('Y'|'y') ;
+BYTE : ('B'|'b')('Y'|'y')('T'|'t')('E'|'e') ;
+BYTEARRAY : ('B'|'b')('Y'|'y')('T'|'t')('E'|'e')('A'|'a')('R'|'r')('R'|'r')('A'|'a')('Y'|'y') ;
+CONTAINS : ('C'|'c')('O'|'o')('N'|'n')('T'|'t')('A'|'a')('I'|'i')('N'|'n')('S'|'s') ;
+DEFINED : ('D'|'d')('E'|'e')('F'|'f')('I'|'i')('N'|'n')('E'|'e')('D'|'d') ;
+DESC : ('D'|'d')('E'|'e')('S'|'s')('C'|'c') ;
+DESCRIBE : ('D'|'d')('E'|'e')('S'|'s')('C'|'c')('R'|'r')('I'|'i')('B'|'b')('E'|'e') ;
+DISTINCT : ('D'|'d')('I'|'i')('S'|'s')('T'|'t')('I'|'i')('N'|'n')('C'|'c')('T'|'t') ;
+DOUBLE : ('D'|'d')('O'|'o')('U'|'u')('B'|'b')('L'|'l')('E'|'e') ;
+EMPTY : ('E'|'e')('M'|'m')('P'|'p')('T'|'t')('Y'|'y') ;
+ELSE : ('E'|'e')('L'|'l')('S'|'s')('E'|'e') ;
+END : ('E'|'e')('N'|'n')('D'|'d') ;
+EXCEPT : ('E'|'e')('X'|'x')('C'|'c')('E'|'e')('P'|'p')('T'|'t') ;
+EXECUTE : ('E'|'e')('X'|'x')('E'|'e')('C'|'c')('U'|'u')('T'|'t')('E'|'e') ;
+FACET : ('F'|'f')('A'|'a')('C'|'c')('E'|'e')('T'|'t') ;
+FALSE : ('F'|'f')('A'|'a')('L'|'l')('S'|'s')('E'|'e') ;
+FETCHING : ('F'|'f')('E'|'e')('T'|'t')('C'|'c')('H'|'h')('I'|'i')('N'|'n')('G'|'g') ;
+FROM : ('F'|'f')('R'|'r')('O'|'o')('M'|'m') ;
+GROUP : ('G'|'g')('R'|'r')('O'|'o')('U'|'u')('P'|'p') ;
+GIVEN : ('G'|'g')('I'|'i')('V'|'v')('E'|'e')('N'|'n') ;
+HITS : ('H'|'h')('I'|'i')('T'|'t')('S'|'s') ;
+IN : ('I'|'i')('N'|'n') ;
+INT : ('I'|'i')('N'|'n')('T'|'t') ;
+IS : ('I'|'i')('S'|'s') ;
+LAST : ('L'|'l')('A'|'a')('S'|'s')('T'|'t') ;
+LIKE : ('L'|'l')('I'|'i')('K'|'k')('E'|'e') ;
+LIMIT : ('L'|'l')('I'|'i')('M'|'m')('I'|'i')('T'|'t') ;
+LONG : ('L'|'l')('O'|'o')('N'|'n')('G'|'g') ;
+MATCH : ('M'|'m')('A'|'a')('T'|'t')('C'|'c')('H'|'h') ;
+MODEL : ('M'|'m')('O'|'o')('D'|'d')('E'|'e')('L'|'l') ;
+NOT : ('N'|'n')('O'|'o')('T'|'t') ;
+NOW : ('N'|'n')('O'|'o')('W'|'w') ;
+NULL : ('N'|'n')('U'|'u')('L'|'l')('L'|'l') ;
+OR : ('O'|'o')('R'|'r') ;
+ORDER : ('O'|'o')('R'|'r')('D'|'d')('E'|'e')('R'|'r') ;
+PARAM : ('P'|'p')('A'|'a')('R'|'r')('A'|'a')('M'|'m') ;
+QUERY : ('Q'|'q')('U'|'u')('E'|'e')('R'|'r')('Y'|'y') ;
+ROUTE : ('R'|'r')('O'|'o')('U'|'u')('T'|'t')('E'|'e') ;
+RELEVANCE : ('R'|'r')('E'|'e')('L'|'l')('E'|'e')('V'|'v')('A'|'a')('N'|'n')('C'|'c')('E'|'e') ;
+SELECT : ('S'|'s')('E'|'e')('L'|'l')('E'|'e')('C'|'c')('T'|'t') ;
+SINCE : ('S'|'s')('I'|'i')('N'|'n')('C'|'c')('E'|'e') ;
+STORED : ('S'|'s')('T'|'t')('O'|'o')('R'|'r')('E'|'e')('D'|'d') ;
+STRING : ('S'|'s')('T'|'t')('R'|'r')('I'|'i')('N'|'n')('G'|'g') ;
+TOP : ('T'|'t')('O'|'o')('P'|'p') ;
+TRUE : ('T'|'t')('R'|'r')('U'|'u')('E'|'e') ;
+USING : ('U'|'u')('S'|'s')('I'|'i')('N'|'n')('G'|'g') ;
+VALUE : ('V'|'v')('A'|'a')('L'|'l')('U'|'u')('E'|'e') ;
+WHERE : ('W'|'w')('H'|'h')('E'|'e')('R'|'r')('E'|'e') ;
+WITH : ('W'|'w')('I'|'i')('T'|'t')('H'|'h') ;
+
+WEEKS : ('W'|'w')('E'|'e')('E'|'e')('K'|'k')('S'|'s')? ;
+DAYS : ('D'|'d')('A'|'a')('Y'|'y')('S'|'s')? ;
+HOURS : ('H'|'h')('O'|'o')('U'|'u')('R'|'r')('S'|'s')? ;
+MINUTES : ('M'|'m')('I'|'i')('N'|'n')('U'|'u')('T'|'t')('E'|'e')('S'|'s')? ;
+MINS : ('M'|'m')('I'|'i')('N'|'n')('S'|'s')? ;
+SECONDS : ('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
+SECS : ('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
+MILLISECONDS : ('M'|'m')('I'|'i')('L'|'l')('L'|'l')('I'|'i')('S'|'s')('E'|'e')('C'|'c')('O'|'o')('N'|'n')('D'|'d')('S'|'s')? ;
+MSECS : ('M'|'m')('S'|'s')('E'|'e')('C'|'c')('S'|'s')? ;
+
+FAST_UTIL_DATA_TYPE
+    :   'IntOpenHashSet'
+    |   'FloatOpenHashSet'
+    |   'DoubleOpenHashSet'
+    |   'LongOpenHashSet'
+    |   'ObjectOpenHashSet'
+    |   'Int2IntOpenHashMap'
+    |   'Int2FloatOpenHashMap'
+    |   'Int2DoubleOpenHashMap'
+    |   'Int2LongOpenHashMap'
+    |   'Int2ObjectOpenHashMap'
+    |   'Object2IntOpenHashMap'
+    |   'Object2FloatOpenHashMap'
+    |   'Object2DoubleOpenHashMap'
+    |   'Object2LongOpenHashMap'
+    |   'Object2ObjectOpenHashMap'
+    ;
+
+// Have to define this after the keywords?
+IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
+VARIABLE : '$' (ALPHA | DIGIT | '_')+ ;
+
+WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
+
+COMMENT
+    : '/*' .* '*/' { $channel = HIDDEN; }
+    ;
+
+LINE_COMMENT
+    : '--' ~('\n'|'\r')* '\r'? '\n' { $channel = HIDDEN; }
+    ;
