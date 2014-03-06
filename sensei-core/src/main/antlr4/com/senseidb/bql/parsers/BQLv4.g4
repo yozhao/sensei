@@ -3377,7 +3377,7 @@ VARIABLE : '$' (ALPHA | DIGIT | '_')+ ;
 WS : ( ' ' | '\t' | '\r' | '\n' )+ -> channel(HIDDEN);
 
 COMMENT
-    : '/*' .* '*/' -> channel(HIDDEN)
+    : '/*' .*? '*/' -> channel(HIDDEN)
     ;
 
 LINE_COMMENT
