@@ -628,9 +628,9 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitSelection_list(BQLv4Parser.Selection_listContext ctx) {
         for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
-            String colName = textProperty.get(col);
+            String colName = getTextProperty(col);
             if (colName != null) {
-                jsonProperty.put(ctx, textProperty.get(col));
+                jsonProperty.put(ctx, getTextProperty(col));
                 if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
                     fetchStoredProperty.put(ctx, true);
                 }
@@ -644,9 +644,9 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitAggregation_function(BQLv4Parser.Aggregation_functionContext ctx) {
-        functionProperty.put(ctx, textProperty.get(ctx.id));
+        functionProperty.put(ctx, getTextProperty(ctx.id));
         if (ctx.columnVar != null) {
-            columnProperty.put(ctx, textProperty.get(ctx.columnVar));
+            columnProperty.put(ctx, getTextProperty(ctx.columnVar));
         } else {
             columnProperty.put(ctx, "");
         }
@@ -676,7 +676,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         if (ctx.min != null) {
             textProperty.put(ctx, "min");
         } else {
-            textProperty.put(ctx, textProperty.get(ctx.colName));
+            textProperty.put(ctx, getTextProperty(ctx.colName));
         }
     }
 
@@ -711,9 +711,9 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         jsonProperty.put(ctx, json);
         try {
             if (ctx.ordering == null) {
-                json.put(textProperty.get(ctx.column_name()), "asc");
+                json.put(getTextProperty(ctx.column_name()), "asc");
             } else {
-                json.put(textProperty.get(ctx.column_name()), ctx.ordering.getText().toLowerCase());
+                json.put(getTextProperty(ctx.column_name()), ctx.ordering.getText().toLowerCase());
             }
         } catch (JSONException err) {
             throw new IllegalStateException("JSONException: " + err.getMessage());
@@ -736,7 +736,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
         for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
-            String colName = textProperty.get(col);
+            String colName = getTextProperty(col);
             if (colName != null) {
                 json.put(colName);
             }
@@ -748,7 +748,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
         for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
-            String colName = textProperty.get(col);
+            String colName = getTextProperty(col);
             if (colName != null) {
                 json.put(colName);
             }
@@ -824,7 +824,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitExecute_clause(BQLv4Parser.Execute_clauseContext ctx) {
-        functionNameProperty.put(ctx, textProperty.get(ctx.funName));
+        functionNameProperty.put(ctx, getTextProperty(ctx.funName));
         if (ctx.map != null) {
             propertiesProperty.put(ctx, (JSONObject)jsonProperty.get(ctx.map));
         } else {
@@ -855,7 +855,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
             orderBy = "val";
         }
 
-        columnProperty.put(ctx, textProperty.get(ctx.column_name()));
+        columnProperty.put(ctx, getTextProperty(ctx.column_name()));
         if (ctx.n1 != null) {
             minhit = Integer.parseInt(ctx.n1.getText());
         }
@@ -955,7 +955,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitIn_predicate(BQLv4Parser.In_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
 
         if (facetInfo != null && facetInfo[0].equals("range")) {
@@ -1029,7 +1029,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitContains_all_predicate(BQLv4Parser.Contains_all_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && facetInfo[0].equals("range")) {
             throw new IllegalStateException("Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
@@ -1066,7 +1066,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitEqual_predicate(BQLv4Parser.Equal_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
             throw new IllegalStateException("Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
         }
@@ -1113,7 +1113,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitNot_equal_predicate(BQLv4Parser.Not_equal_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
             throw new IllegalStateException("Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
         }
@@ -1164,7 +1164,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitBetween_predicate(BQLv4Parser.Between_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
             throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
         }
@@ -1202,7 +1202,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitRange_predicate(BQLv4Parser.Range_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
             throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
         }
@@ -1231,7 +1231,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitTime_predicate(BQLv4Parser.Time_predicateContext ctx) {
         if (ctx.LAST() != null) {
-            String col = textProperty.get(ctx.column_name());
+            String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
                 throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
             }
@@ -1252,7 +1252,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
                 throw new IllegalStateException("JSONException: " + err.getMessage());
             }
         } else {
-            String col = textProperty.get(ctx.column_name());
+            String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
                 throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
             }
@@ -1420,7 +1420,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitLike_predicate(BQLv4Parser.Like_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && !facetInfo[1].equals("string")) {
             throw new IllegalStateException("Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
@@ -1445,7 +1445,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitNull_predicate(BQLv4Parser.Null_predicateContext ctx) {
-        String col = textProperty.get(ctx.column_name());
+        String col = getTextProperty(ctx.column_name());
         try {
             jsonProperty.put(ctx, new FastJSONObject().put("isNull", col));
             if (ctx.NOT() != null) {
@@ -1622,11 +1622,11 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         if (ctx.class_or_interface_type() != null) {
             typeNameProperty.put(ctx, typeNameProperty.get(ctx.class_or_interface_type()));
         } else if (ctx.primitive_type() != null) {
-            typeNameProperty.put(ctx, textProperty.get(ctx.primitive_type()));
+            typeNameProperty.put(ctx, getTextProperty(ctx.primitive_type()));
         } else if (ctx.boxed_type() != null) {
-            typeNameProperty.put(ctx, textProperty.get(ctx.boxed_type()));
+            typeNameProperty.put(ctx, getTextProperty(ctx.boxed_type()));
         } else if (ctx.limited_type() != null) {
-            typeNameProperty.put(ctx, textProperty.get(ctx.limited_type()));
+            typeNameProperty.put(ctx, getTextProperty(ctx.limited_type()));
         } else {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -1688,7 +1688,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitRelevance_model(BQLv4Parser.Relevance_modelContext ctx) {
-        functionBodyProperty.put(ctx, textProperty.get(ctx.model_block()));
+        functionBodyProperty.put(ctx, getTextProperty(ctx.model_block()));
         JSONObject json = (JSONObject)jsonProperty.get(ctx.params);
         jsonProperty.put(ctx, json);
 
@@ -1906,11 +1906,11 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitFacet_param(BQLv4Parser.Facet_paramContext ctx) {
-        facetProperty.put(ctx, textProperty.get(ctx.column_name())); // XXX Check error here?
+        facetProperty.put(ctx, getTextProperty(ctx.column_name())); // XXX Check error here?
         try {
             Object valArray;
             if (ctx.val != null) {
-                String varName = textProperty.get(ctx.value());
+                String varName = getTextProperty(ctx.value());
                 if (varName.matches("\\$[^$].*")) {
                         // Here "value" is a variable.  In this case, it
                     // is REQUIRED that the variable should be
@@ -1935,6 +1935,17 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitFacet_param_type(BQLv4Parser.Facet_param_typeContext ctx) {
         paramTypeProperty.put(ctx, ctx.t.getText());
+    }
+
+    private String getTextProperty(ParserRuleContext ctx) {
+        switch (ctx.getRuleIndex()) {
+        case BQLv4Parser.RULE_column_name:
+        case BQLv4Parser.RULE_function_name:
+            return textProperty.get(ctx);
+
+        default:
+            return ctx.getText();
+        }
     }
 
     private static String unescapeStringLiteral(TerminalNode terminalNode) {
