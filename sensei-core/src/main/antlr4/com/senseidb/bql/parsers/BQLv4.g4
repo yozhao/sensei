@@ -1034,33 +1034,10 @@ aggregation_function
  :   (id=function_name LPAR (columnVar=column_name | '*') RPAR)
  ;
 
-column_name returns [String text]
-@init {
-    StringBuilder builder = new StringBuilder();
-}
+column_name
     :   (id=IDENT | str=STRING_LITERAL)
-        {
-            if (id != null) {
-                builder.append($id.text);
-            }
-            else {
-                String orig = $str.text;
-                builder.append(orig.substring(1, orig.length() - 1));
-            }
-        }
         ('.' (id2=IDENT | str2=STRING_LITERAL)
-        {
-            builder.append(".");
-            if (id2 != null) {
-                builder.append($id2.text);
-            }
-            else {
-                String orig = $str2.text;
-                builder.append(orig.substring(1, orig.length() - 1));
-            }
-        }
         )*
-        { $text = builder.toString(); }
     ;
 function_name returns [String text] 
 

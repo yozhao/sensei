@@ -7,7 +7,9 @@ import com.senseidb.util.Pair;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,6 +28,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     private final ParseTreeProperty<List<Pair<String, String>>> aggregationFunctionsProperty = new ParseTreeProperty<List<Pair<String, String>>>();
     private final ParseTreeProperty<String> functionProperty = new ParseTreeProperty<String>();
     private final ParseTreeProperty<String> columnProperty = new ParseTreeProperty<String>();
+    private final ParseTreeProperty<String> textProperty = new ParseTreeProperty<String>();
 
     @Override
     public void exitStatement(BQLv4Parser.StatementContext ctx) {
@@ -191,6 +194,25 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         } else {
             columnProperty.put(ctx, "");
         }
+    }
+
+    @Override
+    public void exitColumn_name(BQLv4Parser.Column_nameContext ctx) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < ctx.getChildCount(); i++) {
+            ParseTree child = ctx.getChild(i);
+            if (child instanceof TerminalNode) {
+                TerminalNode terminal = (TerminalNode)child;
+                String orig = terminal.getSymbol().getText();
+                if (terminal.getSymbol().getType() == BQLv4Lexer.STRING_LITERAL) {
+                    builder.append(orig.substring(1, orig.length() - 1));
+                } else {
+                    builder.append(orig);
+                }
+            }
+        }
+
+        textProperty.put(ctx, builder.toString());
     }
 
 }
