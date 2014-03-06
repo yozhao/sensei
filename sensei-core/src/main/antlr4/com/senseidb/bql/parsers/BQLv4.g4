@@ -3146,6 +3146,36 @@ GTE : '>=' ;
 LT : '<' ;
 LTE : '<=';
 NOT_EQUAL : '<>' ;
+DOT : '.';
+LBRACE : '{';
+RBRACE : '}';
+LBRACK : '[';
+RBRACK : ']';
+PLUS : '+';
+MINUS : '-';
+STAR : '*';
+DIV : '/';
+MOD : '%';
+INC : '++';
+DEC : '--';
+TILDE : '~';
+BANG : '!';
+CARET : '^';
+EQEQ : '==';
+NEQ : '!=';
+PLUSEQ : '+=';
+MINUSEQ : '-=';
+STAREQ : '*=';
+DIVEQ : '/=';
+AMPEQ : '&=';
+PIPEEQ : '|=';
+CARETEQ : '^=';
+MODEQ : '%=';
+OROR : '||';
+ANDAND : '&&';
+PIPE : '|';
+AMP : '&';
+QUES : '?';
 
 STRING_LITERAL
     :   ('"'
@@ -3218,6 +3248,33 @@ CHARACTER_LITERAL
     :   '\'' ( ESCAPE_SEQUENCE | ~('\''|'\\') ) '\''
     ;
 
+BREAK : 'break';
+CASE : 'case';
+CHAR : 'char';
+CHARACTER : 'Character';
+CLASS : 'class';
+CONTINUE : 'continue';
+DEFAULT : 'default';
+DO : 'do';
+EXTENDS : 'extends';
+FINAL : 'final';
+FLOAT : 'float';
+FLOAT2 : 'Float';
+FOR : 'for';
+IF : 'if';
+INTEGER2 : 'Integer';
+INSTANCEOF : 'instanceof';
+MATH : 'Math';
+MIN : 'min';
+RETURN : 'return';
+SHORT : 'short';
+SHORT2 : 'Short';
+STRING2 : 'String';
+SUPER : 'super';
+SWITCH : 'switch';
+SYSTEM : 'System';
+THIS : 'this';
+WHILE : 'while';
 
 //
 // BQL Keywords
