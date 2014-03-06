@@ -2402,16 +2402,14 @@ prop_list[KeyType keyType] returns [JSONObject json]
     ;
 
 key_value_pair[KeyType keyType] returns [String key, Object val]
-scope {
-    KeyType type
-}
+locals[KeyType type_]
 @init {
-    $key_value_pair::type = keyType;
+    $key_value_pair::type_ = keyType;
 }
-    :   ( { $key_value_pair::type == KeyType.STRING_LITERAL ||
-            $key_value_pair::type == KeyType.STRING_LITERAL_AND_IDENT}?=> STRING_LITERAL
-        | { $key_value_pair::type == KeyType.IDENT ||
-            $key_value_pair::type == KeyType.STRING_LITERAL_AND_IDENT}?=> IDENT
+    :   ( { $key_value_pair::type_ == KeyType.STRING_LITERAL ||
+            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}?=> STRING_LITERAL
+        | { $key_value_pair::type_ == KeyType.IDENT ||
+            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}?=> IDENT
         )
         COLON (v=value | vs=python_style_list | vd=python_style_dict)
         {
