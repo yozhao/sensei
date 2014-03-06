@@ -942,25 +942,25 @@ formal_parameter_decl
     ;
 
 primitive_type
-    :   { "boolean".equals(input.LT(1).getText()) }? BOOLEAN
+    :   { "boolean".equals(_input.LT(1).getText()) }? BOOLEAN
     |   'char'
-    |   { "byte".equals(input.LT(1).getText()) }? BYTE
+    |   { "byte".equals(_input.LT(1).getText()) }? BYTE
     |   'short'
-    |   { "int".equals(input.LT(1).getText()) }? INT
-    |   { "long".equals(input.LT(1).getText()) }? LONG
+    |   { "int".equals(_input.LT(1).getText()) }? INT
+    |   { "long".equals(_input.LT(1).getText()) }? LONG
     |   'float'
-    |   { "double".equals(input.LT(1).getText()) }? DOUBLE
+    |   { "double".equals(_input.LT(1).getText()) }? DOUBLE
     ;
 
 boxed_type
-    :   { "Boolean".equals(input.LT(1).getText()) }? BOOLEAN
+    :   { "Boolean".equals(_input.LT(1).getText()) }? BOOLEAN
     |   'Character'
-    |   { "Byte".equals(input.LT(1).getText()) }? BYTE
+    |   { "Byte".equals(_input.LT(1).getText()) }? BYTE
     |   'Short'
     |   'Integer'
-    |   { "Long".equals(input.LT(1).getText()) }? LONG
+    |   { "Long".equals(_input.LT(1).getText()) }? LONG
     |   'Float'
-    |   { "Double".equals(input.LT(1).getText()) }? DOUBLE
+    |   { "Double".equals(_input.LT(1).getText()) }? DOUBLE
     ;
 
 limited_type
@@ -1021,7 +1021,7 @@ java_statement
     ;
 
 else_statement
-    :   { "else".equals(input.LT(1).getText()) }? ELSE java_statement
+    :   { "else".equals(_input.LT(1).getText()) }? ELSE java_statement
     ;
 
 switch_block_statement_groups
@@ -1192,7 +1192,7 @@ java_ident
 // Need to handle the conflicts of BQL keywords and common Java method
 // names supported by BQL.
 java_method
-    :   { "contains".equals(input.LT(1).getText()) }? CONTAINS
+    :   { "contains".equals(_input.LT(1).getText()) }? CONTAINS
     |   IDENT
     ;
 
@@ -1211,7 +1211,7 @@ literal
     |   CHARACTER_LITERAL
     |   STRING_LITERAL
     |   boolean_literal
-    |   { "null".equals(input.LT(1).getText()) }? NULL
+    |   { "null".equals(_input.LT(1).getText()) }? NULL
     ;
 
 integer_literal
@@ -1221,8 +1221,8 @@ integer_literal
     ;
 
 boolean_literal
-    :   { "true".equals(input.LT(1).getText()) }? TRUE
-    |   { "false".equals(input.LT(1).getText()) }? FALSE
+    :   { "true".equals(_input.LT(1).getText()) }? TRUE
+    |   { "false".equals(_input.LT(1).getText()) }? FALSE
     ;
 
 selector
