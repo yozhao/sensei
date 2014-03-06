@@ -1052,22 +1052,10 @@ order_by_clause
     :   ORDER BY (RELEVANCE | sort_specs)
     ;
 
-sort_specs returns [Object json]
-@init {
-    JSONArray sortArray = new FastJSONArray();
-}
+sort_specs
     :   sort=sort_spec
-        {
-            sortArray.put($sort.json);
-        }
         (COMMA sort=sort_spec   // It's OK to use variable sort again here
-            {
-                sortArray.put($sort.json);
-            }
         )*
-        {
-            $json = sortArray;
-        }
     ;
 
 sort_spec returns [JSONObject json]

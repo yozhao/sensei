@@ -240,4 +240,14 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         }
     }
 
+    @Override
+    public void exitSort_specs(BQLv4Parser.Sort_specsContext ctx) {
+        JSONArray sortArray = new FastJSONArray();
+        for (BQLv4Parser.Sort_specContext sort : ctx.sort_spec()) {
+            sortArray.put(sort.json);
+        }
+
+        jsonProperty.put(ctx, sortArray);
+    }
+
 }
