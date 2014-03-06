@@ -3,6 +3,7 @@ package com.senseidb.bql.parsers;
 import java.util.HashMap;
 import java.util.Map;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.TokenStream;
@@ -28,6 +29,7 @@ public class BQLCompiler extends AbstractCompiler {
     // Parser generates abstract syntax tree
     BQLParser parser = new BQLParser(tokens);
     _parser.set(parser);
+    parser.setErrorHandler(new BailErrorStrategy());
     BQLParser.StatementContext ret = parser.statement();
 
     BQLCompilerAnalyzer analyzer = new BQLCompilerAnalyzer(_facetInfoMap);
