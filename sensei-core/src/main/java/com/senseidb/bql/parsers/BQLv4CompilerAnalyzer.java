@@ -215,4 +215,13 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         textProperty.put(ctx, builder.toString());
     }
 
+    @Override
+    public void exitFunction_name(BQLv4Parser.Function_nameContext ctx) {
+        if (ctx.min != null) {
+            textProperty.put(ctx, "min");
+        } else {
+            textProperty.put(ctx, ctx.colName.text);
+        }
+    }
+
 }

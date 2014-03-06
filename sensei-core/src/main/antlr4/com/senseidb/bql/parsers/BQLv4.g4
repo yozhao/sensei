@@ -1039,17 +1039,11 @@ column_name
         ('.' (id2=IDENT | str2=STRING_LITERAL)
         )*
     ;
-function_name returns [String text] 
 
+function_name
     :   (min= 'min'|colName=column_name)
-        {
-         if (min != null) {
-           $text = "min";
-         } else {
-            $text = $colName.text; 
-         }
-        }
     ;
+
 where returns [Object json]
     :   WHERE search_expr
         {
