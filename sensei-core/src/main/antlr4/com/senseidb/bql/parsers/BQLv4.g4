@@ -992,12 +992,6 @@ import com.senseidb.search.req.BQLParserUtils;
     }
 }
 
-@rulecatch {
-    catch (RecognitionException err) {
-        throw err;
-    }
-}
-
 fragment DIGIT : '0'..'9' ;
 fragment ALPHA : 'a'..'z' | 'A'..'Z' ;
 
