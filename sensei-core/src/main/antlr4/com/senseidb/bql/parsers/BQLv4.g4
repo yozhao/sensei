@@ -435,7 +435,6 @@ tokens
 // As the generated lexer will reside in com.senseidb.bql.parsers package,
 // we have to add package declaration on top of it
 @lexer::header {
-package com.senseidb.bql.parsers;
 }
 
 @lexer::members {
@@ -450,8 +449,6 @@ package com.senseidb.bql.parsers;
 // As the generated parser will reside in com.senseidb.bql.parsers
 // package, we have to add package declaration on top of it
 @parser::header {
-package com.senseidb.bql.parsers;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
