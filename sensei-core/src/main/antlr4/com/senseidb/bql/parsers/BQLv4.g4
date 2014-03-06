@@ -1338,6 +1338,10 @@ CHARACTER_LITERAL
     :   '\'' ( ESCAPE_SEQUENCE | ~('\''|'\\') ) '\''
     ;
 
+//
+// Java-only Keywords
+//
+
 BREAK : 'break';
 CASE : 'case';
 CHAR : 'char';
