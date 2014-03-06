@@ -475,82 +475,6 @@ import com.senseidb.search.req.BQLParserUtils;
       STRING_LITERAL_AND_IDENT
     }
 
-    private static final int DEFAULT_REQUEST_OFFSET = 0;
-    private static final int DEFAULT_REQUEST_COUNT = 10;
-    private static final int DEFAULT_REQUEST_MAX_PER_GROUP = 10;
-    private static final int DEFAULT_FACET_MINHIT = 1;
-    private static final int DEFAULT_FACET_MAXHIT = 10;
-    private static final Map<String, String> _fastutilTypeMap;
-    private static final Map<String, String> _internalVarMap;
-    private static final Map<String, String> _internalStaticVarMap;    
-    private static final Set<String> _supportedClasses;
-    private static Map<String, Set<String>> _compatibleFacetTypes;
-
-    private Map<String, String[]> _facetInfoMap;
-    private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
-    private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
-
-    private LinkedList<Map<String, String>> _symbolTable;
-    private Map<String, String> _currentScope;
-    private Set<String> _usedFacets; // Facets used by relevance model
-    private Set<String> _usedInternalVars; // Internal variables used by relevance model
-
-    static {
-        _fastutilTypeMap = new HashMap<String, String>();
-        _fastutilTypeMap.put("IntOpenHashSet", "set_int");
-        _fastutilTypeMap.put("FloatOpenHashSet", "set_float");
-        _fastutilTypeMap.put("DoubleOpenHashSet", "set_double");
-        _fastutilTypeMap.put("LongOpenHashSet", "set_long");
-        _fastutilTypeMap.put("ObjectOpenHashSet", "set_string");
-
-        _fastutilTypeMap.put("Int2IntOpenHashMap", "map_int_int");
-        _fastutilTypeMap.put("Int2FloatOpenHashMap", "map_int_float");
-        _fastutilTypeMap.put("Int2DoubleOpenHashMap", "map_int_double");
-        _fastutilTypeMap.put("Int2LongOpenHashMap", "map_int_long");
-        _fastutilTypeMap.put("Int2ObjectOpenHashMap", "map_int_string");
-
-        _fastutilTypeMap.put("Object2IntOpenHashMap", "map_string_int");
-        _fastutilTypeMap.put("Object2FloatOpenHashMap", "map_string_float");
-        _fastutilTypeMap.put("Object2DoubleOpenHashMap", "map_string_double");
-        _fastutilTypeMap.put("Object2LongOpenHashMap", "map_string_long");
-        _fastutilTypeMap.put("Object2ObjectOpenHashMap", "map_string_string");
-
-        _internalVarMap = new HashMap<String, String>();
-        _internalVarMap.put("_NOW", "long");
-        _internalVarMap.put("_INNER_SCORE", "float");
-        _internalVarMap.put("_RANDOM", "java.util.Random");
-        
-        _internalStaticVarMap = new HashMap<String, String>();
-        _internalStaticVarMap.put("_RANDOM", "java.util.Random");
-
-        _supportedClasses = new HashSet<String>();
-        _supportedClasses.add("Boolean");
-        _supportedClasses.add("Byte");
-        _supportedClasses.add("Character");
-        _supportedClasses.add("Double");
-        _supportedClasses.add("Integer");
-        _supportedClasses.add("Long");
-        _supportedClasses.add("Short");
-
-        _supportedClasses.add("Math");
-        _supportedClasses.add("String");
-        _supportedClasses.add("System");
-        
-        _compatibleFacetTypes = new HashMap<String, Set<String>>();
-        _compatibleFacetTypes.put("range", new HashSet<String>(Arrays.asList(new String[]
-                                                               {
-                                                                   "simple",
-                                                                   "multi"
-                                                               })));
-    }
-
-    public BQLv4Parser(TokenStream input, Map<String, String[]> facetInfoMap)
-    {
-        this(input);
-        _facetInfoMap = facetInfoMap;
-        _facetInfoMap.put("_uid", new String[]{"simple", "long"});
-    }
-
     // The following two overridden methods are used to force ANTLR to
     // stop parsing upon the very first error.
 
@@ -621,373 +545,6 @@ import com.senseidb.search.req.BQLParserUtils;
         return t.toString();
     }
 
-    private String predType(JSONObject pred)
-    {
-        return (String) pred.keys().next();
-    }
-
-    private String predField(JSONObject pred) throws JSONException
-    {
-        String type = (String) pred.keys().next();
-        JSONObject fieldSpec = pred.getJSONObject(type);
-        return (String) fieldSpec.keys().next();
-    }
-
-    private boolean verifyFacetType(final String field, final String expectedType)
-    {
-        String[] facetInfo = _facetInfoMap.get(field);
-        if (facetInfo != null) {
-            Set<String> compatibleTypes = _compatibleFacetTypes.get(expectedType);
-            return (expectedType.equals(facetInfo[0]) ||
-                    "custom".equals(facetInfo[0]) ||
-                    (compatibleTypes != null && compatibleTypes.contains(facetInfo[0])));
-        }
-        else {
-            return true;
-        }
-    }
-
-    private boolean verifyValueType(Object value, final String columnType)
-    {
-        if (value instanceof String &&
-            !((String) value).isEmpty() &&
-            ((String) value).matches("\\$[^$].*"))
-        {
-            // This "value" is a variable, return true always
-            return true;
-        }
-
-        if (columnType.equals("long") || columnType.equals("aint") || columnType.equals("int") || columnType.equals("short")) {
-            return !(value instanceof Float || value instanceof String || value instanceof Boolean);
-        }
-        else if (columnType.equals("float")  || columnType.equals("int") || columnType.equals("double")) {
-            return !(value instanceof String || value instanceof Boolean);
-        }
-        else if (columnType.equals("string") || columnType.equals("char")) {
-            return (value instanceof String);
-        }
-        else if (columnType.equals("boolean")) {
-            return (value instanceof Boolean);
-        }
-        else if (columnType.isEmpty()) {
-            // For a custom facet, the data type is unknown (empty
-            // string).  We accept all value types here.
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    private boolean verifyFieldDataType(final String field, Object value)
-        throws FailedPredicateException
-    {
-        String[] facetInfo = _facetInfoMap.get(field);
-
-        if (value instanceof String &&
-            !((String) value).isEmpty() &&
-            ((String) value).matches("\\$[^$].*"))
-        {
-            // This "value" is a variable, return true always
-            return true;
-        }
-        else if (value instanceof JSONArray)
-        {
-            try {
-                if (facetInfo != null) {
-                    String columnType = facetInfo[1];
-                    for (int i = 0; i < ((JSONArray) value).length(); ++i) {
-                        if (!verifyValueType(((JSONArray) value).get(i), columnType)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "verifyFieldDataType", "JSONException: " + err.getMessage());
-            }
-        }
-        else
-        {
-            if (facetInfo != null) {
-                return verifyValueType(value, facetInfo[1]);
-            }
-            else {
-                // Field is not a facet
-                return true;
-            }
-        }
-    }
-
-    private boolean verifyFieldDataType(final String field, Object[] values)
-    {
-        String[] facetInfo = _facetInfoMap.get(field);
-        if (facetInfo != null) {
-            String columnType = facetInfo[1];
-            for (Object value: values) {
-                if (!verifyValueType(value, columnType)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private void extractSelectionInfo(JSONObject where,
-                                      JSONArray selections,
-                                      JSONObject filter,
-                                      JSONObject query) throws JSONException {
-
-        JSONObject queryPred = where.optJSONObject("query");
-        JSONArray andPreds = null;
-
-        if (queryPred != null) {
-            query.put("query", queryPred);
-        }
-        else if ((andPreds = where.optJSONArray("and")) != null) {
-            JSONArray filter_list = new FastJSONArray();
-            for (int i = 0; i < andPreds.length(); ++i) {
-                JSONObject pred = andPreds.getJSONObject(i);
-                queryPred = pred.optJSONObject("query");
-                if (queryPred != null) {
-                    if (!query.has("query")) {
-                        query.put("query", queryPred);
-                    }
-                    else {
-                        filter_list.put(pred);
-                    }
-                }
-                else if (pred.has("and") || pred.has("or") || pred.has("isNull")) {
-                    filter_list.put(pred);
-                }
-                else {
-                    String[] facetInfo = _facetInfoMap.get(predField(pred));
-                    if (facetInfo != null) {
-                        if ("range".equals(predType(pred)) && !"range".equals(facetInfo[0])) {
-                            filter_list.put(pred);
-                        }
-                        else {
-                            selections.put(pred);
-                        }
-                    }
-                    else {
-                        filter_list.put(pred);
-                    }
-                }
-            }
-            if (filter_list.length() > 1) {
-                filter.put("filter", new FastJSONObject().put("and", filter_list));
-            }
-            else if (filter_list.length() == 1) {
-                filter.put("filter", filter_list.get(0));
-            }
-        }
-        else if (where.has("or") || where.has("isNull")) {
-            filter.put("filter", where);
-        }
-        else {
-            String[] facetInfo = _facetInfoMap.get(predField(where));
-            if (facetInfo != null) {
-                if ("range".equals(predType(where)) && !"range".equals(facetInfo[0])) {
-                    filter.put("filter", where);
-                }
-                else {
-                    selections.put(where);
-                }
-            }
-            else {
-                filter.put("filter", where);
-            }
-        }
-    }
-
-    private int compareValues(Object v1, Object v2)
-    {
-        if (v1 instanceof String) {
-            return ((String) v1).compareTo((String) v2);
-        }
-        else if (v1 instanceof Integer) {
-            return ((Integer) v1).compareTo((Integer) v2);
-        }
-        else if (v1 instanceof Long) {
-            return ((Long) v1).compareTo((Long) v2);
-        }
-        else if (v1 instanceof Float) {
-            return ((Float) v1).compareTo((Float) v2);
-        }
-        return 0;
-    }
-
-    private Object[] getMax(Object value1, boolean include1, Object value2, boolean include2)
-    {
-        Object value;
-        Boolean include;
-        if (value1 == null) {
-            value = value2;
-            include = include2;
-        }
-        else if (value2 == null) {
-            value = value1;
-            include = include1;
-        }
-        else {
-            int comp = compareValues(value1, value2);
-            if (comp > 0) {
-                value = value1;
-                include = include1;
-            }
-            else if (comp == 0) {
-                value = value1;
-                include = (include1 && include2);
-            }
-            else {
-                value = value2;
-                include = include2;
-            }
-        }
-        return new Object[]{value, include};
-    }
-
-    private Object[] getMin(Object value1, boolean include1, Object value2, boolean include2)
-    {
-        Object value;
-        Boolean include;
-        if (value1 == null) {
-            value = value2;
-            include = include2;
-        }
-        else if (value2 == null) {
-            value = value1;
-            include = include1;
-        }
-        else {
-            int comp = compareValues(value1, value2);
-            if (comp > 0) {
-                value = value2;
-                include = include2;
-            }
-            else if (comp == 0) {
-                value = value1;
-                include = (include1 && include2);
-            }
-            else {
-                value = value1;
-                include = include1;
-            }
-        }
-        return new Object[]{value, include};
-    }
-
-    private void accumulateRangePred(TokenStream input, JSONObject fieldMap, JSONObject pred) 
-        throws JSONException, RecognitionException
-    {
-        String field = predField(pred);
-        if (!fieldMap.has(field)) {
-            fieldMap.put(field, pred);
-            return;
-        }
-        JSONObject oldRange = (JSONObject) fieldMap.get(field);
-        JSONObject oldSpec = (JSONObject) ((JSONObject) oldRange.get("range")).get(field);
-        Object oldFrom = oldSpec.opt("from");
-        Object oldTo = oldSpec.opt("to");
-        Boolean oldIncludeLower = oldSpec.optBoolean("include_lower", false);
-        Boolean oldIncludeUpper = oldSpec.optBoolean("include_upper", false);
-
-        JSONObject curSpec = (JSONObject) ((JSONObject) pred.get("range")).get(field);
-        Object curFrom = curSpec.opt("from");
-        Object curTo = curSpec.opt("to");
-        Boolean curIncludeLower = curSpec.optBoolean("include_lower", false);
-        Boolean curIncludeUpper = curSpec.optBoolean("include_upper", false);
-
-        Object[] result = getMax(oldFrom, oldIncludeLower, curFrom, curIncludeLower);
-        Object newFrom = result[0];
-        Boolean newIncludeLower = (Boolean) result[1];
-        result = getMin(oldTo, oldIncludeUpper, curTo, curIncludeUpper);
-        Object newTo = result[0];
-        Boolean newIncludeUpper = (Boolean) result[1];
-
-        if (newFrom != null && newTo != null && !newFrom.toString().startsWith("$")&& !newTo.toString().startsWith("$")) {
-            if (compareValues(newFrom, newTo) > 0 ||
-                (compareValues(newFrom, newTo) == 0) && (!newIncludeLower || !newIncludeUpper)) {
-                // This error is in general detected late, so the token
-                // can be a little off, but hopefully the col index info
-                // is good enough.
-                throw new FailedPredicateException(input, "", "Inconsistent ranges detected for column: " + field);
-            }
-        }
-        
-        JSONObject newSpec = new FastJSONObject();
-        if (newFrom != null) {
-            newSpec.put("from", newFrom);
-            newSpec.put("include_lower", newIncludeLower);
-        }
-        if (newTo != null) {
-            newSpec.put("to", newTo);
-            newSpec.put("include_upper", newIncludeUpper);
-        }
-
-        fieldMap.put(field, new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(field, newSpec)));
-    }
-    
-    private void processRelevanceModelParam(TokenStream input,
-                                            JSONObject json,
-                                            Set<String> params,
-                                            String typeName,
-                                            final String varName)
-        throws JSONException, RecognitionException
-    {
-        if (_facetInfoMap.containsKey(varName)) {
-            throw new FailedPredicateException(input, "", "Facet name \"" + varName + "\" cannot be used as a relevance model parameter.");
-        }
-
-        if (_internalVarMap.containsKey(varName)) {
-            throw new FailedPredicateException(input, "", "Internal variable \"" + varName + "\" cannot be used as a relevance model parameter.");
-        }
-
-        if (params.contains(varName)) {
-            throw new FailedPredicateException(input, "", "Parameter name \"" + varName + "\" has already been used.");
-        }
-
-        if ("String".equals(typeName)) {
-            typeName = "string";
-        }
-
-        JSONArray funcParams = json.optJSONArray("function_params");
-        if (funcParams == null) {
-            funcParams = new FastJSONArray();
-            json.put("function_params", funcParams);
-        }
-
-        funcParams.put(varName);
-        params.add(varName);
-
-        JSONObject variables = json.optJSONObject("variables");
-        if (variables == null) {
-            variables = new FastJSONObject();
-            json.put("variables", variables);
-        }
-
-        JSONArray varsWithSameType = variables.optJSONArray(typeName);
-        if (varsWithSameType == null) {
-            varsWithSameType = new FastJSONArray();
-            variables.put(typeName, varsWithSameType);
-        }
-        varsWithSameType.put(varName);
-    }
-
-    // Check whether a variable is defined.
-    private boolean verifyVariable(final String variable) {
-        Iterator<Map<String, String>> itr = _symbolTable.descendingIterator();
-        while (itr.hasNext()) {
-            Map<String, String> scope = itr.next();
-            if (scope.containsKey(variable)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
 
 // ***************** parser rules:
@@ -1058,1090 +615,264 @@ sort_specs
         )*
     ;
 
-sort_spec returns [JSONObject json]
-    :   column_name (ordering=ASC | ordering=DESC)?
-        {
-            $json = new FastJSONObject();
-            try {
-                if ($ordering == null) {
-                    $json.put($column_name.text, "asc");
-                }
-                else {
-                    $json.put($column_name.text, $ordering.text.toLowerCase());
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "sort_spec", "JSONException: " + err.getMessage());
-            }
-        }
+sort_spec
+    :   column_name ordering=(ASC | DESC)?
     ;
 
-limit_clause returns [int offset, int count]
+limit_clause
     :   LIMIT (n1=INTEGER COMMA)? n2=INTEGER
-        {
-            if (n1 != null) {
-                $offset = Integer.parseInt($n1.text);
-            }
-            else {
-                $offset = DEFAULT_REQUEST_OFFSET;
-            }
-            $count = Integer.parseInt($n2.text);
-        }
     ;
-comma_column_name_list returns [JSONArray json]
-@init {
-    $json = new FastJSONArray();
-}
+
+comma_column_name_list
     :   col=column_name
-        {
-            String colName = $col.text;
-            if (colName != null) {
-                $json.put($col.text); 
-            }
-        }
         ((OR | COMMA) col=column_name
-            {
-                String colName = $col.text;
-                if (colName != null) {
-                    $json.put($col.text); 
-                }
-            }
         )*
     ;
-or_column_name_list returns [JSONArray json]
-@init {
-    $json = new FastJSONArray();
-}
+
+or_column_name_list
     :   col=column_name
-        {
-            String colName = $col.text;
-            if (colName != null) {
-                $json.put($col.text); 
-            }
-        }
         (OR col=column_name
-            {
-                String colName = $col.text;
-                if (colName != null) {
-                    $json.put($col.text); 
-                }
-            }
         )*
     ;
 
-group_by_clause returns [JSONObject json]
+group_by_clause
     :   GROUP BY comma_column_name_list (TOP top=INTEGER)?
-        {
-            $json = new FastJSONObject();
-            try {
-                JSONArray cols = $comma_column_name_list.json;
-                /*for (int i = 0; i < cols.length(); ++i) {
-                    String col = cols.getString(i);
-                    String[] facetInfo = _facetInfoMap.get(col);
-                    if (facetInfo != null && (facetInfo[0].equals("range") ||
-                                              facetInfo[0].equals("multi") ||
-                                              facetInfo[0].equals("path"))) {
-                        throw new FailedPredicateException(input, 
-                                                           "group_by_clause",
-                                                           "Range/multi/path facet, \"" + col + "\", cannot be used in the GROUP BY clause.");
-                    }
-                }*/
-                $json.put("columns", cols);
-                if (top != null) {
-                    $json.put("top", Integer.parseInt(top.getText()));
-                }
-                else {
-                    $json.put("top", DEFAULT_REQUEST_MAX_PER_GROUP);
-                }                    
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "group_by_clause", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-distinct_clause returns [JSONObject json]
+distinct_clause
     :   DISTINCT or_column_name_list
-        {
-            $json = new FastJSONObject();
-            try {
-                JSONArray cols = $or_column_name_list.json; 
-                if (cols.length() > 1) {
-                  throw new FailedPredicateException(input, 
-                                                     "distinct_clause",
-                                                     "DISTINCT only support a single column now.");
-                }
-                for (int i = 0; i < cols.length(); ++i) {
-                    String col = cols.getString(i);
-                    String[] facetInfo = _facetInfoMap.get(col);
-                    if (facetInfo != null && (facetInfo[0].equals("range") ||
-                                              facetInfo[0].equals("multi") ||
-                                              facetInfo[0].equals("path"))) {
-                        throw new FailedPredicateException(input, 
-                                                           "distinct_clause",
-                                                           "Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause.");
-                    }
-                }
-                $json.put("columns", cols);
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "distinct_clause", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-browse_by_clause returns [JSONObject json]
-@init {
-    $json = new FastJSONObject();
-}
+browse_by_clause
     :   BROWSE BY f=facet_spec
-        {
-            try {
-                $json.put($f.column, $f.spec);
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "browse_by_clause", "JSONException: " + err.getMessage());
-            }                    
-        }
         (COMMA f=facet_spec
-            {
-                try {
-                    $json.put($f.column, $f.spec);
-                }
-                catch (JSONException err) {
-                    throw new FailedPredicateException(input, "browse_by_clause", "JSONException: " + err.getMessage());
-                }
-            }
         )*
     ;
-execute_clause returns [String functionName, JSONObject properties]
-@init {
-    $properties = new FastJSONObject();
-}
+
+execute_clause
     :   EXECUTE LPAR funName=function_name
-        {
-            $functionName = $funName.text;
-        }
-        ((COMMA map=python_style_dict
-            {
-               $properties = $map.json;
-               
-            }
-        ) | (
-        (COMMA p=key_value_pair[KeyType.STRING_LITERAL]
-            {
-                try {
-                    $properties.put($p.key, $p.val);
-                }
-                catch (JSONException err) {
-                    throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
-                }
-            }
-        )*)
+        (   COMMA map=python_style_dict
+        |   (   COMMA p=key_value_pair[KeyType.STRING_LITERAL]
+            )*
         )
         RPAR 
     ;
-    
-facet_spec returns [String column, JSONObject spec]
-@init {
-    boolean expand = false;
-    int minhit = DEFAULT_FACET_MINHIT;
-    int max = DEFAULT_FACET_MAXHIT;
-    String orderBy = "hits";
-}
+
+facet_spec
     :   column_name
         (
             LPAR 
-            (TRUE {expand = true;} | FALSE) COMMA
+            (TRUE | FALSE) COMMA
             n1=INTEGER COMMA
             n2=INTEGER COMMA
-            (HITS | VALUE {orderBy = "val";})
+            (HITS | VALUE)
             RPAR
         )*
-        {
-            $column = $column_name.text;
-            if (n1 != null) {
-                minhit = Integer.parseInt($n1.text);
-            }
-            if (n2 != null) {
-                max = Integer.parseInt($n2.text);
-            }
-            try {
-                $spec = new FastJSONObject().put("expand", expand)
-                                            .put("minhit", minhit)
-                                            .put("max", max)
-                                            .put("order", orderBy);
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "facet_spec", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-fetching_stored_clause returns [boolean val]
-@init {
-    $val = true;
-}
+fetching_stored_clause
     :   FETCHING STORED
-        ((TRUE | FALSE {$val = false;})
+        (   TRUE
+        |   FALSE
         )*
     ;
 
-route_by_clause returns [String val]
+route_by_clause
     :   ROUTE BY STRING_LITERAL 
-        { 
-            String orig = $STRING_LITERAL.text;
-            $val = orig.substring(1, orig.length() - 1);
-        }
     ;
 
-search_expr returns [Object json]
-@init {
-    JSONArray array = new FastJSONArray();
-}
-    :   t=term_expr { array.put($t.json); }
-        (OR t=term_expr { array.put($t.json); } )*
-        {
-            try {
-                if (array.length() == 1) {
-                    $json = array.get(0);
-                }
-                else {
-                    $json = new FastJSONObject().put("or", array);
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "search_expr", "JSONException: " + err.getMessage());
-            }
-        }
+search_expr
+    :   t=term_expr
+        (OR t=term_expr)*
     ;
 
-term_expr returns [Object json]
-@init {
-    JSONArray array = new FastJSONArray();
-}
-    :   f=factor_expr { array.put($f.json); }
-        (AND f=factor_expr { array.put($f.json); } )*
-        {
-            try {
-                JSONArray newArray = new FastJSONArray();
-                JSONObject fieldMap = new FastJSONObject();
-                for (int i = 0; i < array.length(); ++i) {
-                    JSONObject pred = (JSONObject) array.get(i);
-                    if (!"range".equals(predType(pred))) {
-                        newArray.put(pred);
-                    }
-                    else {
-                        accumulateRangePred(input, fieldMap, pred);
-                    }
-                }
-                Iterator<String> itr = fieldMap.keys();
-                while (itr.hasNext()) {
-                    newArray.put(fieldMap.get(itr.next()));
-                }
-                if (newArray.length() == 1) {
-                    $json = newArray.get(0);
-                }
-                else {
-                    $json = new FastJSONObject().put("and", newArray);
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "term_expr", "JSONException: " + err.getMessage());
-            }
-        }
+term_expr
+    :   f=factor_expr
+        (AND f=factor_expr)*
     ;
 
-factor_expr returns [Object json]
-    :   predicate { $json = $predicate.json; }
+factor_expr
+    :   predicate
     |   LPAR search_expr RPAR
-        {$json = $search_expr.json;}
     ;
 
-predicate returns [JSONObject json]
-    :   in_predicate { $json = $in_predicate.json; }
-    |   contains_all_predicate { $json = $contains_all_predicate.json; }
-    |   equal_predicate { $json = $equal_predicate.json; }
-    |   not_equal_predicate { $json = $not_equal_predicate.json; }
-    |   query_predicate { $json = $query_predicate.json; }
-    |   between_predicate { $json = $between_predicate.json; }
-    |   range_predicate { $json = $range_predicate.json; }
-    |   time_predicate { $json = $time_predicate.json; }
-    |   match_predicate { $json = $match_predicate.json; }
-    |   like_predicate { $json = $like_predicate.json; }
-    |   null_predicate { $json = $null_predicate.json; }
-    |   empty_predicate { $json = $empty_predicate.json; }
+predicate
+    :   in_predicate
+    |   contains_all_predicate
+    |   equal_predicate
+    |   not_equal_predicate
+    |   query_predicate
+    |   between_predicate
+    |   range_predicate
+    |   time_predicate
+    |   match_predicate
+    |   like_predicate
+    |   null_predicate
+    |   empty_predicate
     ;
 
-in_predicate returns [JSONObject json]
+in_predicate
     :   column_name not=NOT? IN value_list except=except_clause? predicate_props?
-        {
-            String col = $column_name.text;
-            String[] facetInfo = _facetInfoMap.get(col);
-
-            if (facetInfo != null && facetInfo[0].equals("range")) {
-                throw new FailedPredicateException(input, 
-                                                   "in_predicate",
-                                                   "Range facet \"" + col + "\" cannot be used in IN predicates.");
-            }
-            if (!verifyFieldDataType(col, $value_list.json)) {
-                throw new FailedPredicateException(input,
-                                                   "in_predicate",
-                                                   "Value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
-            }
-
-            if (except != null && !verifyFieldDataType(col, $except_clause.json)) {
-                throw new FailedPredicateException(input,
-                                                   "in_predicate",
-                                                   "EXCEPT value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
-            }
-
-            try {
-                JSONObject dict = new FastJSONObject();
-                dict.put("operator", "or");
-                if (not == null) {
-                    dict.put("values", $value_list.json);
-                    if (except != null) {
-                        dict.put("excludes", $except_clause.json);
-                    }
-                    else {
-                        dict.put("excludes", new FastJSONArray());
-                    }
-                }
-                else {
-                    dict.put("excludes", $value_list.json);
-                    if (except != null) {
-                        dict.put("values", $except_clause.json);
-                    }
-                    else {
-                        dict.put("values", new FastJSONArray());
-                    }
-                }
-                if (_facetInfoMap.get(col) == null) {
-                    dict.put("_noOptimize", true);
-                }
-                $json = new FastJSONObject().put("terms",
-                                                 new FastJSONObject().put(col, dict));
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "in_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-empty_predicate returns [JSONObject json]
+empty_predicate
     :   value_list IS (NOT)? EMPTY
-        {   
-            try {
-                JSONObject exp = new FastJSONObject();
-                if ($NOT != null) {
-                    JSONObject functionJSON = new FastJSONObject();
-                    JSONArray params = new FastJSONArray();
-                    params.put($value_list.json);
-                    functionJSON.put("function", "length");
-                    functionJSON.put("params", params);
-                    exp.put("lvalue", functionJSON);
-                    exp.put("operator", ">");
-                    exp.put("rvalue", 0);
-                    $json = new FastJSONObject().put("const_exp", exp);
-                }
-                else{
-                    JSONObject functionJSON = new FastJSONObject();
-                    JSONArray params = new FastJSONArray();
-                    params.put($value_list.json);
-                    functionJSON.put("function", "length");
-                    functionJSON.put("params", params);
-                    exp.put("lvalue", functionJSON);
-                    exp.put("operator", "==");
-                    exp.put("rvalue", 0);
-                    $json = new FastJSONObject().put("const_exp", exp);
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "empty_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
     
-contains_all_predicate returns [JSONObject json]
+contains_all_predicate
     :   column_name CONTAINS ALL value_list except=except_clause? predicate_props? 
-        {
-            String col = $column_name.text;
-            String[] facetInfo = _facetInfoMap.get(col);
-            if (facetInfo != null && facetInfo[0].equals("range")) {
-                throw new FailedPredicateException(input, 
-                                                   "contains_all_predicate", 
-                                                   "Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
-            }
-            if (!verifyFieldDataType(col, $value_list.json)) {
-                throw new FailedPredicateException(input,
-                                                   "contains_all_predicate",
-                                                   "Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
-            }
-
-            if (except != null && !verifyFieldDataType(col, $except_clause.json)) {
-                throw new FailedPredicateException(input,
-                                                   "contains_all_predicate",
-                                                   "EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
-            }
-
-            try {
-                JSONObject dict = new FastJSONObject();
-                dict.put("operator", "and");
-                dict.put("values", $value_list.json);
-                if (except != null) {
-                    dict.put("excludes", $except_clause.json);
-                }
-                else {
-                    dict.put("excludes", new FastJSONArray());
-                }
-                if (_facetInfoMap.get(col) == null) {
-                    dict.put("_noOptimize", true);
-                }
-                $json = new FastJSONObject().put("terms",
-                                                 new FastJSONObject().put(col, dict));
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "contains_all_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-equal_predicate returns [JSONObject json]
+equal_predicate
     :   column_name EQUAL value props=predicate_props?
-        {
-            String col = $column_name.text;
-            if (!verifyFieldDataType(col, $value.val)) {
-                throw new FailedPredicateException(input, 
-                                                   "equal_predicate", 
-                                                   "Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
-            }
-            try {
-                String[] facetInfo = _facetInfoMap.get(col);
-                if (facetInfo != null && facetInfo[0].equals("range")) {
-                    $json = new FastJSONObject().put("range",
-                               new FastJSONObject().put(col,
-                                   new FastJSONObject().put("from", $value.val)
-                                                       .put("to", $value.val)
-                                                       .put("include_lower", true)
-                                                       .put("include_upper", true)));
-                }
-                else if (facetInfo != null && facetInfo[0].equals("path")) {
-                    JSONObject valObj = new FastJSONObject();
-                    valObj.put("value", $value.val);
-                    if (props != null) {
-                        JSONObject propsJson = $props.json;
-                        Iterator<String> itr = propsJson.keys();
-                        while (itr.hasNext()) {
-                            String key = itr.next();
-                            if (key.equals("strict") || key.equals("depth")) {
-                                valObj.put(key, propsJson.get(key));
-                            }
-                            else {
-                                throw new FailedPredicateException(input,
-                                                                   "equal_predicate", 
-                                                                   "Unsupported property was found in an EQUAL predicate for path facet column \"" + col + "\": " + key + ".");
-                            }
-                        }
-                    }
-                    $json = new FastJSONObject().put("path", new FastJSONObject().put(col, valObj));
-                }
-                else {
-                    JSONObject valSpec = new FastJSONObject().put("value", $value.val);
-                    if (_facetInfoMap.get(col) == null) {
-                        valSpec.put("_noOptimize", true);
-                    }
-                    $json = new FastJSONObject().put("term", 
-                                                     new FastJSONObject().put(col, valSpec));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "equal_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-not_equal_predicate returns [JSONObject json]
+not_equal_predicate
     :   column_name NOT_EQUAL value predicate_props?
-        {
-            String col = $column_name.text;
-            if (!verifyFieldDataType(col, $value.val)) {
-                throw new FailedPredicateException(input, 
-                                                   "not_equal_predicate", 
-                                                   "Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
-            }
-            try {
-                String[] facetInfo = _facetInfoMap.get(col);
-                if (facetInfo != null && facetInfo[0].equals("range")) {
-                    JSONObject left = new FastJSONObject().put("range",
-                                                               new FastJSONObject().put(col,
-                                                                                        new FastJSONObject().put("to", $value.val)
-                                                                                                            .put("include_upper", false)));
-                    JSONObject right = new FastJSONObject().put("range",
-                                                                new FastJSONObject().put(col,
-                                                                                         new FastJSONObject().put("from", $value.val)
-                                                                                                             .put("include_lower", false)));
-                    $json = new FastJSONObject().put("or", new FastJSONArray().put(left).put(right));
-                }
-                else if (facetInfo != null && facetInfo[0].equals("path")) {
-                    throw new FailedPredicateException(input, 
-                                                       "not_equal_predicate",
-                                                       "NOT EQUAL predicate is not supported for path facets (column \"" + col + "\").");
-                }
-                else {
-                    JSONObject valObj = new FastJSONObject();
-                    valObj.put("operator", "or");
-                    valObj.put("values", new FastJSONArray());
-                    valObj.put("excludes", new FastJSONArray().put($value.val));
-                    if (_facetInfoMap.get(col) == null) {
-                        valObj.put("_noOptimize", true);
-                    }
-                    $json = new FastJSONObject().put("terms",
-                                                     new FastJSONObject().put(col, valObj));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "not_equal_predicate", "JSONException: " + err.getMessage());
-            }                                         
-        }
     ;
 
-query_predicate returns [JSONObject json]
+query_predicate
     :   QUERY IS STRING_LITERAL
-        {
-            try {
-                String orig = $STRING_LITERAL.text;
-                orig = orig.substring(1, orig.length() - 1);
-                $json = new FastJSONObject().put("query",
-                                                 new FastJSONObject().put("query_string",
-                                                                          new FastJSONObject().put("query", orig)));
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "query_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-between_predicate returns [JSONObject json]
+between_predicate
     :   column_name not=NOT? BETWEEN val1=value AND val2=value
-        {
-            String col = $column_name.text;
-            if (!verifyFacetType(col, "range")) {
-                throw new FailedPredicateException(input, 
-                                                   "between_predicate",
-                                                   "Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
-            }
-
-            if (!verifyFieldDataType(col, new Object[]{$val1.val, $val2.val})) {
-                throw new FailedPredicateException(input,
-                                                   "between_predicate", 
-                                                   "Incompatible data type was found in a BETWEEN predicate for column \"" + col + "\".");
-            }
-
-            try {
-                if (not == null) {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("from", $val1.val)
-                                                                                                  .put("to", $val2.val)
-                                                                                                  .put("include_lower", true)
-                                                                                                  .put("include_upper", true)));
-                }
-                else {
-                    JSONObject range1 = 
-                        new FastJSONObject().put("range",
-                                                 new FastJSONObject().put(col,
-                                                                          new FastJSONObject().put("to", $val1.val)
-                                                                                              .put("include_upper", false)));
-                    JSONObject range2 = 
-                        new FastJSONObject().put("range",
-                                                 new FastJSONObject().put(col,
-                                                                          new FastJSONObject().put("from", $val2.val)
-                                                                                              .put("include_lower", false)));
-
-                    $json = new FastJSONObject().put("or", new FastJSONArray().put(range1).put(range2));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "between_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-range_predicate returns [JSONObject json]
-    :   column_name (op=GT | op=GTE | op=LT | op=LTE) val=value
-        {
-            String col = $column_name.text;
-            if (!verifyFacetType(col, "range")) {
-                throw new FailedPredicateException(input, 
-                                                   "range_predicate",
-                                                   "Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
-            }
-
-            if (!verifyFieldDataType(col, $val.val)) {
-                throw new FailedPredicateException(input,
-                                                   "range_predicate", 
-                                                   "Incompatible data type was found in a RANGE predicate for column \"" + col + "\".");
-            }
-
-            try {
-                if ($op.text.charAt(0) == '>') {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("from", $val.val)
-                                                                                                  .put("include_lower", ">=".equals($op.text))));
-                }
-                else {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("to", $val.val)
-                                                                                                  .put("include_upper", "<=".equals($op.text))));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "range_predicate", "JSONException: " + err.getMessage());
-            }
-        }
+range_predicate
+    :   column_name op=(GT | GTE | LT | LTE) val=value
     ;
 
-time_predicate returns [JSONObject json]
+time_predicate
     :   column_name (NOT)? IN LAST time_span
-        {
-            String col = $column_name.text;
-            if (!verifyFacetType(col, "range")) {
-                throw new FailedPredicateException(input, 
-                                                   "range_predicate",
-                                                   "Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
-            }
-
-            try {
-                if ($NOT == null) {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("from", $time_span.val)
-                                                                                                  .put("include_lower", false)));
-                }
-                else {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("to", $time_span.val)
-                                                                                                  .put("include_upper", true)));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "time_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     |   column_name (NOT)? (since=SINCE | since=AFTER | before=BEFORE) time_expr
-        {
-            String col = $column_name.text;
-            if (!verifyFacetType(col, "range")) {
-                throw new FailedPredicateException(input, 
-                                                   "range_predicate",
-                                                   "Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
-            }
-
-            try {
-                if (since != null && $NOT == null ||
-                    since == null && $NOT != null) {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("from", $time_expr.val)
-                                                                                                  .put("include_lower", false)));
-                }
-                else {
-                    $json = new FastJSONObject().put("range",
-                                                     new FastJSONObject().put(col,
-                                                                              new FastJSONObject().put("to", $time_expr.val)
-                                                                                                  .put("include_upper", false)));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "time_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-time_span returns [long val]
+time_span
     :   week=time_week_part? day=time_day_part? hour=time_hour_part? 
         minute=time_minute_part? second=time_second_part? msec=time_millisecond_part?
-        {
-            $val = 0;
-            if (week != null) $val += $week.val;
-            if (day != null) $val += $day.val;
-            if (hour != null) $val += $hour.val;
-            if (minute != null) $val += $minute.val;
-            if (second != null) $val += $second.val;
-            if (msec != null) $val += $msec.val;
-            $val = _now - $val;
-        }
     ;
 
-time_week_part returns [long val]
+time_week_part
     :   INTEGER WEEKS
-        {
-            $val = Integer.parseInt($INTEGER.text) * 7 * 24 * 60 * 60 * 1000L;
-        }
     ;
 
-time_day_part returns [long val]
+time_day_part
     :   INTEGER DAYS
-        {
-          $val = Integer.parseInt($INTEGER.text) * 24 * 60 * 60 * 1000L;
-        }
     ;
 
-time_hour_part returns [long val]
+time_hour_part
     :   INTEGER HOURS
-        {
-          $val = Integer.parseInt($INTEGER.text) * 60 * 60 * 1000L;
-        }
     ;
 
-time_minute_part returns [long val]
+time_minute_part
     :   INTEGER (MINUTES | MINS)
-        {
-          $val = Integer.parseInt($INTEGER.text) * 60 * 1000L;
-        }
     ;
 
-time_second_part returns [long val]
+time_second_part
     :   INTEGER (SECONDS | SECS)
-        {
-          $val = Integer.parseInt($INTEGER.text) * 1000L;
-        }
     ;
 
-time_millisecond_part returns [long val] 
+time_millisecond_part
     :   INTEGER (MILLISECONDS | MSECS)
-        {
-          $val = Integer.parseInt($INTEGER.text);
-        }
     ;
 
-time_expr returns [long val]
+time_expr
     :   time_span AGO
-        {
-            $val = $time_span.val;
-        }
     |   date_time_string
-        {
-            $val = $date_time_string.val;
-        }
     |   NOW
-        {
-            $val = _now;
-        }
     ;
 
-date_time_string returns [long val]
+date_time_string
     :   DATE TIME?
-        {
-            SimpleDateFormat format;
-            String dateTimeStr = $DATE.text;
-            char separator = dateTimeStr.charAt(4);
-            if ($TIME != null) {
-                dateTimeStr = dateTimeStr + " " + $TIME.text;
-            }
-            int formatIdx = (separator == '-' ? 0 : 1);
-
-            if ($TIME == null) {
-                if (_format1[formatIdx] != null) {
-                    format = _format1[formatIdx];
-                }
-                else {
-                    format = _format1[formatIdx] = new SimpleDateFormat("yyyy" + separator + "MM" + separator + "dd");
-                }
-            }
-            else {
-                if (_format2[formatIdx] != null) {
-                    format = _format2[formatIdx];
-                }
-                else {
-                    format = _format2[formatIdx] = new SimpleDateFormat("yyyy" + separator + "MM" + separator + "dd HH:mm:ss");
-                }
-            }
-            try {
-                $val = format.parse(dateTimeStr).getTime();
-                if (!dateTimeStr.equals(format.format($val))) {
-                    throw new FailedPredicateException(input,
-                                                       "date_time_string", 
-                                                       "Date string contains invalid date/time: \"" + dateTimeStr + "\".");
-                }
-            }
-            catch (ParseException err) {
-                throw new FailedPredicateException(input,
-                                                   "date_time_string", 
-                                                   "ParseException happened for \"" + dateTimeStr + "\": " + 
-                                                   err.getMessage() + ".");
-            }
-        }
     ;
 
-match_predicate returns [JSONObject json]
+match_predicate
     :   (NOT)? MATCH LPAR selection_list RPAR AGAINST LPAR STRING_LITERAL RPAR
-        {
-            try {
-                JSONArray cols = $selection_list.json;
-                for (int i = 0; i < cols.length(); ++i) {
-                    String col = cols.getString(i);
-                    String[] facetInfo = _facetInfoMap.get(col);
-                    if (facetInfo != null && !facetInfo[1].equals("string")) {
-                        throw new FailedPredicateException(input, 
-                                                           "match_predicate", 
-                                                           "Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
-                    }
-                }
-
-                String orig = $STRING_LITERAL.text;
-                orig = orig.substring(1, orig.length() - 1);
-                $json = new FastJSONObject().put("query",
-                                                 new FastJSONObject().put("query_string",
-                                                                          new FastJSONObject().put("fields", cols)
-                                                                                              .put("query", orig)));
-                if ($NOT != null) {
-                    $json = new FastJSONObject().put("bool",
-                                                     new FastJSONObject().put("must_not", $json));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "match_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-like_predicate returns [JSONObject json]
+like_predicate
     :   column_name (NOT)? LIKE STRING_LITERAL
-        {
-            String col = $column_name.text;
-            String[] facetInfo = _facetInfoMap.get(col);
-            if (facetInfo != null && !facetInfo[1].equals("string")) {
-                throw new FailedPredicateException(input, 
-                                                   "match_predicate", 
-                                                   "Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
-            }
-            String orig = $STRING_LITERAL.text;
-            orig = orig.substring(1, orig.length() - 1);
-            String likeString = orig.replace('%', '*').replace('_', '?');
-            try {
-                $json = new FastJSONObject().put("query",
-                                                 new FastJSONObject().put("wildcard",
-                                                                          new FastJSONObject().put(col, likeString)));
-                if ($NOT != null) {
-                    $json = new FastJSONObject().put("bool",
-                                                     new FastJSONObject().put("must_not", $json));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "like_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-null_predicate returns [JSONObject json]
+null_predicate
     :   column_name IS (NOT)? NULL
-        {
-            String col = $column_name.text;
-            try {
-                $json = new FastJSONObject().put("isNull", col);
-                if ($NOT != null) {
-                    $json = new FastJSONObject().put("bool",
-                                                     new FastJSONObject().put("must_not", $json));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "null_predicate", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-non_variable_value_list returns [JSONArray json]
-@init {
-    $json = new FastJSONArray();
-}
+non_variable_value_list
     :   LPAR v=value
-        {
-            $json.put($v.val);
-        }
-        (COMMA v=value
-            {
-                $json.put($v.val);
-            }
-        )* RPAR
+        (   COMMA v=value
+        )*
+        RPAR
     |   LPAR RPAR
     ;
 
-python_style_list returns [JSONArray json]
-@init {
-    $json = new FastJSONArray();
-}
+python_style_list
     :   '[' v=python_style_value?
-        {
-            $json.put($v.val);
-        }
-        (COMMA v=python_style_value
-            {
-                $json.put($v.val);
-            }
-        )* ']'
+        (   COMMA v=python_style_value
+        )*
+        ']'
     ;
 
-python_style_dict returns [JSONObject json]
-@init {
-    $json = new FastJSONObject();
-}
-    :   '{''}'        |
-        '{' p=key_value_pair[KeyType.STRING_LITERAL]
-        {
-            try {
-                $json.put($p.key, $p.val);
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
-            }
-        }
-        (COMMA p=key_value_pair[KeyType.STRING_LITERAL]
-            {
-                try {
-                    $json.put($p.key, $p.val);
-                }
-                catch (JSONException err) {
-                    throw new FailedPredicateException(input, "python_style_dict", "JSONException: " + err.getMessage());
-                }
-            }
-        )* '}'
+python_style_dict
+    :   '{' '}'
+    |   '{' p=key_value_pair[KeyType.STRING_LITERAL]
+        (   COMMA p=key_value_pair[KeyType.STRING_LITERAL]
+        )*
+        '}'
     ;
 
-python_style_value returns [Object val]
-    :   value { $val = $value.val; }
-    |   python_style_list { $val = $python_style_list.json; }
-    |   python_style_dict { $val = $python_style_dict.json; }
+python_style_value
+    :   value
+    |   python_style_list
+    |   python_style_dict
     ;
 
-value_list returns [Object json]
+value_list
     :   non_variable_value_list
-        {
-            $json = $non_variable_value_list.json;
-        }
     |   VARIABLE
-        {
-            $json = $VARIABLE.text;
-            _variables.add(($VARIABLE.text).substring(1));
-        }
     ;
 
-value returns [Object val]
-    :   numeric { $val = $numeric.val; }
+value
+    :   numeric
     |   STRING_LITERAL
-        {
-            String orig = $STRING_LITERAL.text;
-            orig = orig.substring(1, orig.length() - 1);
-            $val = orig;
-        }
-    |   TRUE { $val = true; }
-    |   FALSE { $val = false; }
+    |   TRUE
+    |   FALSE
     |   VARIABLE
-        {
-            $val = $VARIABLE.text;
-            _variables.add(($VARIABLE.text).substring(1));
-        }
     ;
 
-numeric returns [Object val]
-    :   time_expr { $val = $time_expr.val; }
-    |   INTEGER {
-            try {
-                $val = Long.parseLong($INTEGER.text);
-            }
-            catch (NumberFormatException err) {
-                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
-            }
-        }
-    |   REAL {
-            try {
-                $val = Float.parseFloat($REAL.text);
-            }
-            catch (NumberFormatException err) {
-                throw new FailedPredicateException(input, "numeric", "Hit NumberFormatException: " + err.getMessage());
-            }
-        }
+numeric
+    :   time_expr
+    |   INTEGER
+    |   REAL
     ;
 
-except_clause returns [Object json]
+except_clause
     :   EXCEPT value_list
-        {
-            $json = $value_list.json;
-        }
     ;
   
-predicate_props returns [JSONObject json]
+predicate_props
     :   WITH prop_list[KeyType.STRING_LITERAL]
-        {
-            $json = $prop_list.json;
-        }
     ;
 
-prop_list[KeyType keyType] returns [JSONObject json]
-@init {
-    $json = new FastJSONObject();
-}
+prop_list[KeyType keyType]
     :   LPAR p=key_value_pair[keyType]
-        {
-            try {
-                $json.put($p.key, $p.val);
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
-            }
-        }
-        (COMMA p=key_value_pair[keyType]
-            {
-                try {
-                    $json.put($p.key, $p.val);
-                }
-                catch (JSONException err) {
-                    throw new FailedPredicateException(input, "prop_list", "JSONException: " + err.getMessage());
-                }
-            }
-        )* RPAR
+        (   COMMA p=key_value_pair[keyType]
+        )*
+        RPAR
     ;
 
-key_value_pair[KeyType keyType] returns [String key, Object val]
-locals[KeyType type_]
-@init {
-    $key_value_pair::type_ = keyType;
-}
-    :   ( { $key_value_pair::type_ == KeyType.STRING_LITERAL ||
-            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}? STRING_LITERAL
-        | { $key_value_pair::type_ == KeyType.IDENT ||
-            $key_value_pair::type_ == KeyType.STRING_LITERAL_AND_IDENT}? IDENT
+key_value_pair[KeyType keyType]
+    :   ( { $keyType == KeyType.STRING_LITERAL ||
+            $keyType == KeyType.STRING_LITERAL_AND_IDENT}? STRING_LITERAL
+        | { $keyType == KeyType.IDENT ||
+            $keyType == KeyType.STRING_LITERAL_AND_IDENT}? IDENT
         )
         COLON (v=value | vs=python_style_list | vd=python_style_dict)
-        {
-            if ($STRING_LITERAL != null) {
-                String orig = $STRING_LITERAL.text;
-                $key = orig.substring(1, orig.length() - 1);
-            }
-            else {
-                $key = $IDENT.text;
-            }
-            if (v != null) {
-                $val = $v.val;
-            }
-            else if (vs != null) {
-                $val = $vs.json;
-            }
-            else {
-                $val = $vd.json;
-            }
-        }
     ;
 
-given_clause returns [JSONObject json]
+given_clause
     :   GIVEN FACET PARAM facet_param_list
-        {
-            $json = $facet_param_list.json;
-        }
     ;
 
 
@@ -2149,33 +880,18 @@ given_clause returns [JSONObject json]
 // Relevance model related
 // =====================================================================
 
-variable_declarators returns [JSONArray json]
-@init {
-    $json = new FastJSONArray();
-}
+variable_declarators
     :   var1=variable_declarator
-        {
-            $json.put($var1.varName);
-        }
         (COMMA var2=variable_declarator
-            {
-                $json.put($var2.varName);
-            }
         )*
     ;
 
-variable_declarator returns [String varName]
+variable_declarator
     :   variable_declarator_id ('=' variable_initializer)?
-        {
-            $varName = $variable_declarator_id.varName;
-        }
     ;
 
-variable_declarator_id returns [String varName]
+variable_declarator_id
     :   IDENT ('[' ']')*
-        {
-            $varName = $IDENT.text;
-        }
     ;
 
 variable_initializer
@@ -2187,35 +903,23 @@ array_initializer
     :   '{' (variable_initializer (',' variable_initializer)* (',')?)? '}'
     ;
 
-type returns [String typeName]
+type
     :   class_or_interface_type ('[' ']')*
-        { $typeName = $class_or_interface_type.typeName; }
     |   primitive_type ('[' ']')*
-        { $typeName = $primitive_type.text;}
     |   boxed_type ('[' ']')*
-        { $typeName = $boxed_type.text;}
     |   limited_type ('[' ']')*
-        { $typeName = $limited_type.text;}
     ;
 
-class_or_interface_type returns [String typeName]
+class_or_interface_type
     :   FAST_UTIL_DATA_TYPE
-        { $typeName = _fastutilTypeMap.get($FAST_UTIL_DATA_TYPE.text); }
     ;
 
-type_arguments returns [String typeArgs]
-@init {
-    StringBuilder builder = new StringBuilder();
-}
+type_arguments
     :   '<'
         ta1=type_argument
-        { builder.append($ta1.text); }
         (COMMA ta2=type_argument
-            { builder.append("_").append($ta2.text); }
-        )* '>'
-        {
-            $typeArgs = builder.toString();
-        }
+        )*
+        '>'
     ;
 
 type_argument
@@ -2223,49 +927,18 @@ type_argument
     |   '?' (('extends' | 'super') type)?
     ;
 
-formal_parameters returns [JSONObject json]
+formal_parameters
     :   LPAR formal_parameter_decls RPAR
-        {
-            $json = $formal_parameter_decls.json;
-        }
     ;
 
-formal_parameter_decls returns [JSONObject json]
-@init {
-    $json = new FastJSONObject();
-    Set<String> params = new HashSet<String>();
-}
+formal_parameter_decls
     :   decl=formal_parameter_decl
-        {
-            try {
-                processRelevanceModelParam(input, $json, params, $decl.typeName, $decl.varName);
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input,
-                                                   "formal_parameter_decls",
-                                                   "JSONException: " + err.getMessage());
-            }
-        }
         (COMMA decl=formal_parameter_decl
-            {
-                try {
-                    processRelevanceModelParam(input, $json, params, $decl.typeName, $decl.varName);
-                }
-                catch (JSONException err) {
-                    throw new FailedPredicateException(input,
-                                                       "formal_parameter_decl",
-                                                       "JSONException: " + err.getMessage());
-                }
-            }
         )*
     ;
     
-formal_parameter_decl returns [String typeName, String varName]
+formal_parameter_decl
     :   variable_modifiers type variable_declarator_id
-        {
-            $typeName = $type.typeName;
-            $varName = $variable_declarator_id.varName;
-        }
     ;
 
 primitive_type
@@ -2300,73 +973,9 @@ variable_modifier
     :   'final'
     ;
 
-relevance_model returns [String functionBody, JSONObject json]
-@init {
-    _usedFacets = new HashSet<String>();
-    _usedInternalVars = new HashSet<String>();
-    _symbolTable = new LinkedList<Map<String, String>>();
-    _currentScope = new HashMap<String, String>();
-    _symbolTable.offerLast(_currentScope);
-}
+relevance_model
     :   DEFINED AS params=formal_parameters
-        {
-            try {
-                JSONObject varParams = $params.json.optJSONObject("variables");
-                if (varParams != null) {
-                    Iterator<String> itr = varParams.keys();
-                    while (itr.hasNext()) {
-                        String key = (String) itr.next();
-                        JSONArray vars = varParams.getJSONArray(key);
-                        for (int i = 0; i < vars.length(); ++i) {
-                            _currentScope.put(vars.getString(i), key);
-                        }
-                    }
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "relevance_model", "JSONException: " + err.getMessage());
-            }
-        }
         BEGIN model_block END
-        {
-            $functionBody = $model_block.text;
-            $json = $params.json;
-
-            // Append facets and internal variable to "function_params".
-            try {
-                JSONArray funcParams = $json.getJSONArray("function_params");
-
-                JSONObject facets = new FastJSONObject();
-                $json.put("facets", facets);
-
-                for (String facet: _usedFacets) {
-                    funcParams.put(facet);
-                    String[] facetInfo = _facetInfoMap.get(facet);
-                    String typeName = (facetInfo[0].equals("multi") ? "m" :
-                                       (facetInfo[0].equals("weighted-multi") ? "wm" : "")
-                                      )
-                                      + _facetInfoMap.get(facet)[1];
-                    JSONArray facetsWithSameType = facets.optJSONArray(typeName);
-                    if (facetsWithSameType == null) {
-                        facetsWithSameType = new FastJSONArray();
-                        facets.put(typeName, facetsWithSameType);
-                    }
-                    facetsWithSameType.put(facet);
-                }
-
-                // Internal variables, like _NOW, do not need to be
-                // included in "variables".
-                for (String varName: _usedInternalVars) {
-                    if( ! _internalStaticVarMap.containsKey(varName))
-                        funcParams.put(varName);
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input,
-                                                   "formal_parameter_decl",
-                                                   "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
 model_block
@@ -2375,15 +984,7 @@ model_block
 
 block
     :   '{' 
-        {
-            _currentScope = new HashMap<String, String>();
-            _symbolTable.offerLast(_currentScope);
-        }
         block_statement* 
-        {
-            _symbolTable.pollLast();
-            _currentScope = _symbolTable.peekLast();
-        }
         '}'
     ;
 
@@ -2398,35 +999,6 @@ local_variable_declaration_stmt
 
 local_variable_declaration
     :   variable_modifiers type variable_declarators
-        {
-            try {
-                JSONArray vars = $variable_declarators.json;
-                for (int i = 0; i < vars.length(); ++i) {
-                    String var = vars.getString(i);
-                    if (_facetInfoMap.containsKey(var)) {
-                        throw new FailedPredicateException(input,
-                                                           "local_variable_declaration",
-                                                           "Facet name \"" + var + "\" cannot be used to declare a variable.");
-                    }
-                    else if (_internalVarMap.containsKey(var)) {
-                        throw new FailedPredicateException(input,
-                                                           "local_variable_declaration",
-                                                           "Internal variable \"" + var + "\" cannot be re-used to declare another variable.");
-                    }
-                    else if (verifyVariable(var)) {
-                        throw new FailedPredicateException(input,
-                                                           "local_variable_declaration",
-                                                           "Variable \"" + var + "\" is already defined.");
-                    }
-                    else {
-                        _currentScope.put(var, $type.typeName);
-                    }
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "local_variable_declaration", "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
 variable_modifiers
@@ -2436,16 +1008,8 @@ variable_modifiers
 java_statement
     :   block
     |   'if' par_expression java_statement (else_statement)?
-    |   'for' LPAR
-        {
-            _currentScope = new HashMap<String, String>();
-            _symbolTable.offerLast(_currentScope);
-        }
+    |   FOR LPAR
         for_control RPAR java_statement
-        {
-            _symbolTable.pollLast();
-            _currentScope = _symbolTable.peekLast();
-        }
     |   'while' par_expression java_statement
     |   'do' java_statement 'while' par_expression SEMI
     |   'switch' par_expression '{' switch_block_statement_groups '}'
@@ -2526,23 +1090,9 @@ assignment_operator
     |   '|='
     |   '^='
     |   '%='
-    |   t1='<' t2='<' t3='=' 
-        { $t1.getLine() == $t2.getLine() &&
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() && 
-          $t2.getLine() == $t3.getLine() && 
-          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() }?
-    |   t1='>' t2='>' t3='>' t4='='
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() &&
-          $t2.getLine() == $t3.getLine() && 
-          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() &&
-          $t3.getLine() == $t4.getLine() && 
-          $t3.getCharPositionInLine() + 1 == $t4.getCharPositionInLine() }?
-    |   t1='>' t2='>' t3='='
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() && 
-          $t2.getLine() == $t3.getLine() && 
-          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() }?
+    |   '<' '<' '=' 
+    |   '>' '>' '>' '='
+    |   '>' '>' '='
     ;
 
 conditional_expression
@@ -2582,12 +1132,8 @@ relational_expression
     ;
 
 relational_op
-    :   t1='<' t2='=' 
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
-    |   t1='>' t2='=' 
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
+    :   '<' '=' 
+    |   '>' '=' 
     |   '<'
     |   '>'
     ;
@@ -2597,17 +1143,9 @@ shift_expression
     ;
 
 shift_op
-    :   t1='<' t2='<' 
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
-    |   t1='>' t2='>' t3='>' 
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() &&
-          $t2.getLine() == $t3.getLine() && 
-          $t2.getCharPositionInLine() + 1 == $t3.getCharPositionInLine() }?
-    |   t1='>' t2='>'
-        { $t1.getLine() == $t2.getLine() && 
-          $t1.getCharPositionInLine() + 1 == $t2.getCharPositionInLine() }?
+    :   '<' '<' 
+    |   '>' '>' '>' 
+    |   '>' '>'
     ;
 
 additive_expression
@@ -2643,20 +1181,6 @@ primary
     |   literal   
     |   java_method identifier_suffix
     |   java_ident ('.' java_method)* identifier_suffix?
-        {
-            String var = $java_ident.text;
-            if (_facetInfoMap.containsKey(var)) {
-                _usedFacets.add(var);
-            }
-            else if (_internalVarMap.containsKey(var)) {
-                _usedInternalVars.add(var);
-            }
-            else if (!_supportedClasses.contains(var) && !verifyVariable(var)) {
-                throw new FailedPredicateException(input,
-                                                   "primary",
-                                                   "Variable or class \"" + var + "\" is not defined.");
-            }
-        }        
     ;
 
 java_ident
@@ -2711,126 +1235,22 @@ arguments
     :   '(' expression_list? ')'
     ;
     
-relevance_model_clause returns [JSONObject json]
-@init {
-    $json = new FastJSONObject();
-}
+relevance_model_clause
     :   USING RELEVANCE MODEL IDENT prop_list[KeyType.STRING_LITERAL_AND_IDENT] model=relevance_model?
-        {
-            try {
-                if (model == null) {
-                    $json.put("predefined_model", $IDENT.text);
-                    $json.put("values", $prop_list.json);
-                }
-                else {
-                    JSONObject modelInfo = $model.json;
-                    JSONObject modelJson = new FastJSONObject();
-                    modelJson.put("function", $model.functionBody);
-
-                    JSONArray funcParams = modelInfo.optJSONArray("function_params");
-                    if (funcParams != null) {
-                        modelJson.put("function_params", funcParams);
-                    }
-
-                    JSONObject facets = modelInfo.optJSONObject("facets");
-                    if (facets != null) {
-                        modelJson.put("facets", facets);
-                    }
-
-                    JSONObject variables = modelInfo.optJSONObject("variables");
-                    if (variables != null) {
-                        modelJson.put("variables", variables);
-                    }
-
-                    $json.put("model", modelJson);
-                    $json.put("values", $prop_list.json);
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "relevance_model_clause",
-                                                   "JSONException: " + err.getMessage());
-            }
-        }
     ;
 
-facet_param_list returns [JSONObject json]
-@init {
-    $json = new FastJSONObject();
-}
+facet_param_list
     :   p=facet_param
-        {
-            try {
-                if (!$json.has($p.facet)) {
-                    $json.put($p.facet, $p.param);
-                }
-                else {
-                    JSONObject currentParam = (JSONObject) $json.get($p.facet);
-                    String paramName = (String) $p.param.keys().next();
-                    currentParam.put(paramName, $p.param.get(paramName));
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "facet_param_list", "JSONException: " + err.getMessage());
-            }
-        }
-        (COMMA p=facet_param
-            {
-                try {
-                    if (!$json.has($p.facet)) {
-                        $json.put($p.facet, $p.param);
-                    }
-                    else {
-                        JSONObject currentParam = (JSONObject) $json.get($p.facet);
-                        String paramName = (String) $p.param.keys().next();
-                        currentParam.put(paramName, $p.param.get(paramName));
-                    }
-                }
-                catch (JSONException err) {
-                    throw new FailedPredicateException(input, "facet_param_list", "JSONException: " + err.getMessage());
-                }
-            }
+        (   COMMA p=facet_param
         )*
     ;
 
-facet_param returns [String facet, JSONObject param]
+facet_param
     :   LPAR column_name COMMA STRING_LITERAL COMMA facet_param_type COMMA (val=value | valList=non_variable_value_list) RPAR
-        {
-            $facet = $column_name.text; // XXX Check error here?
-            try {
-                Object valArray = null;
-                if (val != null) {
-                    String varName = $value.text;
-                    if (varName.matches("\\$[^$].*")) {
-                        // Here "value" is a variable.  In this case, it
-                        // is REQUIRED that the variable should be
-                        // replaced by a list, NOT a scalar value.
-                        valArray = varName;
-                    }
-                    else {
-                        valArray = new FastJSONArray().put(val.val);
-                    }
-                }
-                else {
-                    valArray = $valList.json;
-                }
-
-                String orig = $STRING_LITERAL.text;
-                orig = orig.substring(1, orig.length() - 1);
-                $param = new FastJSONObject().put(orig,
-                                                  new FastJSONObject().put("type", $facet_param_type.paramType)
-                                                                      .put("values", valArray));
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "facet_param", "JSONException: " + err.getMessage());
-            }
-        }                                 
     ;
 
-facet_param_type returns [String paramType]
-    :   (t=BOOLEAN | t=INT | t=LONG | t=STRING | t=BYTEARRAY | t=DOUBLE) 
-        {
-            $paramType = $t.text;
-        }
+facet_param_type
+    :   t=(BOOLEAN | INT | LONG | STRING | BYTEARRAY | DOUBLE) 
     ;
 
 
