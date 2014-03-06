@@ -422,17 +422,6 @@ BNF Grammar for BQL
 
 grammar BQLv4;
 
-options
-{
-  // ANTLR will generate java lexer and parser
-  language = Java;
-  // Generated parser should create abstract syntax tree
-  output = AST;
-
-  backtrack = true;
-  memoize = true;
-}
-
 // Imaginary tokens
 tokens 
 {
