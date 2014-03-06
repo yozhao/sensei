@@ -1048,17 +1048,8 @@ where
     :   WHERE search_expr
     ;
 
-order_by_clause returns [boolean isRelevance, Object json]
+order_by_clause
     :   ORDER BY (RELEVANCE | sort_specs)
-        {
-            if ($RELEVANCE != null) {
-                $isRelevance = true;
-            }
-            else {
-                $isRelevance = false;
-                $json = $sort_specs.json;
-            }
-        }
     ;
 
 sort_specs returns [Object json]

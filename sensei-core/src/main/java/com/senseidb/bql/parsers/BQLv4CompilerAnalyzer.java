@@ -29,6 +29,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     private final ParseTreeProperty<String> functionProperty = new ParseTreeProperty<String>();
     private final ParseTreeProperty<String> columnProperty = new ParseTreeProperty<String>();
     private final ParseTreeProperty<String> textProperty = new ParseTreeProperty<String>();
+    private final ParseTreeProperty<Boolean> isRelevanceProperty = new ParseTreeProperty<Boolean>();
 
     @Override
     public void exitStatement(BQLv4Parser.StatementContext ctx) {
@@ -227,6 +228,16 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitWhere(BQLv4Parser.WhereContext ctx) {
         jsonProperty.put(ctx, jsonProperty.get(ctx.search_expr));
+    }
+
+    @Override
+    public void exitOrder_by_clause(BQLv4Parser.Order_by_clauseContext ctx) {
+        if (ctx.RELEVANCE() != null) {
+            isRelevanceProperty.put(ctx, true);
+        } else {
+            isRelevanceProperty.put(ctx, false);
+            jsonProperty.put(ctx, ctx.sort_specs.json);
+        }
     }
 
 }
