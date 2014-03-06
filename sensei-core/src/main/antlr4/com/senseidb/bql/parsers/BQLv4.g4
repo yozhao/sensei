@@ -2770,7 +2770,6 @@ switch_label
     ;
 
 for_control
-options {k=3;}
     :   enhanced_for_control
     |   for_init? SEMI expression? SEMI for_update?
     ;
