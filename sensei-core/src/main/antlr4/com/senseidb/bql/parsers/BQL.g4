@@ -420,7 +420,7 @@ BNF Grammar for BQL
 
 *******************************************************************************************/
 
-grammar BQLv4;
+grammar BQL;
 
 // Imaginary tokens
 tokens 

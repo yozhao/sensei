@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -29,7 +28,7 @@ import org.json.JSONObject;
  *
  * @author Sam Harwell
  */
-public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
+public class BQLCompilerAnalyzer extends BQLBaseListener {
 
     private static final int DEFAULT_REQUEST_OFFSET = 0;
     private static final int DEFAULT_REQUEST_COUNT = 10;
@@ -126,7 +125,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
                                                                })));
     }
 
-    public BQLv4CompilerAnalyzer(Map<String, String[]> facetInfoMap) {
+    public BQLCompilerAnalyzer(Map<String, String[]> facetInfoMap) {
         _facetInfoMap = facetInfoMap;
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
@@ -455,20 +454,20 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitStatement(BQLv4Parser.StatementContext ctx) {
+    public void exitStatement(BQLParser.StatementContext ctx) {
         if (ctx.select_stmt() != null) {
             jsonProperty.put(ctx, jsonProperty.get(ctx.select_stmt()));
         }
     }
 
     @Override
-    public void enterSelect_stmt(BQLv4Parser.Select_stmtContext ctx) {
+    public void enterSelect_stmt(BQLParser.Select_stmtContext ctx) {
         _now = System.currentTimeMillis();
         _variables = new HashSet<String>();
     }
 
     @Override
-    public void exitSelect_stmt(BQLv4Parser.Select_stmtContext ctx) {
+    public void exitSelect_stmt(BQLParser.Select_stmtContext ctx) {
         if (ctx.order_by_clause().size() > 1) {
             throw new IllegalStateException("ORDER BY clause can only appear once.");
         }
@@ -623,15 +622,15 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void enterSelection_list(BQLv4Parser.Selection_listContext ctx) {
+    public void enterSelection_list(BQLParser.Selection_listContext ctx) {
         fetchStoredProperty.put(ctx, false);
         jsonProperty.put(ctx, new FastJSONArray());
         aggregationFunctionsProperty.put(ctx, new ArrayList<Pair<String, String>>());
     }
 
     @Override
-    public void exitSelection_list(BQLv4Parser.Selection_listContext ctx) {
-        for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
+    public void exitSelection_list(BQLParser.Selection_listContext ctx) {
+        for (BQLParser.Column_nameContext col : ctx.column_name()) {
             String colName = getTextProperty(col);
             if (colName != null) {
                 jsonProperty.put(ctx, getTextProperty(col));
@@ -641,13 +640,13 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
             }
         }
 
-        for (BQLv4Parser.Aggregation_functionContext agrFunction : ctx.aggregation_function()) {
+        for (BQLParser.Aggregation_functionContext agrFunction : ctx.aggregation_function()) {
             aggregationFunctionsProperty.get(ctx).add(new Pair<String, String>(functionProperty.get(agrFunction), columnProperty.get(agrFunction)));
         }
     }
 
     @Override
-    public void exitAggregation_function(BQLv4Parser.Aggregation_functionContext ctx) {
+    public void exitAggregation_function(BQLParser.Aggregation_functionContext ctx) {
         functionProperty.put(ctx, getTextProperty(ctx.id));
         if (ctx.columnVar != null) {
             columnProperty.put(ctx, getTextProperty(ctx.columnVar));
@@ -657,14 +656,14 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitColumn_name(BQLv4Parser.Column_nameContext ctx) {
+    public void exitColumn_name(BQLParser.Column_nameContext ctx) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < ctx.getChildCount(); i++) {
             ParseTree child = ctx.getChild(i);
             if (child instanceof TerminalNode) {
                 TerminalNode terminal = (TerminalNode)child;
                 String orig = terminal.getSymbol().getText();
-                if (terminal.getSymbol().getType() == BQLv4Lexer.STRING_LITERAL) {
+                if (terminal.getSymbol().getType() == BQLLexer.STRING_LITERAL) {
                     builder.append(unescapeStringLiteral(terminal));
                 } else {
                     builder.append(orig);
@@ -676,7 +675,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFunction_name(BQLv4Parser.Function_nameContext ctx) {
+    public void exitFunction_name(BQLParser.Function_nameContext ctx) {
         if (ctx.min != null) {
             textProperty.put(ctx, "min");
         } else {
@@ -685,12 +684,12 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitWhere(BQLv4Parser.WhereContext ctx) {
+    public void exitWhere(BQLParser.WhereContext ctx) {
         jsonProperty.put(ctx, jsonProperty.get(ctx.search_expr()));
     }
 
     @Override
-    public void exitOrder_by_clause(BQLv4Parser.Order_by_clauseContext ctx) {
+    public void exitOrder_by_clause(BQLParser.Order_by_clauseContext ctx) {
         if (ctx.RELEVANCE() != null) {
             isRelevanceProperty.put(ctx, true);
         } else {
@@ -700,9 +699,9 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitSort_specs(BQLv4Parser.Sort_specsContext ctx) {
+    public void exitSort_specs(BQLParser.Sort_specsContext ctx) {
         JSONArray sortArray = new FastJSONArray();
-        for (BQLv4Parser.Sort_specContext sort : ctx.sort_spec()) {
+        for (BQLParser.Sort_specContext sort : ctx.sort_spec()) {
             sortArray.put(jsonProperty.get(sort));
         }
 
@@ -710,7 +709,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitSort_spec(BQLv4Parser.Sort_specContext ctx) {
+    public void exitSort_spec(BQLParser.Sort_specContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
         try {
@@ -725,7 +724,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitLimit_clause(BQLv4Parser.Limit_clauseContext ctx) {
+    public void exitLimit_clause(BQLParser.Limit_clauseContext ctx) {
         if (ctx.n1 != null) {
             offsetProperty.put(ctx, Integer.parseInt(ctx.n1.getText()));
         } else {
@@ -736,10 +735,10 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitComma_column_name_list(BQLv4Parser.Comma_column_name_listContext ctx) {
+    public void exitComma_column_name_list(BQLParser.Comma_column_name_listContext ctx) {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
+        for (BQLParser.Column_nameContext col : ctx.column_name()) {
             String colName = getTextProperty(col);
             if (colName != null) {
                 json.put(colName);
@@ -748,10 +747,10 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitOr_column_name_list(BQLv4Parser.Or_column_name_listContext ctx) {
+    public void exitOr_column_name_list(BQLParser.Or_column_name_listContext ctx) {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
+        for (BQLParser.Column_nameContext col : ctx.column_name()) {
             String colName = getTextProperty(col);
             if (colName != null) {
                 json.put(colName);
@@ -760,7 +759,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitGroup_by_clause(BQLv4Parser.Group_by_clauseContext ctx) {
+    public void exitGroup_by_clause(BQLParser.Group_by_clauseContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
         try {
@@ -788,7 +787,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitDistinct_clause(BQLv4Parser.Distinct_clauseContext ctx) {
+    public void exitDistinct_clause(BQLParser.Distinct_clauseContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
         try {
@@ -814,10 +813,10 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitBrowse_by_clause(BQLv4Parser.Browse_by_clauseContext ctx) {
+    public void exitBrowse_by_clause(BQLParser.Browse_by_clauseContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Facet_specContext f : ctx.facet_spec()) {
+        for (BQLParser.Facet_specContext f : ctx.facet_spec()) {
             try {
                 json.put(columnProperty.get(f), specProperty.get(f));
             } catch (JSONException err) {
@@ -827,14 +826,14 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitExecute_clause(BQLv4Parser.Execute_clauseContext ctx) {
+    public void exitExecute_clause(BQLParser.Execute_clauseContext ctx) {
         functionNameProperty.put(ctx, getTextProperty(ctx.funName));
         if (ctx.map != null) {
             propertiesProperty.put(ctx, (JSONObject)jsonProperty.get(ctx.map));
         } else {
             JSONObject properties = new FastJSONObject();
             propertiesProperty.put(ctx, properties);
-            for (BQLv4Parser.Key_value_pairContext p : ctx.key_value_pair()) {
+            for (BQLParser.Key_value_pairContext p : ctx.key_value_pair()) {
                 try {
                     properties.put(keyProperty.get(p), valProperty.get(p));
                 } catch (JSONException err) {
@@ -845,7 +844,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFacet_spec(BQLv4Parser.Facet_specContext ctx) {
+    public void exitFacet_spec(BQLParser.Facet_specContext ctx) {
         boolean expand = false;
         int minhit = DEFAULT_FACET_MINHIT;
         int max = DEFAULT_FACET_MAXHIT;
@@ -878,19 +877,19 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFetching_stored_clause(BQLv4Parser.Fetching_stored_clauseContext ctx) {
+    public void exitFetching_stored_clause(BQLParser.Fetching_stored_clauseContext ctx) {
         valProperty.put(ctx, ctx.FALSE().isEmpty());
     }
 
     @Override
-    public void exitRoute_by_clause(BQLv4Parser.Route_by_clauseContext ctx) {
+    public void exitRoute_by_clause(BQLParser.Route_by_clauseContext ctx) {
         valProperty.put(ctx, unescapeStringLiteral(ctx.STRING_LITERAL()));
     }
 
     @Override
-    public void exitSearch_expr(BQLv4Parser.Search_exprContext ctx) {
+    public void exitSearch_expr(BQLParser.Search_exprContext ctx) {
         JSONArray array = new FastJSONArray();
-        for (BQLv4Parser.Term_exprContext t : ctx.term_expr()) {
+        for (BQLParser.Term_exprContext t : ctx.term_expr()) {
             array.put(jsonProperty.get(t));
         }
 
@@ -906,9 +905,9 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitTerm_expr(BQLv4Parser.Term_exprContext ctx) {
+    public void exitTerm_expr(BQLParser.Term_exprContext ctx) {
         JSONArray array = new FastJSONArray();
-        for (BQLv4Parser.Factor_exprContext f : ctx.factor_expr()) {
+        for (BQLParser.Factor_exprContext f : ctx.factor_expr()) {
             array.put(jsonProperty.get(f));
         }
 
@@ -940,7 +939,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFactor_expr(BQLv4Parser.Factor_exprContext ctx) {
+    public void exitFactor_expr(BQLParser.Factor_exprContext ctx) {
         if (ctx.predicate() != null) {
             jsonProperty.put(ctx, jsonProperty.get(ctx.predicate()));
         } else {
@@ -949,7 +948,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitPredicate(BQLv4Parser.PredicateContext ctx) {
+    public void exitPredicate(BQLParser.PredicateContext ctx) {
         if (ctx.getChildCount() != 1) {
             throw new UnsupportedOperationException("Not yet implemented");
         }
@@ -958,7 +957,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitIn_predicate(BQLv4Parser.In_predicateContext ctx) {
+    public void exitIn_predicate(BQLParser.In_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
 
@@ -1002,7 +1001,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitEmpty_predicate(BQLv4Parser.Empty_predicateContext ctx) {
+    public void exitEmpty_predicate(BQLParser.Empty_predicateContext ctx) {
         try {
             JSONObject exp = new FastJSONObject();
             if (ctx.NOT() != null) {
@@ -1032,7 +1031,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitContains_all_predicate(BQLv4Parser.Contains_all_predicateContext ctx) {
+    public void exitContains_all_predicate(BQLParser.Contains_all_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && facetInfo[0].equals("range")) {
@@ -1069,7 +1068,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitEqual_predicate(BQLv4Parser.Equal_predicateContext ctx) {
+    public void exitEqual_predicate(BQLParser.Equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
             throw new IllegalStateException("Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
@@ -1116,7 +1115,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitNot_equal_predicate(BQLv4Parser.Not_equal_predicateContext ctx) {
+    public void exitNot_equal_predicate(BQLParser.Not_equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
             throw new IllegalStateException("Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
@@ -1154,7 +1153,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitQuery_predicate(BQLv4Parser.Query_predicateContext ctx) {
+    public void exitQuery_predicate(BQLParser.Query_predicateContext ctx) {
         try {
             String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
             orig = orig.substring(1, orig.length() - 1);
@@ -1167,7 +1166,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitBetween_predicate(BQLv4Parser.Between_predicateContext ctx) {
+    public void exitBetween_predicate(BQLParser.Between_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
             throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
@@ -1205,7 +1204,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitRange_predicate(BQLv4Parser.Range_predicateContext ctx) {
+    public void exitRange_predicate(BQLParser.Range_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
             throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
@@ -1233,7 +1232,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitTime_predicate(BQLv4Parser.Time_predicateContext ctx) {
+    public void exitTime_predicate(BQLParser.Time_predicateContext ctx) {
         if (ctx.LAST() != null) {
             String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
@@ -1281,7 +1280,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitTime_span(BQLv4Parser.Time_spanContext ctx) {
+    public void exitTime_span(BQLParser.Time_spanContext ctx) {
         long val = 0;
         if (ctx.week != null) {
             val += (Long)valProperty.get(ctx.week);
@@ -1311,43 +1310,43 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitTime_week_part(BQLv4Parser.Time_week_partContext ctx) {
+    public void exitTime_week_part(BQLParser.Time_week_partContext ctx) {
         long val = Integer.parseInt(ctx.INTEGER().getText()) * 7 * 24 * 60 * 60 * 1000L;
         valProperty.put(ctx, val);
     }
 
     @Override
-    public void exitTime_day_part(BQLv4Parser.Time_day_partContext ctx) {
+    public void exitTime_day_part(BQLParser.Time_day_partContext ctx) {
         long val = Integer.parseInt(ctx.INTEGER().getText()) * 24 * 60 * 60 * 1000L;
         valProperty.put(ctx, val);
     }
 
     @Override
-    public void exitTime_hour_part(BQLv4Parser.Time_hour_partContext ctx) {
+    public void exitTime_hour_part(BQLParser.Time_hour_partContext ctx) {
         long val = Integer.parseInt(ctx.INTEGER().getText()) * 60 * 60 * 1000L;
         valProperty.put(ctx, val);
     }
 
     @Override
-    public void exitTime_minute_part(BQLv4Parser.Time_minute_partContext ctx) {
+    public void exitTime_minute_part(BQLParser.Time_minute_partContext ctx) {
         long val = Integer.parseInt(ctx.INTEGER().getText()) * 60 * 1000L;
         valProperty.put(ctx, val);
     }
 
     @Override
-    public void exitTime_second_part(BQLv4Parser.Time_second_partContext ctx) {
+    public void exitTime_second_part(BQLParser.Time_second_partContext ctx) {
         long val = Integer.parseInt(ctx.INTEGER().getText()) * 1000L;
         valProperty.put(ctx, val);
     }
 
     @Override
-    public void exitTime_millisecond_part(BQLv4Parser.Time_millisecond_partContext ctx) {
+    public void exitTime_millisecond_part(BQLParser.Time_millisecond_partContext ctx) {
         long val = Integer.parseInt(ctx.INTEGER().getText());
         valProperty.put(ctx, val);
     }
 
     @Override
-    public void exitTime_expr(BQLv4Parser.Time_exprContext ctx) {
+    public void exitTime_expr(BQLParser.Time_exprContext ctx) {
         if (ctx.time_span() != null) {
             valProperty.put(ctx, valProperty.get(ctx.time_span()));
         } else if (ctx.date_time_string() != null) {
@@ -1360,7 +1359,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitDate_time_string(BQLv4Parser.Date_time_stringContext ctx) {
+    public void exitDate_time_string(BQLParser.Date_time_stringContext ctx) {
         SimpleDateFormat format;
         String dateTimeStr = ctx.DATE().getText();
         char separator = dateTimeStr.charAt(4);
@@ -1396,7 +1395,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitMatch_predicate(BQLv4Parser.Match_predicateContext ctx) {
+    public void exitMatch_predicate(BQLParser.Match_predicateContext ctx) {
         try {
             JSONArray cols = (JSONArray)jsonProperty.get(ctx.selection_list());
             for (int i = 0; i < cols.length(); ++i) {
@@ -1423,7 +1422,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitLike_predicate(BQLv4Parser.Like_predicateContext ctx) {
+    public void exitLike_predicate(BQLParser.Like_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && !facetInfo[1].equals("string")) {
@@ -1448,7 +1447,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitNull_predicate(BQLv4Parser.Null_predicateContext ctx) {
+    public void exitNull_predicate(BQLParser.Null_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         try {
             jsonProperty.put(ctx, new FastJSONObject().put("isNull", col));
@@ -1462,29 +1461,29 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitNon_variable_value_list(BQLv4Parser.Non_variable_value_listContext ctx) {
+    public void exitNon_variable_value_list(BQLParser.Non_variable_value_listContext ctx) {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.ValueContext v : ctx.value()) {
+        for (BQLParser.ValueContext v : ctx.value()) {
             json.put(valProperty.get(v));
         }
     }
 
     @Override
-    public void exitPython_style_list(BQLv4Parser.Python_style_listContext ctx) {
+    public void exitPython_style_list(BQLParser.Python_style_listContext ctx) {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Python_style_valueContext v : ctx.python_style_value()) {
+        for (BQLParser.Python_style_valueContext v : ctx.python_style_value()) {
             // TODO: make sure handling here is correct when first python_style_value is missing
             json.put(valProperty.get(v));
         }
     }
 
     @Override
-    public void exitPython_style_dict(BQLv4Parser.Python_style_dictContext ctx) {
+    public void exitPython_style_dict(BQLParser.Python_style_dictContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Key_value_pairContext p : ctx.key_value_pair()) {
+        for (BQLParser.Key_value_pairContext p : ctx.key_value_pair()) {
             try {
                 json.put(keyProperty.get(p), valProperty.get(p));
             } catch (JSONException err) {
@@ -1494,7 +1493,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitPython_style_value(BQLv4Parser.Python_style_valueContext ctx) {
+    public void exitPython_style_value(BQLParser.Python_style_valueContext ctx) {
         if (ctx.value() != null) {
             valProperty.put(ctx, valProperty.get(ctx.value()));
         } else if (ctx.python_style_list() != null) {
@@ -1507,7 +1506,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitValue_list(BQLv4Parser.Value_listContext ctx) {
+    public void exitValue_list(BQLParser.Value_listContext ctx) {
         if (ctx.non_variable_value_list() != null) {
             jsonProperty.put(ctx, jsonProperty.get(ctx.non_variable_value_list()));
         } else if (ctx.VARIABLE() != null) {
@@ -1519,7 +1518,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitValue(BQLv4Parser.ValueContext ctx) {
+    public void exitValue(BQLParser.ValueContext ctx) {
         if (ctx.numeric() != null) {
             valProperty.put(ctx, valProperty.get(ctx.numeric()));
         } else if (ctx.STRING_LITERAL() != null) {
@@ -1537,7 +1536,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitNumeric(BQLv4Parser.NumericContext ctx) {
+    public void exitNumeric(BQLParser.NumericContext ctx) {
         if (ctx.time_expr() != null) {
             valProperty.put(ctx, valProperty.get(ctx.time_expr()));
         } else if (ctx.INTEGER() != null) {
@@ -1558,20 +1557,20 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitExcept_clause(BQLv4Parser.Except_clauseContext ctx) {
+    public void exitExcept_clause(BQLParser.Except_clauseContext ctx) {
         jsonProperty.put(ctx, jsonProperty.get(ctx.value_list()));
     }
 
     @Override
-    public void exitPredicate_props(BQLv4Parser.Predicate_propsContext ctx) {
+    public void exitPredicate_props(BQLParser.Predicate_propsContext ctx) {
         jsonProperty.put(ctx, jsonProperty.get(ctx.prop_list()));
     }
 
     @Override
-    public void exitProp_list(BQLv4Parser.Prop_listContext ctx) {
+    public void exitProp_list(BQLParser.Prop_listContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Key_value_pairContext p : ctx.key_value_pair()) {
+        for (BQLParser.Key_value_pairContext p : ctx.key_value_pair()) {
             try {
                 json.put(keyProperty.get(p), valProperty.get(p));
             } catch (JSONException err) {
@@ -1581,7 +1580,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitKey_value_pair(BQLv4Parser.Key_value_pairContext ctx) {
+    public void exitKey_value_pair(BQLParser.Key_value_pairContext ctx) {
         if (ctx.STRING_LITERAL() != null) {
             keyProperty.put(ctx, unescapeStringLiteral(ctx.STRING_LITERAL()));
         } else {
@@ -1598,31 +1597,31 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitGiven_clause(BQLv4Parser.Given_clauseContext ctx) {
+    public void exitGiven_clause(BQLParser.Given_clauseContext ctx) {
         jsonProperty.put(ctx, jsonProperty.get(ctx.facet_param_list()));
     }
 
     @Override
-    public void exitVariable_declarators(BQLv4Parser.Variable_declaratorsContext ctx) {
+    public void exitVariable_declarators(BQLParser.Variable_declaratorsContext ctx) {
         JSONArray json = new FastJSONArray();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Variable_declaratorContext var : ctx.variable_declarator()) {
+        for (BQLParser.Variable_declaratorContext var : ctx.variable_declarator()) {
             json.put(varNameProperty.get(var));
         }
     }
 
     @Override
-    public void exitVariable_declarator(BQLv4Parser.Variable_declaratorContext ctx) {
+    public void exitVariable_declarator(BQLParser.Variable_declaratorContext ctx) {
         varNameProperty.put(ctx, varNameProperty.get(ctx.variable_declarator_id()));
     }
 
     @Override
-    public void exitVariable_declarator_id(BQLv4Parser.Variable_declarator_idContext ctx) {
+    public void exitVariable_declarator_id(BQLParser.Variable_declarator_idContext ctx) {
         varNameProperty.put(ctx, ctx.IDENT().getText());
     }
 
     @Override
-    public void exitType(BQLv4Parser.TypeContext ctx) {
+    public void exitType(BQLParser.TypeContext ctx) {
         if (ctx.class_or_interface_type() != null) {
             typeNameProperty.put(ctx, typeNameProperty.get(ctx.class_or_interface_type()));
         } else if (ctx.primitive_type() != null) {
@@ -1637,14 +1636,14 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitClass_or_interface_type(BQLv4Parser.Class_or_interface_typeContext ctx) {
+    public void exitClass_or_interface_type(BQLParser.Class_or_interface_typeContext ctx) {
         typeNameProperty.put(ctx, _fastutilTypeMap.get(ctx.FAST_UTIL_DATA_TYPE().getText()));
     }
 
     @Override
-    public void exitType_arguments(BQLv4Parser.Type_argumentsContext ctx) {
+    public void exitType_arguments(BQLParser.Type_argumentsContext ctx) {
         StringBuilder builder = new StringBuilder();
-        for (BQLv4Parser.Type_argumentContext ta : ctx.type_argument()) {
+        for (BQLParser.Type_argumentContext ta : ctx.type_argument()) {
             if (builder.length() > 0) {
                 builder.append('_');
             }
@@ -1656,16 +1655,16 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFormal_parameters(BQLv4Parser.Formal_parametersContext ctx) {
+    public void exitFormal_parameters(BQLParser.Formal_parametersContext ctx) {
         jsonProperty.put(ctx, jsonProperty.get(ctx.formal_parameter_decls()));
     }
 
     @Override
-    public void exitFormal_parameter_decls(BQLv4Parser.Formal_parameter_declsContext ctx) {
+    public void exitFormal_parameter_decls(BQLParser.Formal_parameter_declsContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
         Set<String> params = new HashSet<String>();
-        for (BQLv4Parser.Formal_parameter_declContext decl : ctx.formal_parameter_decl()) {
+        for (BQLParser.Formal_parameter_declContext decl : ctx.formal_parameter_decl()) {
             try {
                 processRelevanceModelParam(json, params, typeNameProperty.get(decl), varNameProperty.get(decl));
             }
@@ -1676,13 +1675,13 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFormal_parameter_decl(BQLv4Parser.Formal_parameter_declContext ctx) {
+    public void exitFormal_parameter_decl(BQLParser.Formal_parameter_declContext ctx) {
         typeNameProperty.put(ctx, typeNameProperty.get(ctx.type()));
         varNameProperty.put(ctx, varNameProperty.get(ctx.variable_declarator_id()));
     }
 
     @Override
-    public void enterRelevance_model(BQLv4Parser.Relevance_modelContext ctx) {
+    public void enterRelevance_model(BQLParser.Relevance_modelContext ctx) {
         _usedFacets = new HashSet<String>();
         _usedInternalVars = new HashSet<String>();
         _symbolTable = new LinkedList<Map<String, String>>();
@@ -1691,7 +1690,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitRelevance_model(BQLv4Parser.Relevance_modelContext ctx) {
+    public void exitRelevance_model(BQLParser.Relevance_modelContext ctx) {
         functionBodyProperty.put(ctx, getTextProperty(ctx.model_block()));
         JSONObject json = (JSONObject)jsonProperty.get(ctx.params);
         jsonProperty.put(ctx, json);
@@ -1730,12 +1729,12 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void enterModel_block(BQLv4Parser.Model_blockContext ctx) {
-        if (!(ctx.getParent() instanceof BQLv4Parser.Relevance_modelContext)) {
+    public void enterModel_block(BQLParser.Model_blockContext ctx) {
+        if (!(ctx.getParent() instanceof BQLParser.Relevance_modelContext)) {
             throw new UnsupportedOperationException("Parent of model_block must be relevance_model");
         }
 
-        BQLv4Parser.Relevance_modelContext parent = (BQLv4Parser.Relevance_modelContext)ctx.getParent();
+        BQLParser.Relevance_modelContext parent = (BQLParser.Relevance_modelContext)ctx.getParent();
         try {
             JSONObject varParams = ((JSONObject)jsonProperty.get(parent.params)).optJSONObject("variables");
             if (varParams != null) {
@@ -1754,19 +1753,19 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void enterBlock(BQLv4Parser.BlockContext ctx) {
+    public void enterBlock(BQLParser.BlockContext ctx) {
         _currentScope = new HashMap<String, String>();
         _symbolTable.offerLast(_currentScope);
     }
 
     @Override
-    public void exitBlock(BQLv4Parser.BlockContext ctx) {
+    public void exitBlock(BQLParser.BlockContext ctx) {
         _symbolTable.pollLast();
         _currentScope = _symbolTable.peekLast();
     }
 
     @Override
-    public void exitLocal_variable_declaration(BQLv4Parser.Local_variable_declarationContext ctx) {
+    public void exitLocal_variable_declaration(BQLParser.Local_variable_declarationContext ctx) {
         try {
             JSONArray vars = (JSONArray)jsonProperty.get(ctx.variable_declarators());
             for (int i = 0; i < vars.length(); ++i) {
@@ -1787,7 +1786,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void enterJava_statement(BQLv4Parser.Java_statementContext ctx) {
+    public void enterJava_statement(BQLParser.Java_statementContext ctx) {
         if (ctx.FOR() != null) {
             _currentScope = new HashMap<String, String>();
             _symbolTable.offerLast(_currentScope);
@@ -1795,7 +1794,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitJava_statement(BQLv4Parser.Java_statementContext ctx) {
+    public void exitJava_statement(BQLParser.Java_statementContext ctx) {
         if (ctx.FOR() != null) {
             _symbolTable.pollLast();
             _currentScope = _symbolTable.peekLast();
@@ -1803,17 +1802,17 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void enterAssignment_operator(BQLv4Parser.Assignment_operatorContext ctx) {
+    public void enterAssignment_operator(BQLParser.Assignment_operatorContext ctx) {
         checkOperatorSpacing(ctx);
     }
 
     @Override
-    public void enterRelational_op(BQLv4Parser.Relational_opContext ctx) {
+    public void enterRelational_op(BQLParser.Relational_opContext ctx) {
         checkOperatorSpacing(ctx);
     }
 
     @Override
-    public void enterShift_op(BQLv4Parser.Shift_opContext ctx) {
+    public void enterShift_op(BQLParser.Shift_opContext ctx) {
         checkOperatorSpacing(ctx);
     }
 
@@ -1840,7 +1839,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitPrimary(BQLv4Parser.PrimaryContext ctx) {
+    public void exitPrimary(BQLParser.PrimaryContext ctx) {
         if (ctx.java_ident() != null) {
             String var = ctx.java_ident().getText();
             if (_facetInfoMap.containsKey(var)) {
@@ -1854,7 +1853,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitRelevance_model_clause(BQLv4Parser.Relevance_model_clauseContext ctx) {
+    public void exitRelevance_model_clause(BQLParser.Relevance_model_clauseContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
         try {
@@ -1890,10 +1889,10 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFacet_param_list(BQLv4Parser.Facet_param_listContext ctx) {
+    public void exitFacet_param_list(BQLParser.Facet_param_listContext ctx) {
         JSONObject json = new FastJSONObject();
         jsonProperty.put(ctx, json);
-        for (BQLv4Parser.Facet_paramContext p : ctx.facet_param()) {
+        for (BQLParser.Facet_paramContext p : ctx.facet_param()) {
             try {
                 if (!json.has(facetProperty.get(p))) {
                     json.put(facetProperty.get(p), paramProperty.get(p));
@@ -1909,7 +1908,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFacet_param(BQLv4Parser.Facet_paramContext ctx) {
+    public void exitFacet_param(BQLParser.Facet_paramContext ctx) {
         facetProperty.put(ctx, getTextProperty(ctx.column_name())); // XXX Check error here?
         try {
             Object valArray;
@@ -1937,14 +1936,14 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     }
 
     @Override
-    public void exitFacet_param_type(BQLv4Parser.Facet_param_typeContext ctx) {
+    public void exitFacet_param_type(BQLParser.Facet_param_typeContext ctx) {
         paramTypeProperty.put(ctx, ctx.t.getText());
     }
 
     private String getTextProperty(ParserRuleContext ctx) {
         switch (ctx.getRuleIndex()) {
-        case BQLv4Parser.RULE_column_name:
-        case BQLv4Parser.RULE_function_name:
+        case BQLParser.RULE_column_name:
+        case BQLParser.RULE_function_name:
             return textProperty.get(ctx);
 
         default:
@@ -1954,7 +1953,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     private static String unescapeStringLiteral(TerminalNode terminalNode) {
         Token token = terminalNode.getSymbol();
-        if (token.getType() != BQLv4Lexer.STRING_LITERAL) {
+        if (token.getType() != BQLLexer.STRING_LITERAL) {
             throw new IllegalArgumentException();
         }
 
