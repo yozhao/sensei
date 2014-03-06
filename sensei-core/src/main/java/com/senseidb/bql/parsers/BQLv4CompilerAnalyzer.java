@@ -23,6 +23,13 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     private final ParseTreeProperty<Object> jsonProperty = new ParseTreeProperty<Object>();
 
     @Override
+    public void exitStatement(BQLv4Parser.StatementContext ctx) {
+        if (ctx.select_stmt != null) {
+            jsonProperty.put(ctx, jsonProperty.get(ctx.select_stmt));
+        }
+    }
+
+    @Override
     public void enterSelect_stmt(BQLv4Parser.Select_stmtContext ctx) {
         _now = System.currentTimeMillis();
         _variables = new HashSet<String>();

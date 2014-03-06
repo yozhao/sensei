@@ -992,8 +992,8 @@ import com.senseidb.search.req.BQLParserUtils;
 
 // ***************** parser rules:
 
-statement returns [Object json]
-    :   (   select_stmt { $json = $select_stmt.json; }
+statement
+    :   (   select_stmt
         |   describe_stmt
         )   SEMI? EOF
     ;
