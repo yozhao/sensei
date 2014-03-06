@@ -475,76 +475,49 @@ import com.senseidb.search.req.BQLParserUtils;
       STRING_LITERAL_AND_IDENT
     }
 
-    // The following two overridden methods are used to force ANTLR to
-    // stop parsing upon the very first error.
+    //@Override
+    //public String getErrorMessage(RecognitionException err, String[] tokenNames) 
+    //{
+    //    List stack = getRuleInvocationStack(err, this.getClass().getName());
+    //    String msg = null; 
+    //    if (err instanceof NoViableAltException) {
+    //        NoViableAltException nvae = (NoViableAltException) err;
+    //        // msg = "No viable alt; token=" + err.token.getText() +
+    //        //     " (decision=" + nvae.decisionNumber +
+    //        //     " state "+nvae.stateNumber+")" +
+    //        //     " decision=<<" + nvae.grammarDecisionDescription + ">>";
+    //        msg = "[line:" + err.line + ", col:" + err.charPositionInLine + "] " +
+    //            "No viable alternative (token=" + err.token.getText() + ")" + " (stack=" + stack + ")";
+    //    }
+    //    else if (err instanceof MismatchedTokenException) {
+    //        MismatchedTokenException mte = (MismatchedTokenException) err;
+    //        String tokenName = (mte.expecting == Token.EOF) ? "EOF" : tokenNames[mte.expecting];
+    //        msg = "[line:" + mte.line + ", col:" + mte.charPositionInLine + "] " +
+    //            "Expecting " + tokenName +
+    //            " (token=" + err.token.getText() + ")";
+    //    }
+    //    else if (err instanceof FailedPredicateException) {
+    //        FailedPredicateException fpe = (FailedPredicateException) err;
+    //        msg = "[line:" + fpe.line + ", col:" + fpe.charPositionInLine + "] " +
+    //            fpe.predicateText +
+    //            " (token=" + fpe.token.getText() + ")";
+    //    }
+    //    else if (err instanceof MismatchedSetException) {
+    //        MismatchedSetException mse = (MismatchedSetException) err;
+    //        msg = "[line:" + mse.line + ", col:" + mse.charPositionInLine + "] " +
+    //            "Mismatched input (token=" + mse.token.getText() + ")";
+    //    }
+    //    else {
+    //        msg = super.getErrorMessage(err, tokenNames); 
+    //    }
+    //    return msg;
+    //} 
 
-    // @Override
-    // protected void mismatch(IntStream input, int ttype, BitSet follow)
-    //     throws RecognitionException
-    // {
-    //     throw new MismatchedTokenException(ttype, input);
-    // }
-
-    @Override
-    protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
-        throws RecognitionException
-    {
-        throw new MismatchedTokenException(ttype, input);
-    }
-
-    @Override
-    public Object recoverFromMismatchedSet(IntStream input,
-                                           RecognitionException e,
-                                           BitSet follow)
-        throws RecognitionException
-    {
-        throw e;
-    }
-
-    @Override
-    public String getErrorMessage(RecognitionException err, String[] tokenNames) 
-    {
-        List stack = getRuleInvocationStack(err, this.getClass().getName());
-        String msg = null; 
-        if (err instanceof NoViableAltException) {
-            NoViableAltException nvae = (NoViableAltException) err;
-            // msg = "No viable alt; token=" + err.token.getText() +
-            //     " (decision=" + nvae.decisionNumber +
-            //     " state "+nvae.stateNumber+")" +
-            //     " decision=<<" + nvae.grammarDecisionDescription + ">>";
-            msg = "[line:" + err.line + ", col:" + err.charPositionInLine + "] " +
-                "No viable alternative (token=" + err.token.getText() + ")" + " (stack=" + stack + ")";
-        }
-        else if (err instanceof MismatchedTokenException) {
-            MismatchedTokenException mte = (MismatchedTokenException) err;
-            String tokenName = (mte.expecting == Token.EOF) ? "EOF" : tokenNames[mte.expecting];
-            msg = "[line:" + mte.line + ", col:" + mte.charPositionInLine + "] " +
-                "Expecting " + tokenName +
-                " (token=" + err.token.getText() + ")";
-        }
-        else if (err instanceof FailedPredicateException) {
-            FailedPredicateException fpe = (FailedPredicateException) err;
-            msg = "[line:" + fpe.line + ", col:" + fpe.charPositionInLine + "] " +
-                fpe.predicateText +
-                " (token=" + fpe.token.getText() + ")";
-        }
-        else if (err instanceof MismatchedSetException) {
-            MismatchedSetException mse = (MismatchedSetException) err;
-            msg = "[line:" + mse.line + ", col:" + mse.charPositionInLine + "] " +
-                "Mismatched input (token=" + mse.token.getText() + ")";
-        }
-        else {
-            msg = super.getErrorMessage(err, tokenNames); 
-        }
-        return msg;
-    } 
-
-    @Override
-    public String getTokenErrorDisplay(Token t)
-    {
-        return t.toString();
-    }
-
+    //@Override
+    //public String getTokenErrorDisplay(Token t)
+    //{
+    //    return t.toString();
+    //}
 }
 
 // ***************** parser rules:
