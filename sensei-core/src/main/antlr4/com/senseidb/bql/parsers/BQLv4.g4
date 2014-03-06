@@ -425,11 +425,11 @@ grammar BQLv4;
 // Imaginary tokens
 tokens 
 {
-    COLUMN_LIST;
-    OR_PRED;
-    AND_PRED;
-    EQUAL_PRED;
-    RANGE_PRED;
+    COLUMN_LIST,
+    OR_PRED,
+    AND_PRED,
+    EQUAL_PRED,
+    RANGE_PRED
 }
 
 // As the generated lexer will reside in com.senseidb.bql.parsers package,
