@@ -131,6 +131,10 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
 
+    public Object getJsonProperty(ParseTree node) {
+        return jsonProperty.get(node);
+    }
+
     private String predType(JSONObject pred) {
         return (String)pred.keys().next();
     }
