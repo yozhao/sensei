@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -52,6 +53,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     private Set<String> _usedFacets; // Facets used by relevance model
     private Set<String> _usedInternalVars; // Internal variables used by relevance model
 
+    private final Parser _parser;
     private final Map<String, String[]> _facetInfoMap;
 
     private final ParseTreeProperty<Object> jsonProperty = new ParseTreeProperty<Object>();
@@ -125,7 +127,8 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                                })));
     }
 
-    public BQLCompilerAnalyzer(Map<String, String[]> facetInfoMap) {
+    public BQLCompilerAnalyzer(Parser parser, Map<String, String[]> facetInfoMap) {
+        _parser = parser;
         _facetInfoMap = facetInfoMap;
         _facetInfoMap.put("_uid", new String[]{"simple", "long"});
     }
@@ -622,18 +625,17 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     }
 
     @Override
-    public void enterSelection_list(BQLParser.Selection_listContext ctx) {
-        fetchStoredProperty.put(ctx, false);
-        jsonProperty.put(ctx, new FastJSONArray());
-        aggregationFunctionsProperty.put(ctx, new ArrayList<Pair<String, String>>());
-    }
-
-    @Override
     public void exitSelection_list(BQLParser.Selection_listContext ctx) {
+        JSONArray json = new FastJSONArray();
+
+        fetchStoredProperty.put(ctx, false);
+        jsonProperty.put(ctx, json);
+        aggregationFunctionsProperty.put(ctx, new ArrayList<Pair<String, String>>());
+
         for (BQLParser.Column_nameContext col : ctx.column_name()) {
             String colName = getTextProperty(col);
             if (colName != null) {
-                jsonProperty.put(ctx, getTextProperty(col));
+                json.put(getTextProperty(col));
                 if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
                     fetchStoredProperty.put(ctx, true);
                 }
@@ -850,11 +852,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         int max = DEFAULT_FACET_MAXHIT;
         String orderBy = "hits";
 
-        if (ctx.TRUE() != null) {
+        if (!ctx.TRUE().isEmpty()) {
             expand = true;
         }
 
-        if (ctx.VALUE() != null) {
+        if (!ctx.VALUE().isEmpty()) {
             orderBy = "val";
         }
 
@@ -1156,7 +1158,6 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitQuery_predicate(BQLParser.Query_predicateContext ctx) {
         try {
             String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
-            orig = orig.substring(1, orig.length() - 1);
             jsonProperty.put(ctx, new FastJSONObject().put("query",
                                                            new FastJSONObject().put("query_string",
                                                                                     new FastJSONObject().put("query", orig))));
@@ -1407,7 +1408,6 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             }
 
             String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
-            orig = orig.substring(1, orig.length() - 1);
             jsonProperty.put(ctx, new FastJSONObject().put("query",
                                                            new FastJSONObject().put("query_string",
                                                                                     new FastJSONObject().put("fields", cols)
@@ -1430,7 +1430,6 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         }
 
         String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
-        orig = orig.substring(1, orig.length() - 1);
         String likeString = orig.replace('%', '*').replace('_', '?');
         try {
             jsonProperty.put(ctx, new FastJSONObject().put("query",
@@ -1526,7 +1525,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         } else if (ctx.TRUE() != null) {
             valProperty.put(ctx, true);
         } else if (ctx.FALSE() != null) {
-            valProperty.put(ctx, true);
+            valProperty.put(ctx, false);
         } else if (ctx.VARIABLE() != null) {
             valProperty.put(ctx, ctx.VARIABLE().getText());
             _variables.add(ctx.VARIABLE().getText().substring(1));
@@ -1947,7 +1946,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             return textProperty.get(ctx);
 
         default:
-            return ctx.getText();
+            return _parser.getInputStream().getText(ctx.getSourceInterval());
         }
     }
 

@@ -32,7 +32,7 @@ public class BQLCompiler extends AbstractCompiler {
     parser.setErrorHandler(new BailErrorStrategy());
     BQLParser.StatementContext ret = parser.statement();
 
-    BQLCompilerAnalyzer analyzer = new BQLCompilerAnalyzer(_facetInfoMap);
+    BQLCompilerAnalyzer analyzer = new BQLCompilerAnalyzer(parser, _facetInfoMap);
     ParseTreeWalker.DEFAULT.walk(analyzer, ret);
     JSONObject json = (JSONObject)analyzer.getJsonProperty(ret);
 
