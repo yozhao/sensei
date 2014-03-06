@@ -4,6 +4,7 @@ import com.senseidb.search.req.BQLParserUtils;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.Pair;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
@@ -21,6 +22,8 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     private HashSet<String> _variables;
 
     private final ParseTreeProperty<Object> jsonProperty = new ParseTreeProperty<Object>();
+    private final ParseTreeProperty<Boolean> fetchStoredProperty = new ParseTreeProperty<Boolean>();
+    private final ParseTreeProperty<List<Pair<String, String>>> aggregationFunctionsProperty = new ParseTreeProperty<List<Pair<String, String>>>();
 
     @Override
     public void exitStatement(BQLv4Parser.StatementContext ctx) {
@@ -152,6 +155,30 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         }
 
         jsonProperty.put(ctx, jsonObj);
+    }
+
+    @Override
+    public void enterSelection_list(BQLv4Parser.Selection_listContext ctx) {
+        fetchStoredProperty.put(ctx, false);
+        jsonProperty.put(ctx, new FastJSONArray());
+        aggregationFunctionsProperty.put(ctx, new ArrayList<Pair<String, String>>());
+    }
+
+    @Override
+    public void exitSelection_list(BQLv4Parser.Selection_listContext ctx) {
+        for (BQLv4Parser.Column_nameContext col : ctx.column_name()) {
+            String colName = col.text;
+            if (colName != null) {
+                jsonProperty.put(ctx, col.text);
+                if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
+                    fetchStoredProperty.put(ctx, true);
+                }
+            }
+        }
+
+        for (BQLv4Parser.Aggregation_functionContext agrFunction : ctx.aggregation_function()) {
+            aggregationFunctionsProperty.get(ctx).add(new Pair<String, String>(agrFunction.function, agrFunction.column));
+        }
     }
 
 }

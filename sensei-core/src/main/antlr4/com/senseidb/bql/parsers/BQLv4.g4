@@ -1019,38 +1019,16 @@ describe_stmt
     :   DESCRIBE (IDENT | STRING_LITERAL)
     ;
 
-selection_list returns [boolean fetchStored, JSONArray json, List<Pair<String, String>> aggregationFunctions]
-@init {
-    $fetchStored = false;
-    $json = new FastJSONArray();
-    $aggregationFunctions = new ArrayList<Pair<String, String>>();
-    }
-    :    (col=column_name
-        {
-            String colName = $col.text;
-            if (colName != null) {
-                $json.put($col.text); 
-                if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
-                    $fetchStored = true;
-                }
-            }
-        } | agrFunction=aggregation_function 
-            {
-               $aggregationFunctions.add(new Pair($agrFunction.function, $agrFunction.column));
-            })
-        (COMMA   (col=column_name
-        {
-            String colName = $col.text;
-            if (colName != null) {
-                $json.put($col.text); 
-                if ("_srcdata".equals(colName) || colName.startsWith("_srcdata.")) {
-                    $fetchStored = true;
-                }
-            }
-        }|  agrFunction=aggregation_function 
-            {
-                $aggregationFunctions.add(new Pair($agrFunction.function, $agrFunction.column));
-            }))*;
+selection_list
+    :   (   col=column_name
+        |   agrFunction=aggregation_function 
+        )
+        (   COMMA
+            (   col=column_name
+            |   agrFunction=aggregation_function
+            )
+        )*
+    ;
 
 aggregation_function returns [String function, String column]
  :   (id=function_name LPAR (columnVar=column_name | '*') RPAR) {
