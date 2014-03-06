@@ -3319,12 +3319,12 @@ FAST_UTIL_DATA_TYPE
 IDENT : (ALPHA | '_') (ALPHA | DIGIT | '-' | '_')* ;
 VARIABLE : '$' (ALPHA | DIGIT | '_')+ ;
 
-WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
+WS : ( ' ' | '\t' | '\r' | '\n' )+ -> channel(HIDDEN);
 
 COMMENT
-    : '/*' .* '*/' { $channel = HIDDEN; }
+    : '/*' .* '*/' -> channel(HIDDEN)
     ;
 
 LINE_COMMENT
-    : '--' ~('\n'|'\r')* '\r'? '\n' { $channel = HIDDEN; }
+    : '--' ~('\n'|'\r')* '\r'? '\n' -> channel(HIDDEN)
     ;
