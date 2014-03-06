@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
@@ -660,7 +661,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
                 TerminalNode terminal = (TerminalNode)child;
                 String orig = terminal.getSymbol().getText();
                 if (terminal.getSymbol().getType() == BQLv4Lexer.STRING_LITERAL) {
-                    builder.append(orig.substring(1, orig.length() - 1));
+                    builder.append(unescapeStringLiteral(terminal));
                 } else {
                     builder.append(orig);
                 }
@@ -879,8 +880,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
 
     @Override
     public void exitRoute_by_clause(BQLv4Parser.Route_by_clauseContext ctx) {
-        String orig = ctx.STRING_LITERAL().getText();
-        valProperty.put(ctx, orig.substring(1, orig.length() - 1));
+        valProperty.put(ctx, unescapeStringLiteral(ctx.STRING_LITERAL()));
     }
 
     @Override
@@ -1152,7 +1152,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitQuery_predicate(BQLv4Parser.Query_predicateContext ctx) {
         try {
-            String orig = ctx.STRING_LITERAL().getText();
+            String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
             orig = orig.substring(1, orig.length() - 1);
             jsonProperty.put(ctx, new FastJSONObject().put("query",
                                                            new FastJSONObject().put("query_string",
@@ -1403,7 +1403,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
                 }
             }
 
-            String orig = ctx.STRING_LITERAL().getText();
+            String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
             orig = orig.substring(1, orig.length() - 1);
             jsonProperty.put(ctx, new FastJSONObject().put("query",
                                                            new FastJSONObject().put("query_string",
@@ -1426,7 +1426,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
             throw new IllegalStateException("Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
         }
 
-        String orig = ctx.STRING_LITERAL().getText();
+        String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
         orig = orig.substring(1, orig.length() - 1);
         String likeString = orig.replace('%', '*').replace('_', '?');
         try {
@@ -1519,9 +1519,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
         if (ctx.numeric() != null) {
             valProperty.put(ctx, valProperty.get(ctx.numeric()));
         } else if (ctx.STRING_LITERAL() != null) {
-            String orig = ctx.STRING_LITERAL().getText();
-            orig = orig.substring(1, orig.length() - 1);
-            valProperty.put(ctx, orig);
+            valProperty.put(ctx, unescapeStringLiteral(ctx.STRING_LITERAL()));
         } else if (ctx.TRUE() != null) {
             valProperty.put(ctx, true);
         } else if (ctx.FALSE() != null) {
@@ -1581,8 +1579,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitKey_value_pair(BQLv4Parser.Key_value_pairContext ctx) {
         if (ctx.STRING_LITERAL() != null) {
-            String orig = ctx.STRING_LITERAL().getText();
-            keyProperty.put(ctx, orig.substring(1, orig.length() - 1));
+            keyProperty.put(ctx, unescapeStringLiteral(ctx.STRING_LITERAL()));
         } else {
             keyProperty.put(ctx, ctx.IDENT().getText());
         }
@@ -1926,8 +1923,7 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
                 valArray = jsonProperty.get(ctx.valList);
             }
 
-            String orig = ctx.STRING_LITERAL().getText();
-            orig = orig.substring(1, orig.length() - 1);
+            String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
             paramProperty.put(ctx, new FastJSONObject().put(orig,
                                                             new FastJSONObject().put("type", paramTypeProperty.get(ctx.facet_param_type()))
                 .put("values", valArray)));
@@ -1939,5 +1935,29 @@ public class BQLv4CompilerAnalyzer extends BQLv4BaseListener {
     @Override
     public void exitFacet_param_type(BQLv4Parser.Facet_param_typeContext ctx) {
         paramTypeProperty.put(ctx, ctx.t.getText());
+    }
+
+    private static String unescapeStringLiteral(TerminalNode terminalNode) {
+        Token token = terminalNode.getSymbol();
+        if (token.getType() != BQLv4Lexer.STRING_LITERAL) {
+            throw new IllegalArgumentException();
+        }
+
+        String text = token.getText();
+        char initialChar = text.charAt(0);
+        if (text.charAt(text.length() - 1) != initialChar) {
+            throw new IllegalArgumentException("malformed string literal");
+        }
+
+        text = text.substring(1, text.length() - 1);
+        if (initialChar == '\'') {
+            text = text.replace("''", "'");
+        } else if (initialChar == '"') {
+            text = text.replace("\"\"", "\"");
+        } else {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        return text;
     }
 }

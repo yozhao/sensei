@@ -1275,23 +1275,16 @@ AMP : '&';
 QUES : '?';
 
 STRING_LITERAL
-    :   ('"'
-            { StringBuilder builder = new StringBuilder().appendCodePoint('"'); }
-            ('"' '"'               { builder.appendCodePoint('"'); }
-            | ch=~('"'|'\r'|'\n')  { builder.appendCodePoint(ch); }
-            )*
-         '"'
-            { setText(builder.appendCodePoint('"').toString()); }
-        )
-    |
-        ('\''
-            { StringBuilder builder = new StringBuilder().appendCodePoint('\''); }
-            ('\'' '\''             { builder.appendCodePoint('\''); }
-            | ch=~('\''|'\r'|'\n') { builder.appendCodePoint(ch); }
-            )*
-         '\''
-            { setText(builder.appendCodePoint('\'').toString()); }
-        )
+    :   '"'
+        (   '"' '"'
+        |   ~('"'|'\r'|'\n')
+        )*
+        '"'
+    |   '\''
+        (   '\'' '\''
+        |   ~('\''|'\r'|'\n')
+        )*
+        '\''
     ;
 
 DATE
