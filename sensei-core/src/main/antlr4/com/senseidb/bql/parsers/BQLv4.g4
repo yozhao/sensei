@@ -487,8 +487,6 @@ import com.senseidb.search.req.BQLParserUtils;
     private static Map<String, Set<String>> _compatibleFacetTypes;
 
     private Map<String, String[]> _facetInfoMap;
-    private long _now;
-    private HashSet<String> _variables;
     private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
     private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
@@ -1000,11 +998,7 @@ statement returns [Object json]
         )   SEMI? EOF
     ;
 
-select_stmt returns [Object json]
-@init {
-    _now = System.currentTimeMillis();
-    _variables = new HashSet<String>();
-}
+select_stmt
     :   SELECT ('*' | cols=selection_list)
         (FROM (IDENT | STRING_LITERAL))?
         w=where?
@@ -1019,132 +1013,6 @@ select_stmt returns [Object json]
         |   route_param = route_by_clause
         |   rel_model = relevance_model_clause
         )*
-        {
-            JSONObject jsonObj = new FastJSONObject();
-            JSONArray selections = new FastJSONArray();
-            JSONObject filter = new FastJSONObject();
-            JSONObject query = new FastJSONObject();
-
-            try {
-                JSONObject metaData = new FastJSONObject();
-                if (cols == null) {
-                    metaData.put("select_list", new FastJSONArray().put("*"));
-                }
-                else {
-                   metaData.put("select_list", $cols.json);
-                   if ($cols.fetchStored) {
-                       jsonObj.put("fetchStored", true);
-                   }
-                }
-
-                if (_variables.size() > 0)
-                {
-                    metaData.put("variables", new FastJSONArray(_variables));
-                }
-
-                jsonObj.put("meta", metaData);
-
-                if (order_by != null) {
-                    if ($order_by.isRelevance) {
-                        JSONArray sortArray = new FastJSONArray();
-                        sortArray.put("relevance");                    	
-                        jsonObj.put("sort", sortArray);
-                    }
-                    else {
-                        jsonObj.put("sort", $order_by.json);
-                    }
-                }
-                if (limit != null) {
-                    jsonObj.put("from", $limit.offset);
-                    jsonObj.put("size", $limit.count);
-                }
-                if (group_by != null) {
-                    jsonObj.put("groupBy", $group_by.json);
-                    
-                }  
-                List<Pair<String, String>> aggregateFunctions = null;
-                 if (cols != null) {
-                    aggregateFunctions = $cols.aggregationFunctions;
-                 }
-                
-                
-                if (distinct != null) {
-                    jsonObj.put("distinct", $distinct.json);
-                }
-                if (browse_by != null) {
-                    jsonObj.put("facets", $browse_by.json);
-                }
-                if (executeMapReduce != null) {
-                   if (group_by != null) {
-                      BQLParserUtils.decorateWithMapReduce(jsonObj, $cols.aggregationFunctions, $group_by.json, $executeMapReduce.functionName, $executeMapReduce.properties);
-                   } else {
-                      BQLParserUtils.decorateWithMapReduce(jsonObj, $cols.aggregationFunctions, null, $executeMapReduce.functionName, $executeMapReduce.properties);
-                   }
-                } else {
-                   if (group_by != null) {
-                      BQLParserUtils.decorateWithMapReduce(jsonObj, $cols.aggregationFunctions, $group_by.json, null, null);
-                   } else {
-                      BQLParserUtils.decorateWithMapReduce(jsonObj, $cols.aggregationFunctions, null, null, null);
-                   }
-                }
-                if (fetch_stored != null) {
-                    if (!$fetch_stored.val && (cols != null && $cols.fetchStored)) {
-                        throw new FailedPredicateException(input, 
-                                                           "select_stmt",
-                                                           "FETCHING STORED cannot be false when _srcdata is selected.");
-                    }
-                    else if ($fetch_stored.val) {
-                        // Default is false
-                        jsonObj.put("fetchStored", $fetch_stored.val);
-                    }
-                }
-                if (route_param != null) {
-                    jsonObj.put("routeParam", $route_param.val);
-                }
-
-                if (w != null) {
-                    extractSelectionInfo((JSONObject) $w.json, selections, filter, query);
-                    JSONObject queryPred = query.optJSONObject("query");
-                    if (queryPred != null) {
-                        jsonObj.put("query", queryPred);
-                    }
-                    if (selections.length() > 0) {
-                        jsonObj.put("selections", selections);
-                    }
-                    JSONObject f = filter.optJSONObject("filter");
-                    if (f != null) {
-                        jsonObj.put("filter", f);
-                    }
-                }
-
-                if (given != null) {
-                    jsonObj.put("facetInit", $given.json);
-                }
-
-                if (rel_model != null) {
-                    JSONObject queryPred = jsonObj.optJSONObject("query");
-                    JSONObject query_string = null;
-                    if (queryPred != null) {
-                        query_string = (JSONObject)queryPred.get("query_string");
-                    }
-                    if (query_string != null) {
-                        queryPred = new FastJSONObject().put("query_string",
-                                                              query_string.put("relevance", $rel_model.json));
-                    } else {
-                        queryPred = new FastJSONObject().put("query_string",
-                                                              new FastJSONObject().put("query", "")
-                                                                                  .put("relevance", $rel_model.json));
-                    }
-                    jsonObj.put("query", queryPred);
-                }
-            }
-            catch (JSONException err) {
-                throw new FailedPredicateException(input, "select_stmt", "JSONException: " + err.getMessage());
-            }
-
-            $json = jsonObj;
-        }
-        // -> ^(SELECT column_name_list IDENT where?)
     ;
 
 describe_stmt
