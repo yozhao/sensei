@@ -89,34 +89,17 @@
 			</plugin>
 			<plugin>
 				<groupId>org.antlr</groupId>
-				<artifactId>antlr3-maven-plugin</artifactId>
-				<version>3.4</version>
+				<artifactId>antlr4-maven-plugin</artifactId>
+				<version>4.2</version>
+				<configuration>
+					<listener>true</listener>
+					<visitor>true</visitor>
+				</configuration>
 				<executions>
 					<execution>
-						<id>run antlr</id>
-						<phase>generate-sources</phase>
 						<goals>
-							<goal>antlr</goal>
+							<goal>antlr4</goal>
 						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<id>add-source</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>add-source</goal>
-						</goals>
-						<configuration>
-							<sources>
-								<source>${basedir}/target/generated-sources/antlr3</source>
-							</sources>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -269,8 +252,16 @@
 
 		<dependency>
 			<groupId>org.antlr</groupId>
-			<artifactId>antlr</artifactId>
-			<version>3.4</version>
+			<artifactId>antlr4-runtime</artifactId>
+			<version>4.2</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr4-annotations</artifactId>
+			<version>4.2</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
