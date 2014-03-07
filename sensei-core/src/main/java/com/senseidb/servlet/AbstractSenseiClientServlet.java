@@ -257,6 +257,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
       SenseiResult res = broker.browse(requestContext.senseiReq);
+      res.setTime(System.currentTimeMillis() - time);
       numHits = res.getNumHitsLong();
       totalDocs = res.getTotalDocsLong();
       sendResponse(req, resp, requestContext.senseiReq, res);
@@ -466,9 +467,12 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       }
 
       SenseiResult res = null;
-      if (senseiReq != null) res = _senseiBroker.browse(senseiReq);
+      if (senseiReq != null) {
+        res = _senseiBroker.browse(senseiReq);
+      }
 
       if (res != null) {
+        res.setTime(System.currentTimeMillis() - time);
         numHits = res.getNumHits();
         totalDocs = res.getTotalDocs();
       }

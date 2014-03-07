@@ -193,6 +193,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       logger.error("Error running scatter/gather", e);
       emptyResult.addError(new SenseiError("Error gathering the results, " + e.getMessage(),
           ErrorType.BrokerGatherError));
+      emptyResult.setTime(System.currentTimeMillis() - time);
       return emptyResult;
     }
 
@@ -202,6 +203,7 @@ public abstract class AbstractConsistentHashBroker<REQUEST extends AbstractSense
       emptyResult.addError(new SenseiError("Error gathering the results. "
           + "no result received at all return empty result", ErrorType.BrokerGatherError));
       EmptyMeter.mark();
+      emptyResult.setTime(System.currentTimeMillis() - time);
       return emptyResult;
     }
 
