@@ -209,7 +209,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                         }
                     } catch (JSONException err) {
                         invalidDataIndex.put(tree, i);
-                        throw new IllegalStateException("JSONException: " + err.getMessage());
+                        throw new ParseCancellationException(new SemanticException(tree, "JSONException: " + err.getMessage()));
                     }
                 }
             }
@@ -364,7 +364,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         return new Object[]{value, include};
     }
 
-    private void accumulateRangePred(JSONObject fieldMap, JSONObject pred)
+    private void accumulateRangePred(JSONObject fieldMap, JSONObject pred, ParseTree tree)
         throws JSONException {
         String field = predField(pred);
         if (!fieldMap.has(field)) {
@@ -397,7 +397,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 // This error is in general detected late, so the token
                 // can be a little off, but hopefully the col index info
                 // is good enough.
-                throw new IllegalStateException("Inconsistent ranges detected for column: " + field);
+                throw new ParseCancellationException(new SemanticException(tree, "Inconsistent ranges detected for column: " + field));
             }
         }
 
@@ -418,18 +418,19 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     private void processRelevanceModelParam(JSONObject json,
                                             Set<String> params,
                                             String typeName,
-                                            final String varName)
+                                            final String varName,
+                                            ParseTree varTree)
         throws JSONException {
         if (_facetInfoMap.containsKey(varName)) {
-            throw new IllegalStateException("Facet name \"" + varName + "\" cannot be used as a relevance model parameter.");
+            throw new ParseCancellationException(new SemanticException(varTree, "Facet name \"" + varName + "\" cannot be used as a relevance model parameter."));
         }
 
         if (_internalVarMap.containsKey(varName)) {
-            throw new IllegalStateException("Internal variable \"" + varName + "\" cannot be used as a relevance model parameter.");
+            throw new ParseCancellationException(new SemanticException(varTree, "Internal variable \"" + varName + "\" cannot be used as a relevance model parameter."));
         }
 
         if (params.contains(varName)) {
-            throw new IllegalStateException("Parameter name \"" + varName + "\" has already been used.");
+            throw new ParseCancellationException(new SemanticException(varTree, "Parameter name \"" + varName + "\" has already been used."));
         }
 
         if ("String".equals(typeName)) {
@@ -487,39 +488,39 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     @Override
     public void exitSelect_stmt(BQLParser.Select_stmtContext ctx) {
         if (ctx.order_by_clause().size() > 1) {
-            throw new IllegalStateException("ORDER BY clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.order_by_clause(1), "ORDER BY clause can only appear once."));
         }
 
         if (ctx.limit_clause().size() > 1) {
-            throw new IllegalStateException("LIMIT clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.limit_clause(1), "LIMIT clause can only appear once."));
         }
 
         if (ctx.group_by_clause().size() > 1) {
-            throw new IllegalStateException("GROUP BY clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.group_by_clause(1), "GROUP BY clause can only appear once."));
         }
 
         if (ctx.distinct_clause().size() > 1) {
-            throw new IllegalStateException("DISTINCT clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.distinct_clause(1), "DISTINCT clause can only appear once."));
         }
 
         if (ctx.execute_clause().size() > 1) {
-            throw new IllegalStateException("EXECUTE clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.execute_clause(1), "EXECUTE clause can only appear once."));
         }
 
         if (ctx.browse_by_clause().size() > 1) {
-            throw new IllegalStateException("BROWSE BY clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.browse_by_clause(1), "BROWSE BY clause can only appear once."));
         }
 
         if (ctx.fetching_stored_clause().size() > 1) {
-            throw new IllegalStateException("FETCHING STORED clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.fetching_stored_clause(1), "FETCHING STORED clause can only appear once."));
         }
 
         if (ctx.route_by_clause().size() > 1) {
-            throw new IllegalStateException("ROUTE BY clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.route_by_clause(1), "ROUTE BY clause can only appear once."));
         }
 
         if (ctx.relevance_model_clause().size() > 1) {
-            throw new IllegalStateException("USING RELEVANCE MODEL clause can only appear once.");
+            throw new ParseCancellationException(new SemanticException(ctx.relevance_model_clause(1), "USING RELEVANCE MODEL clause can only appear once."));
         }
 
         JSONObject jsonObj = new FastJSONObject();
@@ -587,7 +588,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             }
             if (ctx.fetch_stored != null) {
                 if (!(Boolean)valProperty.get(ctx.fetch_stored) && (ctx.cols != null && fetchStoredProperty.get(ctx.cols))) {
-                    throw new IllegalStateException("FETCHING STORED cannot be false when _srcdata is selected.");
+                    throw new ParseCancellationException(new SemanticException(ctx.fetch_stored, "FETCHING STORED cannot be false when _srcdata is selected."));
                 } else if ((Boolean)valProperty.get(ctx.fetch_stored)) {
                     // Default is false
                     jsonObj.put("fetchStored", valProperty.get(ctx.fetch_stored));
@@ -633,7 +634,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 jsonObj.put("query", queryPred);
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
 
         jsonProperty.put(ctx, jsonObj);
@@ -736,7 +737,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 json.put(getTextProperty(ctx.column_name()), ctx.ordering.getText().toLowerCase());
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -799,7 +800,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 json.put("top", DEFAULT_REQUEST_MAX_PER_GROUP);
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -810,7 +811,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         try {
             JSONArray cols = (JSONArray)jsonProperty.get(ctx.or_column_name_list());
             if (cols.length() > 1) {
-                throw new IllegalStateException("DISTINCT only support a single column now.");
+                throw new ParseCancellationException(new SemanticException(ctx.or_column_name_list().column_name(1), "DISTINCT only support a single column now."));
             }
 
             for (int i = 0; i < cols.length(); ++i) {
@@ -819,13 +820,14 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 if (facetInfo != null && (facetInfo[0].equals("range") ||
                     facetInfo[0].equals("multi") ||
                     facetInfo[0].equals("path"))) {
-                    throw new IllegalStateException("Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause.");
+                    // TODO: could this be more localized?
+                    throw new ParseCancellationException(new SemanticException(ctx, "Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause."));
                 }
             }
 
             json.put("columns", cols);
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -837,7 +839,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             try {
                 json.put(columnProperty.get(f), specProperty.get(f));
             } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         }
     }
@@ -854,7 +856,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 try {
                     properties.put(keyProperty.get(p), valProperty.get(p));
                 } catch (JSONException err) {
-                    throw new IllegalStateException("JSONException: " + err.getMessage());
+                    throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
                 }
             }
         }
@@ -889,7 +891,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 .put("max", max)
                 .put("order", orderBy));
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -917,7 +919,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 jsonProperty.put(ctx, new FastJSONObject().put("or", array));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -936,7 +938,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 if (!"range".equals(predType(pred))) {
                     newArray.put(pred);
                 } else {
-                    accumulateRangePred(fieldMap, pred);
+                    accumulateRangePred(fieldMap, pred, ctx.factor_expr(i));
                 }
             }
 
@@ -951,7 +953,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 jsonProperty.put(ctx, new FastJSONObject().put("and", newArray));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1045,7 +1047,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 jsonProperty.put(ctx, new FastJSONObject().put("const_exp", exp));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1109,13 +1111,21 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 valObj.put("value", valProperty.get(ctx.value()));
                 if (ctx.props != null) {
                     JSONObject propsJson = (JSONObject)jsonProperty.get(ctx.props);
-                    Iterator<?> itr = propsJson.keys();
-                    while (itr.hasNext()) {
+                    Iterator<?> itr;
+                    int i = 0;
+                    for (itr = propsJson.keys(); itr.hasNext(); i++) {
                         String key = (String)itr.next();
                         if (key.equals("strict") || key.equals("depth")) {
                             valObj.put(key, propsJson.get(key));
                         } else {
-                            throw new IllegalStateException("Unsupported property was found in an EQUAL predicate for path facet column \"" + col + "\": " + key + ".");
+                            BQLParser.Key_value_pairContext keyValuePair = null;
+                            for (BQLParser.Key_value_pairContext pair : ctx.predicate_props().prop_list().key_value_pair()) {
+                                if (key.equals(unescapeStringLiteral(pair.STRING_LITERAL()))) {
+                                    keyValuePair = pair;
+                                    break;
+                                }
+                            }
+                            throw new ParseCancellationException(new SemanticException(keyValuePair, "Unsupported property was found in an EQUAL predicate for path facet column \"" + col + "\": " + key + "."));
                         }
                     }
                 }
@@ -1155,7 +1165,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                     .put("include_lower", false)));
                 jsonProperty.put(ctx, new FastJSONObject().put("or", new FastJSONArray().put(left).put(right)));
             } else if (facetInfo != null && facetInfo[0].equals("path")) {
-                throw new IllegalStateException("NOT EQUAL predicate is not supported for path facets (column \"" + col + "\").");
+                throw new ParseCancellationException(new SemanticException(ctx.NOT_EQUAL(), "NOT EQUAL predicate is not supported for path facets (column \"" + col + "\")."));
             } else {
                 JSONObject valObj = new FastJSONObject();
                 valObj.put("operator", "or");
@@ -1181,7 +1191,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                            new FastJSONObject().put("query_string",
                                                                                     new FastJSONObject().put("query", orig))));
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1257,7 +1267,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         if (ctx.LAST() != null) {
             String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
-                throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
+                throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates."));
             }
 
             try {
@@ -1273,12 +1283,12 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                         .put("include_upper", true))));
                 }
             } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         } else {
             String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
-                throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
+                throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates."));
             }
 
             try {
@@ -1295,7 +1305,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                         .put("include_upper", false))));
                 }
             } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         }
     }
@@ -1407,11 +1417,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         try {
             valProperty.put(ctx, format.parse(dateTimeStr).getTime());
             if (!dateTimeStr.equals(format.format(valProperty.get(ctx)))) {
-                throw new IllegalStateException("Date string contains invalid date/time: \"" + dateTimeStr + "\".");
+                throw new ParseCancellationException(new SemanticException(ctx.DATE(), "Date string contains invalid date/time: \"" + dateTimeStr + "\"."));
             }
         } catch (ParseException err) {
-            throw new IllegalStateException("ParseException happened for \"" + dateTimeStr + "\": " +
-                err.getMessage() + ".");
+            throw new ParseCancellationException(new SemanticException(ctx.DATE(), "ParseException happened for \"" + dateTimeStr + "\": " +
+                err.getMessage() + "."));
         }
     }
 
@@ -1423,7 +1433,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 String col = cols.getString(i);
                 String[] facetInfo = _facetInfoMap.get(col);
                 if (facetInfo != null && !facetInfo[1].equals("string")) {
-                    throw new IllegalStateException("Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
+                    throw new ParseCancellationException(new SemanticException(ctx.selection_list().column_name(i), "Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates."));
                 }
             }
 
@@ -1437,7 +1447,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                                new FastJSONObject().put("must_not", jsonProperty.get(ctx))));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1446,7 +1456,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && !facetInfo[1].equals("string")) {
-            throw new IllegalStateException("Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
+            throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Non-string type column \"" + col + "\" cannot be used in LIKE predicates."));
         }
 
         String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
@@ -1461,7 +1471,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             }
         }
         catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1475,7 +1485,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                                new FastJSONObject().put("must_not", jsonProperty.get(ctx))));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1506,7 +1516,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             try {
                 json.put(keyProperty.get(p), valProperty.get(p));
             } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         }
     }
@@ -1562,13 +1572,13 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             try {
                 valProperty.put(ctx, Long.parseLong(ctx.INTEGER().getText()));
             } catch (NumberFormatException err) {
-                throw new IllegalStateException("Hit NumberFormatException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx.INTEGER(), "Hit NumberFormatException: " + err.getMessage()));
             }
         } else if (ctx.REAL() != null) {
             try {
                 valProperty.put(ctx, Float.parseFloat(ctx.REAL().getText()));
             } catch (NumberFormatException err) {
-                throw new IllegalStateException("Hit NumberFormatException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx.INTEGER(), "Hit NumberFormatException: " + err.getMessage()));
             }
         } else {
             throw new UnsupportedOperationException("Not yet implemented.");
@@ -1593,7 +1603,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             try {
                 json.put(keyProperty.get(p), valProperty.get(p));
             } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         }
     }
@@ -1685,10 +1695,10 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         Set<String> params = new HashSet<String>();
         for (BQLParser.Formal_parameter_declContext decl : ctx.formal_parameter_decl()) {
             try {
-                processRelevanceModelParam(json, params, typeNameProperty.get(decl), varNameProperty.get(decl));
+                processRelevanceModelParam(json, params, typeNameProperty.get(decl), varNameProperty.get(decl), decl.variable_declarator_id());
             }
             catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         }
     }
@@ -1743,7 +1753,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 }
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1767,7 +1777,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 }
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1790,17 +1800,17 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             for (int i = 0; i < vars.length(); ++i) {
                 String var = vars.getString(i);
                 if (_facetInfoMap.containsKey(var)) {
-                    throw new IllegalStateException("Facet name \"" + var + "\" cannot be used to declare a variable.");
+                    throw new ParseCancellationException(new SemanticException(ctx.variable_declarators().variable_declarator(i), "Facet name \"" + var + "\" cannot be used to declare a variable."));
                 } else if (_internalVarMap.containsKey(var)) {
-                    throw new IllegalStateException("Internal variable \"" + var + "\" cannot be re-used to declare another variable.");
+                    throw new ParseCancellationException(new SemanticException(ctx.variable_declarators().variable_declarator(i), "Internal variable \"" + var + "\" cannot be re-used to declare another variable."));
                 } else if (verifyVariable(var)) {
-                    throw new IllegalStateException("Variable \"" + var + "\" is already defined.");
+                    throw new ParseCancellationException(new SemanticException(ctx.variable_declarators().variable_declarator(i), "Variable \"" + var + "\" is already defined."));
                 } else {
                     _currentScope.put(var, typeNameProperty.get(ctx.type()));
                 }
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1849,7 +1859,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             TerminalNode current = (TerminalNode)ctx.getChild(i);
             if (previous != null) {
                 if (previous.getSymbol().getStopIndex() + 1 != current.getSymbol().getStartIndex()) {
-                    throw new IllegalStateException("Operators cannot contain spaces.");
+                    throw new ParseCancellationException(new SemanticException(ctx, "Operators cannot contain spaces."));
                 }
             }
 
@@ -1866,7 +1876,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             } else if (_internalVarMap.containsKey(var)) {
                 _usedInternalVars.add(var);
             } else if (!_supportedClasses.contains(var) && !verifyVariable(var)) {
-                throw new IllegalStateException("Variable or class \"" + var + "\" is not defined.");
+                throw new ParseCancellationException(new SemanticException(ctx.java_ident(), "Variable or class \"" + var + "\" is not defined."));
             }
         }
     }
@@ -1903,7 +1913,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 json.put("values", jsonProperty.get(ctx.prop_list()));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1921,7 +1931,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                     currentParam.put(paramName, paramProperty.get(p).get(paramName));
                 }
             } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
+                throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
             }
         }
     }
@@ -1950,7 +1960,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                             new FastJSONObject().put("type", paramTypeProperty.get(ctx.facet_param_type()))
                 .put("values", valArray)));
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 

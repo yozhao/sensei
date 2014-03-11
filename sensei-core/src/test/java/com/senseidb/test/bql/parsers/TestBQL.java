@@ -279,14 +279,18 @@ public class TestBQL {
 
   @SuppressWarnings("unused")
   @Test
-  public void testPathPred2() throws Exception {
+  public void testPathPred2() throws Throwable {
     System.out.println("testPathPred2");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Unsupported property was found in an EQUAL predicate for path facet column \"city\": ddd.");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
-        + "WHERE city = 'china/hongkong' WITH ('strict':false, 'ddd':1)");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
+          + "WHERE city = 'china/hongkong' WITH ('strict':false, 'ddd':1)");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @Test
@@ -465,14 +469,18 @@ public class TestBQL {
 
   @SuppressWarnings("unused")
   @Test
-  public void testRangePred5() throws Exception {
+  public void testRangePred5() throws Throwable {
     System.out.println("testRangePred5");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Inconsistent ranges detected for column: year");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
-        + "WHERE year > 1999 AND year < 1995");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
+          + "WHERE year > 1999 AND year < 1995");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @Test
@@ -586,13 +594,17 @@ public class TestBQL {
 
   @SuppressWarnings("unused")
   @Test
-  public void testLikePredicate3() throws Exception {
+  public void testLikePredicate3() throws Throwable {
     System.out.println("testLikePredicate3");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Non-string type column \"price\" cannot be used in LIKE predicates.");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE price LIKE '123%'");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE price LIKE '123%'");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @Test

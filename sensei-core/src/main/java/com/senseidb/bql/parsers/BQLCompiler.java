@@ -7,6 +7,9 @@ import java.util.Map;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.FailedPredicateException;
+import org.antlr.v4.runtime.InputMismatchException;
+import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.misc.IntegerStack;
@@ -14,7 +17,6 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
 import org.json.JSONObject;
 
 public class BQLCompiler extends AbstractCompiler {
@@ -48,16 +50,47 @@ public class BQLCompiler extends AbstractCompiler {
     return json;
   }
 
-  @Override
-  public String getErrorMessage(RecognitionException error) {
-    BQLParser parser = _parser.get();
-    if (parser != null) {
-      // TODO: get v4 error message
-      return "TODO";
-    } else {
-      return null;
+    @Override
+    public String getErrorMessage(RecognitionException error) {
+        if (error instanceof NoViableAltException) {
+            return getErrorMessage((NoViableAltException)error);
+        } else if (error instanceof InputMismatchException) {
+            return getErrorMessage((InputMismatchException)error);
+        } else if (error instanceof FailedPredicateException) {
+            return getErrorMessage((FailedPredicateException)error);
+        } else {
+            return error.getMessage();
+        }
     }
-  }
+
+    protected String getErrorMessage(NoViableAltException error) {
+        return String.format("[line:%d, col:%d] No viable alternative (token=%s)",
+                             error.getOffendingToken().getLine(),
+                             error.getOffendingToken().getCharPositionInLine(),
+                             error.getOffendingToken().getText());
+    }
+
+    protected String getErrorMessage(InputMismatchException error) {
+        if (error.getExpectedTokens().size() == 1) {
+            int expected = error.getExpectedTokens().get(0);
+            return String.format("[line:%d, col:%d] Expecting %s (token=%s)",
+                                 error.getOffendingToken().getLine(),
+                                 error.getOffendingToken().getCharPositionInLine(),
+                                 expected == -1 ? "EOF" : _parser.get().getTokenNames()[expected],
+                                 error.getOffendingToken().getText());
+        }
+
+        return String.format("[line:%d, col:%d] Mismatched input (token=%s)",
+                             error.getOffendingToken().getLine(),
+                             error.getOffendingToken().getCharPositionInLine(),
+                             error.getOffendingToken().getText());
+    }
+
+    protected String getErrorMessage(FailedPredicateException error) {
+		String ruleName = _parser.get().getRuleNames()[_parser.get().getContext().getRuleIndex()];
+		String msg = "rule "+ruleName+" "+error.getMessage();
+        return msg;
+    }
 
     public String getErrorMessage(ParseCancellationException error) {
         if (error.getCause() != null) {
@@ -73,6 +106,8 @@ public class BQLCompiler extends AbstractCompiler {
                 }
 
                 return message;
+            } else if (error.getCause() instanceof RecognitionException) {
+                return getErrorMessage((RecognitionException)error.getCause());
             } else {
                 return error.getCause().getMessage();
             }

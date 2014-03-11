@@ -5,7 +5,6 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
-import org.antlr.v4.runtime.RecognitionException;
 import org.json.JSONObject;
 import org.junit.Test;
 
@@ -41,10 +40,10 @@ public class TestErrorHandling extends TestCase {
     try {
       // Incomplete where clause
       JSONObject json = _compiler.compile("select category " + "from cars " + "where");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertTrue(_compiler.getErrorMessage(err).startsWith(
-        "[line:1, col:31] No viable alternative (token=<EOF>)"));
+      assertEquals("[line:1, col:31] No viable alternative (token=<EOF>)",
+        _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
     }
@@ -61,9 +60,9 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE color = 'red' \n" + "  AND year > 2000 AND year < 1995 \n"
           + "  OR price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:5, col:2] Inconsistent ranges detected for column: year (token=OR)",
+      assertEquals("[line:4, col:22] Inconsistent ranges detected for column: year",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -80,10 +79,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE year in (1995, 2000) \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Range facet \"year\" cannot be used in IN predicates. (token=AND)",
+        "[line:3, col:6] Range facet \"year\" cannot be used in IN predicates.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -221,9 +220,9 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE city = 'u.s.a./new york' WITH('strict', true) \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:3, col:44] Expecting COLON (token=,)", _compiler.getErrorMessage(err));
+      assertEquals("[line:3, col:44] Expecting ':' (token=,)", _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
     }
@@ -240,10 +239,10 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE city = 'u.s.a./new york' WITH('ddd':123, 'strict':true) \n"
           + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Unsupported property was found in an EQUAL predicate for path facet column \"city\": ddd. (token=AND)",
+        "[line:3, col:36] Unsupported property was found in an EQUAL predicate for path facet column \"city\": ddd.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -280,10 +279,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE city <> 'u.s.a./new york' \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] NOT EQUAL predicate is not supported for path facets (column \"city\"). (token=AND)",
+        "[line:3, col:11] NOT EQUAL predicate is not supported for path facets (column \"city\").",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -385,10 +384,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE time > 2011-16-20 55:10:10 \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Date string contains invalid date/time: \"2011-16-20 55:10:10\". (token=AND)",
+        "[line:3, col:13] Date string contains invalid date/time: \"2011-16-20 55:10:10\".",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -405,10 +404,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE time > 2011-10/20 \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] ParseException happened for \"2011-10/20\": Unparseable date: \"2011-10/20\". (token=AND)",
+        "[line:3, col:13] ParseException happened for \"2011-10/20\": Unparseable date: \"2011-10/20\".",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -425,10 +424,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT color \n" + "FROM cars \n"
           + "WHERE MATCH(color, year) AGAINST('text1 AND text2') \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Non-string type column \"year\" cannot be used in MATCH AGAINST predicates. (token=AND)",
+        "[line:3, col:19] Non-string type column \"year\" cannot be used in MATCH AGAINST predicates.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -444,7 +443,7 @@ public class TestErrorHandling extends TestCase {
     boolean caughtException = false;
     try {
       JSONObject json = _compiler.compile("select color, year from where year > 1");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals("[line:1, col:24] Mismatched input (token=where)",
         _compiler.getErrorMessage(err));
@@ -462,10 +461,10 @@ public class TestErrorHandling extends TestCase {
     boolean caughtException = false;
     try {
       JSONObject json = _compiler.compile("select color, from aa where color = 'red'");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertTrue(_compiler.getErrorMessage(err).startsWith(
-        "[line:1, col:14] No viable alternative (token=from)"));
+      assertEquals("[line:1, col:14] No viable alternative (token=from)",
+          _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
     }
@@ -481,9 +480,9 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select category \n" + "from cars \n"
           + "order by color \n" + "order by year \n" + "limit 10");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:5, col:0] ORDER BY clause can only appear once. (token=limit)",
+      assertEquals("[line:4, col:0] ORDER BY clause can only appear once.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -500,9 +499,9 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select category \n" + "from cars \n" + "limit 10, 20 \n"
           + "limit 10 \n" + "order by color \n");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:5, col:0] LIMIT clause can only appear once. (token=order)",
+      assertEquals("[line:4, col:0] LIMIT clause can only appear once.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -519,12 +518,12 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select category \n" + "from cars \n"
           + "where city IN LAST 2 days");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       // System.out.println(">>> _compiler.getErrorMessage(err): " +
       // _compiler.getErrorMessage(err));
       assertEquals(
-        "[line:3, col:25] Non-rangable facet column \"city\" cannot be used in TIME predicates. (token=<EOF>)",
+        "[line:3, col:6] Non-rangable facet column \"city\" cannot be used in TIME predicates.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -541,10 +540,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select category \n" + "from cars \n"
           + "where year = 12345678901234567890");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:3, col:33] Hit NumberFormatException: For input string: \"12345678901234567890\" (token=<EOF>)",
+        "[line:3, col:13] Hit NumberFormatException: For input string: \"12345678901234567890\"",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -561,9 +560,9 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select category \n" + "from cars \n"
           + "route by '1234' \n" + "route by '9999'");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:4, col:15] ROUTE BY clause can only appear once. (token=<EOF>)",
+      assertEquals("[line:4, col:0] ROUTE BY clause can only appear once.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -580,10 +579,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select _srcdata.category \n" + "from cars \n"
           + "fetching stored false");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
+        "[line:3, col:0] FETCHING STORED cannot be false when _srcdata is selected.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -600,10 +599,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("select _srcdata, color \n" + "from cars \n"
           + "fetching stored false");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:3, col:21] FETCHING STORED cannot be false when _srcdata is selected. (token=<EOF>)",
+        "[line:3, col:0] FETCHING STORED cannot be false when _srcdata is selected.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -621,10 +620,10 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("select category \n" + "from cars \n"
           + "using relevance model md1 (srcid:1234) \n"
           + "using relevance model md2 (param1:'abc')");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:40] USING RELEVANCE MODEL clause can only appear once. (token=<EOF>)",
+        "[line:4, col:0] USING RELEVANCE MODEL clause can only appear once.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -643,9 +642,9 @@ public class TestErrorHandling extends TestCase {
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid) \n"
           + "  BEGIN \n" + "    int x, y; \n" + "    short x = 5; \n" + "    return 0.5; \n"
           + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:7, col:15] Variable \"x\" is already defined. (token=;)",
+      assertEquals("[line:7, col:10] Variable \"x\" is already defined.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -664,9 +663,9 @@ public class TestErrorHandling extends TestCase {
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid) \n"
           + "  BEGIN \n" + "    if (x == 5) \n" + "      return 0.1; \n" + "    return 0.5; \n"
           + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:6, col:10] Variable or class \"x\" is not defined. (token===)",
+      assertEquals("[line:6, col:8] Variable or class \"x\" is not defined.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -686,10 +685,10 @@ public class TestErrorHandling extends TestCase {
           + "  BEGIN \n" + "    int x = 5; \n" + "    if (price > 2000.0) \n"
           + "      return 0.1; \n" + "    else { \n" + "      x = 10; \n" + "      y = x + 123; \n"
           + "    } \n" + "    return 0.5; \n" + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
-      assertEquals("[line:11, col:8] Variable or class \"y\" is not defined. (token==)",
+      assertEquals("[line:11, col:6] Variable or class \"y\" is not defined.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -708,9 +707,9 @@ public class TestErrorHandling extends TestCase {
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid) \n"
           + "  BEGIN \n" + "    int total = 0; \n" + "    for (int i = 0; i < 10; ++i) { \n"
           + "      total += i; \n" + "    } \n" + "    i = 100; \n" + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:10, col:6] Variable or class \"i\" is not defined. (token==)",
+      assertEquals("[line:10, col:4] Variable or class \"i\" is not defined.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -728,10 +727,10 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT * \n" + "FROM cars \n"
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid) \n"
           + "  BEGIN \n" + "    int year; \n" + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:6, col:12] Facet name \"year\" cannot be used to declare a variable. (token=;)",
+        "[line:6, col:8] Facet name \"year\" cannot be used to declare a variable.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -749,10 +748,10 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT * \n" + "FROM cars \n"
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid) \n"
           + "  BEGIN \n" + "    String _NOW; \n" + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:6, col:15] Internal variable \"_NOW\" cannot be re-used to declare another variable. (token=;)",
+        "[line:6, col:11] Internal variable \"_NOW\" cannot be re-used to declare another variable.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -771,9 +770,9 @@ public class TestErrorHandling extends TestCase {
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid) \n"
           + "  BEGIN \n" + "    int x = 100; \n" + "    for (int i = 1; i < 10; ++i) { \n"
           + "      int x; \n" + "    } \n" + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
-      assertEquals("[line:8, col:11] Variable \"x\" is already defined. (token=;)",
+      assertEquals("[line:8, col:10] Variable \"x\" is already defined.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -792,11 +791,11 @@ public class TestErrorHandling extends TestCase {
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n"
           + "  DEFINED AS (int srcid, float price) \n" + "  BEGIN \n" + "    return 0.5; \n"
           + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
       assertEquals(
-        "[line:4, col:36] Facet name \"price\" cannot be used as a relevance model parameter. (token=))",
+        "[line:4, col:31] Facet name \"price\" cannot be used as a relevance model parameter.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -815,10 +814,10 @@ public class TestErrorHandling extends TestCase {
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n"
           + "  DEFINED AS (int srcid, String srcid) \n" + "  BEGIN \n" + "    return 0.5; \n"
           + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
-      assertEquals("[line:4, col:37] Parameter name \"srcid\" has already been used. (token=))",
+      assertEquals("[line:4, col:32] Parameter name \"srcid\" has already been used.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -836,11 +835,11 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT * \n" + "FROM cars \n"
           + "USING RELEVANCE MODEL md1 (srcid:1234) \n" + "  DEFINED AS (int srcid, long _NOW) \n"
           + "  BEGIN \n" + "    return 0.5; \n" + "  END");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       // System.out.println(">>> err = " + _compiler.getErrorMessage(err));
       assertEquals(
-        "[line:4, col:34] Internal variable \"_NOW\" cannot be used as a relevance model parameter. (token=))",
+        "[line:4, col:30] Internal variable \"_NOW\" cannot be used as a relevance model parameter.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
