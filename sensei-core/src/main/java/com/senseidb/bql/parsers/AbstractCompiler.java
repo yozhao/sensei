@@ -1,6 +1,5 @@
 package com.senseidb.bql.parsers;
 
-import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.json.JSONObject;
 
@@ -10,9 +9,9 @@ public abstract class AbstractCompiler {
     super();
   }
 
-  public abstract JSONObject compile(String expression) throws RecognitionException;
+  public abstract JSONObject compile(String expression);
 
-  public abstract String getErrorMessage(RecognitionException error);
+  public abstract String getErrorMessage(IllegalStateException ex);
 
   protected void printTree(ParseTree ast) {
     print(ast, 0);

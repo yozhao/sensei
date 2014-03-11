@@ -20,7 +20,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.antlr.v4.runtime.RecognitionException;
 import org.apache.commons.configuration.DataConfiguration;
 import org.apache.commons.configuration.MapConfiguration;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -166,7 +165,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         }
       }
     }, 300000, 300000); // Every 5 minutes.
-
 
     logger.info("Cluster: " + _brokerConfig.getClusterName() + " successfully connected ");
   }
@@ -339,20 +337,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
   public boolean handleBqlRequest(HttpServletRequest req, HttpServletResponse resp,
       RequestContext requestContext) throws Exception, JSONException {
+    if (requestContext.jsonObj.length() == 1) {
+      requestContext.query = "bql=" + requestContext.bqlStmt;
+    } else {
+      requestContext.query = "json=" + requestContext.content;
+    }
     try {
-      if (requestContext.jsonObj.length() == 1) requestContext.query = "bql="
-          + requestContext.bqlStmt;
-      else requestContext.query = "json=" + requestContext.content;
-      // Disable variables replacing before bql compling, since that data representation in json and
-      // bql is quite different for now.
-      // requestContext.bqlStmt = (String) jsonTemplateProcessor.process(requestContext.bqlStmt,
-      // jsonTemplateProcessor.getTemplates(requestContext.jsonObj));
       requestContext.compiledJson = _compiler.compile(requestContext.bqlStmt);
-    } catch (RecognitionException e) {
+    } catch (IllegalStateException e) {
       String errMsg = _compiler.getErrorMessage(e);
-      if (errMsg == null) {
-        errMsg = "Unknown parsing error.";
-      }
       logger.error("BQL parsing error: " + errMsg + ", BQL: " + requestContext.bqlStmt);
       writeEmptyResponse(req, resp, new SenseiError(errMsg, ErrorType.BQLParsingError));
       return false;
@@ -365,11 +358,8 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       String bql2 = "SELECT * WHERE " + extraFilter;
       try {
         predObj = _compiler.compile(bql2);
-      } catch (RecognitionException e) {
+      } catch (IllegalStateException e) {
         String errMsg = _compiler.getErrorMessage(e);
-        if (errMsg == null) {
-          errMsg = "Unknown parsing error.";
-        }
         logger.error("BQL parsing error for additional preds: " + errMsg + ", BQL: " + bql2);
         writeEmptyResponse(req, resp, new SenseiError("BQL parsing error for additional preds: "
             + errMsg + ", BQL: " + bql2, ErrorType.BQLParsingError));

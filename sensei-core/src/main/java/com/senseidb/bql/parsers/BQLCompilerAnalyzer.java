@@ -1,9 +1,5 @@
 package com.senseidb.bql.parsers;
 
-import com.senseidb.search.req.BQLParserUtils;
-import com.senseidb.util.JSONUtil.FastJSONArray;
-import com.senseidb.util.JSONUtil.FastJSONObject;
-import com.senseidb.util.Pair;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -24,6 +21,11 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.senseidb.search.req.BQLParserUtils;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+import com.senseidb.util.Pair;
 
 /**
  *
@@ -45,8 +47,8 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     private long _now;
     private HashSet<String> _variables;
 
-    private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
-    private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
+    private final SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
+    private final SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
     private LinkedList<Map<String, String>> _symbolTable;
     private Map<String, String> _currentScope;
@@ -349,7 +351,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         return new Object[]{value, include};
     }
 
-    private void accumulateRangePred(JSONObject fieldMap, JSONObject pred)
+    private void accumulateRangePred(BQLParser.Term_exprContext ctx, JSONObject fieldMap, JSONObject pred)
         throws JSONException {
         String field = predField(pred);
         if (!fieldMap.has(field)) {
@@ -382,7 +384,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 // This error is in general detected late, so the token
                 // can be a little off, but hopefully the col index info
                 // is good enough.
-                throw new IllegalStateException("Inconsistent ranges detected for column: " + field);
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Inconsistent ranges detected for column: " + field);
             }
         }
 
@@ -400,21 +402,22 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                      new FastJSONObject().put(field, newSpec)));
     }
 
-    private void processRelevanceModelParam(JSONObject json,
-                                            Set<String> params,
-                                            String typeName,
-                                            final String varName)
+    private void processRelevanceModelParam(BQLParser.Formal_parameter_declContext ctx,
+                                            JSONObject json,
+                                            Set<String> params)
         throws JSONException {
+        String typeName = typeNameProperty.get(ctx);
+        String varName = varNameProperty.get(ctx);
         if (_facetInfoMap.containsKey(varName)) {
-            throw new IllegalStateException("Facet name \"" + varName + "\" cannot be used as a relevance model parameter.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Facet name \"" + varName + "\" cannot be used as a relevance model parameter.");
         }
 
         if (_internalVarMap.containsKey(varName)) {
-            throw new IllegalStateException("Internal variable \"" + varName + "\" cannot be used as a relevance model parameter.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Internal variable \"" + varName + "\" cannot be used as a relevance model parameter.");
         }
 
         if (params.contains(varName)) {
-            throw new IllegalStateException("Parameter name \"" + varName + "\" has already been used.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Parameter name \"" + varName + "\" has already been used.");
         }
 
         if ("String".equals(typeName)) {
@@ -472,39 +475,39 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     @Override
     public void exitSelect_stmt(BQLParser.Select_stmtContext ctx) {
         if (ctx.order_by_clause().size() > 1) {
-            throw new IllegalStateException("ORDER BY clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] ORDER BY clause can only appear once.");
         }
 
         if (ctx.limit_clause().size() > 1) {
-            throw new IllegalStateException("LIMIT clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] LIMIT clause can only appear once.");
         }
 
         if (ctx.group_by_clause().size() > 1) {
-            throw new IllegalStateException("GROUP BY clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] GROUP BY clause can only appear once.");
         }
 
         if (ctx.distinct_clause().size() > 1) {
-            throw new IllegalStateException("DISTINCT clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] DISTINCT clause can only appear once.");
         }
 
         if (ctx.execute_clause().size() > 1) {
-            throw new IllegalStateException("EXECUTE clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] EXECUTE clause can only appear once.");
         }
 
         if (ctx.browse_by_clause().size() > 1) {
-            throw new IllegalStateException("BROWSE BY clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] BROWSE BY clause can only appear once.");
         }
 
         if (ctx.fetching_stored_clause().size() > 1) {
-            throw new IllegalStateException("FETCHING STORED clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] FETCHING STORED clause can only appear once.");
         }
 
         if (ctx.route_by_clause().size() > 1) {
-            throw new IllegalStateException("ROUTE BY clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] ROUTE BY clause can only appear once.");
         }
 
         if (ctx.relevance_model_clause().size() > 1) {
-            throw new IllegalStateException("USING RELEVANCE MODEL clause can only appear once.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] USING RELEVANCE MODEL clause can only appear once.");
         }
 
         JSONObject jsonObj = new FastJSONObject();
@@ -546,10 +549,6 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 jsonObj.put("groupBy", jsonProperty.get(ctx.group_by));
 
             }
-            List<Pair<String, String>> aggregateFunctions = null;
-            if (ctx.cols != null) {
-                aggregateFunctions = aggregationFunctionsProperty.get(ctx.cols);
-            }
 
             if (ctx.distinct != null) {
                 jsonObj.put("distinct", jsonProperty.get(ctx.distinct));
@@ -572,7 +571,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             }
             if (ctx.fetch_stored != null) {
                 if (!(Boolean)valProperty.get(ctx.fetch_stored) && (ctx.cols != null && fetchStoredProperty.get(ctx.cols))) {
-                    throw new IllegalStateException("FETCHING STORED cannot be false when _srcdata is selected.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] FETCHING STORED cannot be false when _srcdata is selected.");
                 } else if ((Boolean)valProperty.get(ctx.fetch_stored)) {
                     // Default is false
                     jsonObj.put("fetchStored", valProperty.get(ctx.fetch_stored));
@@ -795,7 +794,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         try {
             JSONArray cols = (JSONArray)jsonProperty.get(ctx.or_column_name_list());
             if (cols.length() > 1) {
-                throw new IllegalStateException("DISTINCT only support a single column now.");
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] DISTINCT only support a single column now.");
             }
 
             for (int i = 0; i < cols.length(); ++i) {
@@ -804,7 +803,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 if (facetInfo != null && (facetInfo[0].equals("range") ||
                     facetInfo[0].equals("multi") ||
                     facetInfo[0].equals("path"))) {
-                    throw new IllegalStateException("Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Range/multi/path facet, \"" + col + "\", cannot be used in the DISTINCT clause.");
                 }
             }
 
@@ -921,7 +920,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 if (!"range".equals(predType(pred))) {
                     newArray.put(pred);
                 } else {
-                    accumulateRangePred(fieldMap, pred);
+                    accumulateRangePred(ctx, fieldMap, pred);
                 }
             }
 
@@ -964,14 +963,14 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         String[] facetInfo = _facetInfoMap.get(col);
 
         if (facetInfo != null && facetInfo[0].equals("range")) {
-            throw new IllegalStateException("Range facet \"" + col + "\" cannot be used in IN predicates.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Range facet \"" + col + "\" cannot be used in IN predicates.");
         }
         if (!verifyFieldDataType(col, jsonProperty.get(ctx.value_list()))) {
-            throw new IllegalStateException("Value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
         }
 
         if (ctx.except != null && !verifyFieldDataType(col, jsonProperty.get(ctx.except_clause()))) {
-            throw new IllegalStateException("EXCEPT value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] EXCEPT value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
         }
 
         try {
@@ -1037,15 +1036,15 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && facetInfo[0].equals("range")) {
-            throw new IllegalStateException("Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
         }
 
         if (!verifyFieldDataType(col, jsonProperty.get(ctx.value_list()))) {
-            throw new IllegalStateException("Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
         }
 
         if (ctx.except != null && !verifyFieldDataType(col, jsonProperty.get(ctx.except_clause()))) {
-            throw new IllegalStateException("EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
         }
 
         try {
@@ -1073,7 +1072,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitEqual_predicate(BQLParser.Equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
-            throw new IllegalStateException("Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
         }
 
         try {
@@ -1096,7 +1095,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                         if (key.equals("strict") || key.equals("depth")) {
                             valObj.put(key, propsJson.get(key));
                         } else {
-                            throw new IllegalStateException("Unsupported property was found in an EQUAL predicate for path facet column \"" + col + "\": " + key + ".");
+                            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Unsupported property was found in an EQUAL predicate for path facet column \"" + col + "\": " + key + ".");
                         }
                     }
                 }
@@ -1120,7 +1119,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitNot_equal_predicate(BQLParser.Not_equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
-            throw new IllegalStateException("Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
         }
 
         try {
@@ -1136,7 +1135,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                     .put("include_lower", false)));
                 jsonProperty.put(ctx, new FastJSONObject().put("or", new FastJSONArray().put(left).put(right)));
             } else if (facetInfo != null && facetInfo[0].equals("path")) {
-                throw new IllegalStateException("NOT EQUAL predicate is not supported for path facets (column \"" + col + "\").");
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] NOT EQUAL predicate is not supported for path facets (column \"" + col + "\").");
             } else {
                 JSONObject valObj = new FastJSONObject();
                 valObj.put("operator", "or");
@@ -1170,11 +1169,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitBetween_predicate(BQLParser.Between_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
-            throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
         }
 
         if (!verifyFieldDataType(col, new Object[]{valProperty.get(ctx.val1), valProperty.get(ctx.val2)})) {
-            throw new IllegalStateException("Incompatible data type was found in a BETWEEN predicate for column \"" + col + "\".");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Incompatible data type was found in a BETWEEN predicate for column \"" + col + "\".");
         }
 
         try {
@@ -1208,11 +1207,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitRange_predicate(BQLParser.Range_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
-            throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
         }
 
         if (!verifyFieldDataType(col, valProperty.get(ctx.val))) {
-            throw new IllegalStateException("Incompatible data type was found in a RANGE predicate for column \"" + col + "\".");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Incompatible data type was found in a RANGE predicate for column \"" + col + "\".");
         }
 
         try {
@@ -1237,7 +1236,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         if (ctx.LAST() != null) {
             String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
-                throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
             }
 
             try {
@@ -1258,7 +1257,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         } else {
             String col = getTextProperty(ctx.column_name());
             if (!verifyFacetType(col, "range")) {
-                throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Non-rangable facet column \"" + col + "\" cannot be used in TIME predicates.");
             }
 
             try {
@@ -1387,10 +1386,10 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         try {
             valProperty.put(ctx, format.parse(dateTimeStr).getTime());
             if (!dateTimeStr.equals(format.format(valProperty.get(ctx)))) {
-                throw new IllegalStateException("Date string contains invalid date/time: \"" + dateTimeStr + "\".");
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Date string contains invalid date/time: \"" + dateTimeStr + "\".");
             }
         } catch (ParseException err) {
-            throw new IllegalStateException("ParseException happened for \"" + dateTimeStr + "\": " +
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] ParseException happened for \"" + dateTimeStr + "\": " +
                 err.getMessage() + ".");
         }
     }
@@ -1403,7 +1402,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 String col = cols.getString(i);
                 String[] facetInfo = _facetInfoMap.get(col);
                 if (facetInfo != null && !facetInfo[1].equals("string")) {
-                    throw new IllegalStateException("Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Non-string type column \"" + col + "\" cannot be used in MATCH AGAINST predicates.");
                 }
             }
 
@@ -1426,7 +1425,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && !facetInfo[1].equals("string")) {
-            throw new IllegalStateException("Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
+            throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Non-string type column \"" + col + "\" cannot be used in LIKE predicates.");
         }
 
         String orig = unescapeStringLiteral(ctx.STRING_LITERAL());
@@ -1542,13 +1541,13 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             try {
                 valProperty.put(ctx, Long.parseLong(ctx.INTEGER().getText()));
             } catch (NumberFormatException err) {
-                throw new IllegalStateException("Hit NumberFormatException: " + err.getMessage());
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Hit NumberFormatException: " + err.getMessage());
             }
         } else if (ctx.REAL() != null) {
             try {
                 valProperty.put(ctx, Float.parseFloat(ctx.REAL().getText()));
             } catch (NumberFormatException err) {
-                throw new IllegalStateException("Hit NumberFormatException: " + err.getMessage());
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Hit NumberFormatException: " + err.getMessage());
             }
         } else {
             throw new UnsupportedOperationException("Not yet implemented.");
@@ -1665,7 +1664,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         Set<String> params = new HashSet<String>();
         for (BQLParser.Formal_parameter_declContext decl : ctx.formal_parameter_decl()) {
             try {
-                processRelevanceModelParam(json, params, typeNameProperty.get(decl), varNameProperty.get(decl));
+                processRelevanceModelParam(decl, json, params);
             }
             catch (JSONException err) {
                 throw new IllegalStateException("JSONException: " + err.getMessage());
@@ -1770,11 +1769,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             for (int i = 0; i < vars.length(); ++i) {
                 String var = vars.getString(i);
                 if (_facetInfoMap.containsKey(var)) {
-                    throw new IllegalStateException("Facet name \"" + var + "\" cannot be used to declare a variable.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Facet name \"" + var + "\" cannot be used to declare a variable.");
                 } else if (_internalVarMap.containsKey(var)) {
-                    throw new IllegalStateException("Internal variable \"" + var + "\" cannot be re-used to declare another variable.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Internal variable \"" + var + "\" cannot be re-used to declare another variable.");
                 } else if (verifyVariable(var)) {
-                    throw new IllegalStateException("Variable \"" + var + "\" is already defined.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Variable \"" + var + "\" is already defined.");
                 } else {
                     _currentScope.put(var, typeNameProperty.get(ctx.type()));
                 }
@@ -1829,7 +1828,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             TerminalNode current = (TerminalNode)ctx.getChild(i);
             if (previous != null) {
                 if (previous.getSymbol().getStopIndex() + 1 != current.getSymbol().getStartIndex()) {
-                    throw new IllegalStateException("Operators cannot contain spaces.");
+                    throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Operators cannot contain spaces.");
                 }
             }
 
@@ -1846,7 +1845,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             } else if (_internalVarMap.containsKey(var)) {
                 _usedInternalVars.add(var);
             } else if (!_supportedClasses.contains(var) && !verifyVariable(var)) {
-                throw new IllegalStateException("Variable or class \"" + var + "\" is not defined.");
+                throw new IllegalStateException("[line " + ctx.stop.getLine() + "] Variable or class \"" + var + "\" is not defined.");
             }
         }
     }
