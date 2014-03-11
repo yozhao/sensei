@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import com.senseidb.bql.parsers.BQLCompiler;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class TestErrorHandling extends TestCase {
 
@@ -99,10 +100,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE color in ('red', 2000, 'blue') \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Value list for IN predicate of facet \"color\" contains incompatible value(s). (token=AND)",
+        "[line:3, col:23] Value list for IN predicate of facet \"color\" contains incompatible value(s).",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -119,10 +120,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE color IN ('red', 'blue') EXCEPT ('black', 2000) \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] EXCEPT value list for IN predicate of facet \"color\" contains incompatible value(s). (token=AND)",
+        "[line:3, col:48] EXCEPT value list for IN predicate of facet \"color\" contains incompatible value(s).",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);

@@ -18,6 +18,7 @@ import java.util.Set;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -77,6 +78,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     private final ParseTreeProperty<JSONObject> paramProperty = new ParseTreeProperty<JSONObject>();
     private final ParseTreeProperty<String> paramTypeProperty = new ParseTreeProperty<String>();
     private final ParseTreeProperty<String> functionBodyProperty = new ParseTreeProperty<String>();
+
+    /**
+     * This property records the index of invalid data identified by {@link #verifyFieldDataType}.
+     */
+    private final ParseTreeProperty<Integer> invalidDataIndex = new ParseTreeProperty<Integer>();
 
     static {
         _fastutilTypeMap = new HashMap<String, String>();
@@ -184,7 +190,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         }
     }
 
-    private boolean verifyFieldDataType(final String field, Object value) {
+    private boolean verifyFieldDataType(final String field, ParseTree tree, Object value) {
         String[] facetInfo = _facetInfoMap.get(field);
 
         if (value instanceof String &&
@@ -193,22 +199,29 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             // This "value" is a variable, return true always
             return true;
         } else if (value instanceof JSONArray) {
-            try {
-                if (facetInfo != null) {
-                    String columnType = facetInfo[1];
-                    for (int i = 0; i < ((JSONArray)value).length(); ++i) {
+            if (facetInfo != null) {
+                String columnType = facetInfo[1];
+                for (int i = 0; i < ((JSONArray)value).length(); ++i) {
+                    try {
                         if (!verifyValueType(((JSONArray)value).get(i), columnType)) {
+                            invalidDataIndex.put(tree, i);
                             return false;
                         }
+                    } catch (JSONException err) {
+                        invalidDataIndex.put(tree, i);
+                        throw new IllegalStateException("JSONException: " + err.getMessage());
                     }
                 }
-                return true;
-            } catch (JSONException err) {
-                throw new IllegalStateException("JSONException: " + err.getMessage());
             }
+            return true;
         } else {
             if (facetInfo != null) {
-                return verifyValueType(value, facetInfo[1]);
+                if (!verifyValueType(value, facetInfo[1])) {
+                    invalidDataIndex.put(tree, 0);
+                    return false;
+                }
+
+                return true;
             } else {
                 // Field is not a facet
                 return true;
@@ -964,14 +977,16 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         String[] facetInfo = _facetInfoMap.get(col);
 
         if (facetInfo != null && facetInfo[0].equals("range")) {
-            throw new IllegalStateException("Range facet \"" + col + "\" cannot be used in IN predicates.");
+            throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Range facet \"" + col + "\" cannot be used in IN predicates."));
         }
-        if (!verifyFieldDataType(col, jsonProperty.get(ctx.value_list()))) {
-            throw new IllegalStateException("Value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
+        if (!verifyFieldDataType(col, ctx.value_list(), jsonProperty.get(ctx.value_list()))) {
+            ParseTree errorNode = getInvalidValue(ctx.value_list());
+            throw new ParseCancellationException(new SemanticException(errorNode, "Value list for IN predicate of facet \"" + col + "\" contains incompatible value(s)."));
         }
 
-        if (ctx.except != null && !verifyFieldDataType(col, jsonProperty.get(ctx.except_clause()))) {
-            throw new IllegalStateException("EXCEPT value list for IN predicate of facet \"" + col + "\" contains incompatible value(s).");
+        if (ctx.except != null && !verifyFieldDataType(col, ctx.except_clause(), jsonProperty.get(ctx.except_clause()))) {
+            ParseTree errorNode = getInvalidValue(ctx.except_clause());
+            throw new ParseCancellationException(new SemanticException(errorNode, "EXCEPT value list for IN predicate of facet \"" + col + "\" contains incompatible value(s)."));
         }
 
         try {
@@ -998,7 +1013,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             jsonProperty.put(ctx, new FastJSONObject().put("terms",
                                                            new FastJSONObject().put(col, dict)));
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1040,11 +1055,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             throw new IllegalStateException("Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
         }
 
-        if (!verifyFieldDataType(col, jsonProperty.get(ctx.value_list()))) {
+        if (!verifyFieldDataType(col, ctx.value_list(), jsonProperty.get(ctx.value_list()))) {
             throw new IllegalStateException("Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
         }
 
-        if (ctx.except != null && !verifyFieldDataType(col, jsonProperty.get(ctx.except_clause()))) {
+        if (ctx.except != null && !verifyFieldDataType(col, ctx.except_clause(), jsonProperty.get(ctx.except_clause()))) {
             throw new IllegalStateException("EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
         }
 
@@ -1072,7 +1087,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     @Override
     public void exitEqual_predicate(BQLParser.Equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
-        if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
+        if (!verifyFieldDataType(col, ctx.value(), valProperty.get(ctx.value()))) {
             throw new IllegalStateException("Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
         }
 
@@ -1119,7 +1134,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     @Override
     public void exitNot_equal_predicate(BQLParser.Not_equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
-        if (!verifyFieldDataType(col, valProperty.get(ctx.value()))) {
+        if (!verifyFieldDataType(col, ctx.value(), valProperty.get(ctx.value()))) {
             throw new IllegalStateException("Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
         }
 
@@ -1211,7 +1226,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
         }
 
-        if (!verifyFieldDataType(col, valProperty.get(ctx.val))) {
+        if (!verifyFieldDataType(col, ctx.val, valProperty.get(ctx.val))) {
             throw new IllegalStateException("Incompatible data type was found in a RANGE predicate for column \"" + col + "\".");
         }
 
@@ -1972,5 +1987,72 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         }
 
         return text;
+    }
+
+    /**
+     * Gets the specific {@link ParseTree} that should be reported with a
+     * semantic error for the specified invalid data index.
+     *
+     * @param tree The parse tree whose value was validated by {@link #verifyFieldDataType}.
+     * @param invalidDataIndex The invalid data index reported by {@link #verifyFieldDataType}.
+     * @return The {@link ParseTree} to use as the node for a {@link SemanticException}.
+     */
+    private ParseTree getInvalidValue(ParseTree tree) {
+        Integer index = invalidDataIndex.get(tree);
+        if (index == null) {
+            return tree;
+        }
+
+        InvalidValueVisitor visitor = new InvalidValueVisitor(index);
+        ParseTree result = visitor.visit(tree);
+        if (result == null) {
+            return tree;
+        }
+
+        return result;
+    }
+
+    /**
+     * This visitor is used for locating specific value nodes for reporting
+     * accurate error locations following a failure in
+     * {@link #verifyFieldDataType}.
+     */
+    private static class InvalidValueVisitor extends BQLBaseVisitor<ParseTree> {
+        private final int invalidDataIndex;
+
+        public InvalidValueVisitor(int invalidDataIndex) {
+            this.invalidDataIndex = invalidDataIndex;
+        }
+
+        @Override
+        public ParseTree visitValue_list(BQLParser.Value_listContext ctx) {
+            if (ctx.non_variable_value_list() != null) {
+                return visit(ctx.non_variable_value_list());
+            } else if (ctx.VARIABLE() != null && invalidDataIndex == 0) {
+                return ctx.VARIABLE();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public ParseTree visitNon_variable_value_list(BQLParser.Non_variable_value_listContext ctx) {
+            List<BQLParser.ValueContext> values = ctx.value();
+            if (invalidDataIndex < values.size()) {
+                return values.get(invalidDataIndex);
+            }
+
+            return ctx;
+        }
+
+        @Override
+        public ParseTree visitExcept_clause(BQLParser.Except_clauseContext ctx) {
+            return visit(ctx.value_list());
+        }
+
+        @Override
+        protected ParseTree defaultResult() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
