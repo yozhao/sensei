@@ -1052,15 +1052,17 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         String col = getTextProperty(ctx.column_name());
         String[] facetInfo = _facetInfoMap.get(col);
         if (facetInfo != null && facetInfo[0].equals("range")) {
-            throw new IllegalStateException("Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates.");
+            throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Range facet column \"" + col + "\" cannot be used in CONTAINS ALL predicates."));
         }
 
         if (!verifyFieldDataType(col, ctx.value_list(), jsonProperty.get(ctx.value_list()))) {
-            throw new IllegalStateException("Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
+            ParseTree errorNode = getInvalidValue(ctx.value_list());
+            throw new ParseCancellationException(new SemanticException(errorNode, "Value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s)."));
         }
 
         if (ctx.except != null && !verifyFieldDataType(col, ctx.except_clause(), jsonProperty.get(ctx.except_clause()))) {
-            throw new IllegalStateException("EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s).");
+            ParseTree errorNode = getInvalidValue(ctx.except_clause());
+            throw new ParseCancellationException(new SemanticException(errorNode, "EXCEPT value list for CONTAINS ALL predicate of facet \"" + col + "\" contains incompatible value(s)."));
         }
 
         try {
@@ -1080,7 +1082,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             jsonProperty.put(ctx, new FastJSONObject().put("terms",
                                                            new FastJSONObject().put(col, dict)));
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 

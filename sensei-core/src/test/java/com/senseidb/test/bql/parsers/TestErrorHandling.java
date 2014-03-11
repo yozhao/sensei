@@ -140,10 +140,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE year contains all (1995, 2000) \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Range facet column \"year\" cannot be used in CONTAINS ALL predicates. (token=AND)",
+        "[line:3, col:6] Range facet column \"year\" cannot be used in CONTAINS ALL predicates.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -160,10 +160,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE tags CONTAINS ALL ('cool', 175.50, 'hybrid') \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s). (token=AND)",
+        "[line:3, col:33] Value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s).",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -181,10 +181,10 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE tags contains all ('cool', 'hybrid') EXCEPT ('moon-roof', 2000) \n"
           + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] EXCEPT value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s). (token=AND)",
+        "[line:3, col:64] EXCEPT value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s).",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
