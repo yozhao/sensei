@@ -201,10 +201,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE color = 1234 \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Incompatible data type was found in an EQUAL predicate for column \"color\". (token=AND)",
+        "[line:3, col:14] Incompatible data type was found in an EQUAL predicate for column \"color\".",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -260,10 +260,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE color <> 1234 \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Incompatible data type was found in a NOT EQUAL predicate for column \"color\". (token=AND)",
+        "[line:3, col:15] Incompatible data type was found in a NOT EQUAL predicate for column \"color\".",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -301,12 +301,12 @@ public class TestErrorHandling extends TestCase {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE city BETWEEN 'blue' AND 'red' \n" + "  AND price < 1750.00");
       // System.out.println(">>> json: " + json);
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       // System.out.println(">>> _compiler.getErrorMessage(err): " +
       // _compiler.getErrorMessage(err));
       assertEquals(
-        "[line:4, col:2] Non-rangable facet column \"city\" cannot be used in BETWEEN predicates. (token=AND)",
+        "[line:3, col:6] Non-rangable facet column \"city\" cannot be used in BETWEEN predicates.",
         _compiler.getErrorMessage(err));
       // System.out.println(">>> caughtException: " + caughtException);
     } finally {
@@ -325,10 +325,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE year BETWEEN 'blue' AND 2000 \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Incompatible data type was found in a BETWEEN predicate for column \"year\". (token=AND)",
+        "[line:3, col:19] Incompatible data type was found in a BETWEEN predicate for column \"year\".",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -345,10 +345,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE city > 'red' \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Non-rangable facet column \"city\" cannot be used in RANGE predicates. (token=AND)",
+        "[line:3, col:6] Non-rangable facet column \"city\" cannot be used in RANGE predicates.",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);
@@ -365,10 +365,10 @@ public class TestErrorHandling extends TestCase {
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE year > 'red' \n" + "  AND price < 1750.00");
-    } catch (RecognitionException err) {
+    } catch (ParseCancellationException err) {
       caughtException = true;
       assertEquals(
-        "[line:4, col:2] Incompatible data type was found in a RANGE predicate for column \"year\". (token=AND)",
+        "[line:3, col:13] Incompatible data type was found in a RANGE predicate for column \"year\".",
         _compiler.getErrorMessage(err));
     } finally {
       assertTrue(caughtException);

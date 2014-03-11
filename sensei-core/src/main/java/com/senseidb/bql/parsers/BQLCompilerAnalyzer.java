@@ -229,12 +229,14 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
         }
     }
 
-    private boolean verifyFieldDataType(final String field, Object[] values) {
+    private boolean verifyFieldDataType(final String field, ParseTree tree, Object[] values) {
         String[] facetInfo = _facetInfoMap.get(field);
         if (facetInfo != null) {
             String columnType = facetInfo[1];
-            for (Object value : values) {
+            for (int i = 0; i < values.length; i++) {
+                Object value = values[i];
                 if (!verifyValueType(value, columnType)) {
+                    invalidDataIndex.put(tree, i);
                     return false;
                 }
             }
@@ -1090,7 +1092,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitEqual_predicate(BQLParser.Equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, ctx.value(), valProperty.get(ctx.value()))) {
-            throw new IllegalStateException("Incompatible data type was found in an EQUAL predicate for column \"" + col + "\".");
+            throw new ParseCancellationException(new SemanticException(ctx.value(), "Incompatible data type was found in an EQUAL predicate for column \"" + col + "\"."));
         }
 
         try {
@@ -1129,7 +1131,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                                new FastJSONObject().put(col, valSpec)));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1137,7 +1139,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitNot_equal_predicate(BQLParser.Not_equal_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFieldDataType(col, ctx.value(), valProperty.get(ctx.value()))) {
-            throw new IllegalStateException("Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\".");
+            throw new ParseCancellationException(new SemanticException(ctx.value(), "Incompatible data type was found in a NOT EQUAL predicate for column \"" + col + "\"."));
         }
 
         try {
@@ -1167,7 +1169,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                                                                new FastJSONObject().put(col, valObj)));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1187,11 +1189,12 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitBetween_predicate(BQLParser.Between_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
-            throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates.");
+            throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Non-rangable facet column \"" + col + "\" cannot be used in BETWEEN predicates."));
         }
 
-        if (!verifyFieldDataType(col, new Object[]{valProperty.get(ctx.val1), valProperty.get(ctx.val2)})) {
-            throw new IllegalStateException("Incompatible data type was found in a BETWEEN predicate for column \"" + col + "\".");
+        if (!verifyFieldDataType(col, ctx, new Object[]{valProperty.get(ctx.val1), valProperty.get(ctx.val2)})) {
+            ParseTree errorNode = getInvalidValue(ctx);
+            throw new ParseCancellationException(new SemanticException(errorNode, "Incompatible data type was found in a BETWEEN predicate for column \"" + col + "\"."));
         }
 
         try {
@@ -1217,7 +1220,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 jsonProperty.put(ctx, new FastJSONObject().put("or", new FastJSONArray().put(range1).put(range2)));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -1225,11 +1228,11 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     public void exitRange_predicate(BQLParser.Range_predicateContext ctx) {
         String col = getTextProperty(ctx.column_name());
         if (!verifyFacetType(col, "range")) {
-            throw new IllegalStateException("Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates.");
+            throw new ParseCancellationException(new SemanticException(ctx.column_name(), "Non-rangable facet column \"" + col + "\" cannot be used in RANGE predicates."));
         }
 
         if (!verifyFieldDataType(col, ctx.val, valProperty.get(ctx.val))) {
-            throw new IllegalStateException("Incompatible data type was found in a RANGE predicate for column \"" + col + "\".");
+            throw new ParseCancellationException(new SemanticException(ctx.val, "Incompatible data type was found in a RANGE predicate for column \"" + col + "\"."));
         }
 
         try {
@@ -1245,7 +1248,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                     .put("include_upper", "<=".equals(ctx.op.getText())))));
             }
         } catch (JSONException err) {
-            throw new IllegalStateException("JSONException: " + err.getMessage());
+            throw new ParseCancellationException(new SemanticException(ctx, "JSONException: " + err.getMessage()));
         }
     }
 
@@ -2045,6 +2048,20 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             }
 
             return ctx;
+        }
+
+        @Override
+        public ParseTree visitBetween_predicate(BQLParser.Between_predicateContext ctx) {
+            switch (invalidDataIndex) {
+            case 0:
+                return ctx.val1;
+
+            case 1:
+                return ctx.val2;
+
+            default:
+                return null;
+            }
         }
 
         @Override
