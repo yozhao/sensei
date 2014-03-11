@@ -13,9 +13,11 @@ import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
 import com.senseidb.bql.parsers.BQLCompiler;
+import com.senseidb.bql.parsers.SemanticException;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.JsonTemplateProcessor;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -225,14 +227,18 @@ public class TestBQL {
 
   @SuppressWarnings("unused")
   @Test
-  public void testInPred3() throws Exception {
+  public void testInPred3() throws Throwable {
     System.out.println("testInPred3");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Range facet \"year\" cannot be used in IN predicates.");
-    JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
-        + "WHERE year IN (1995,2000) " + "  AND color = 'red'");
+    try {
+      JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
+          + "WHERE year IN (1995,2000) " + "  AND color = 'red'");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @Test
@@ -615,49 +621,65 @@ public class TestBQL {
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType1() throws Exception {
+  public void testColumnType1() throws Throwable {
     System.out.println("testColumnType1");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Incompatible data type was found in an EQUAL predicate for column \"color\".");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE color = 1");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE color = 1");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType2() throws Exception {
+  public void testColumnType2() throws Throwable {
     System.out.println("testColumnType2");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Incompatible data type was found in a RANGE predicate for column \"year\".");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE mileage = 111 "
-        + "  OR (color IN ('red', 'blue') AND year > 'bbb')");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE mileage = 111 "
+          + "  OR (color IN ('red', 'blue') AND year > 'bbb')");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType3() throws Exception {
+  public void testColumnType3() throws Throwable {
     System.out.println("testColumnType3");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Value list for IN predicate of facet \"color\" contains incompatible value(s).");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
-        + "WHERE color IN ('red', 123)");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
+          + "WHERE color IN ('red', 123)");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType4() throws Exception {
+  public void testColumnType4() throws Throwable {
     System.out.println("testColumnType4");
     System.out.println("==================================================");
 
-    expectedEx.expect(IllegalStateException.class);
+    expectedEx.expect(SemanticException.class);
     expectedEx.expectMessage("Value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s).");
-    JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
-        + "WHERE tags CONTAINS ALL ('cool', 123)");
+    try {
+      JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
+          + "WHERE tags CONTAINS ALL ('cool', 123)");
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
+    }
   }
 
   @Test
