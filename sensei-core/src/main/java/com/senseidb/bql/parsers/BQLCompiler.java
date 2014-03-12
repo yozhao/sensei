@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -37,6 +38,7 @@ public class BQLCompiler extends AbstractCompiler {
     // Parser generates abstract syntax tree
     BQLParser parser = new BQLParser(tokens);
     _parser.set(parser);
+    parser.removeErrorListeners();
     parser.setErrorHandler(new BailErrorStrategy());
     BQLParser.StatementContext ret = parser.statement();
 

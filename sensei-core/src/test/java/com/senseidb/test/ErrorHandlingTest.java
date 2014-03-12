@@ -244,6 +244,16 @@ public class ErrorHandlingTest extends TestCase {
     assertResponseContainsErrors(res, ErrorType.BQLParsingError);
   }
 
+  public void test9BQLError() throws Exception {
+    String req = "{\"bql\":\"SELECT category FROM cars WHERE color = 'red' AND year > 2000 AND year < 1995 OR price < 1750.00\"}";
+
+    JSONObject reqJson = new JSONObject(req);
+    System.out.println(reqJson.toString(1));
+    JSONObject res = TestSensei.search(reqJson);
+    assertEquals(ErrorType.BQLParsingError.getDefaultErrorCode(), res.getInt("errorCode"));
+    assertResponseContainsErrors(res, ErrorType.BQLParsingError);
+  }
+
   private void assertResponseContainsErrors(JSONObject res, ErrorType... jsonParsingErrors)
       throws JSONException {
     for (int i = 0; i < jsonParsingErrors.length; i++) {

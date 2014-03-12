@@ -1,9 +1,5 @@
 package com.senseidb.bql.parsers;
 
-import com.senseidb.search.req.BQLParserUtils;
-import com.senseidb.util.JSONUtil.FastJSONArray;
-import com.senseidb.util.JSONUtil.FastJSONObject;
-import com.senseidb.util.Pair;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -26,6 +23,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.senseidb.search.req.BQLParserUtils;
+import com.senseidb.util.JSONUtil.FastJSONArray;
+import com.senseidb.util.JSONUtil.FastJSONObject;
+import com.senseidb.util.Pair;
+
 /**
  *
  * @author Sam Harwell
@@ -33,7 +35,6 @@ import org.json.JSONObject;
 public class BQLCompilerAnalyzer extends BQLBaseListener {
 
     private static final int DEFAULT_REQUEST_OFFSET = 0;
-    private static final int DEFAULT_REQUEST_COUNT = 10;
     private static final int DEFAULT_REQUEST_MAX_PER_GROUP = 10;
     private static final int DEFAULT_FACET_MINHIT = 1;
     private static final int DEFAULT_FACET_MAXHIT = 10;
@@ -46,8 +47,8 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
     private long _now;
     private HashSet<String> _variables;
 
-    private SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
-    private SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
+    private final SimpleDateFormat[] _format1 = new SimpleDateFormat[2];
+    private final SimpleDateFormat[] _format2 = new SimpleDateFormat[2];
 
     private LinkedList<Map<String, String>> _symbolTable;
     private Map<String, String> _currentScope;
@@ -561,10 +562,6 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
             if (ctx.group_by != null) {
                 jsonObj.put("groupBy", jsonProperty.get(ctx.group_by));
 
-            }
-            List<Pair<String, String>> aggregateFunctions = null;
-            if (ctx.cols != null) {
-                aggregateFunctions = aggregationFunctionsProperty.get(ctx.cols);
             }
 
             if (ctx.distinct != null) {
@@ -1112,8 +1109,7 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
                 if (ctx.props != null) {
                     JSONObject propsJson = (JSONObject)jsonProperty.get(ctx.props);
                     Iterator<?> itr;
-                    int i = 0;
-                    for (itr = propsJson.keys(); itr.hasNext(); i++) {
+                    for (itr = propsJson.keys(); itr.hasNext();) {
                         String key = (String)itr.next();
                         if (key.equals("strict") || key.equals("depth")) {
                             valObj.put(key, propsJson.get(key));
