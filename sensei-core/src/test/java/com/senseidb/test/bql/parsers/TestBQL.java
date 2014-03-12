@@ -6,19 +6,31 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
-import org.antlr.runtime.RecognitionException;
+import org.antlr.v4.runtime.RecognitionException;
 import org.json.JSONObject;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import com.senseidb.bql.parsers.BQLCompiler;
+import com.senseidb.bql.parsers.SemanticException;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.JsonTemplateProcessor;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-public class TestBQL extends TestCase {
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+
+public class TestBQL {
 
   private final BQLCompiler _compiler;
   private final JsonComparator _comp = new JsonComparator(1);
+
+  @Rule
+  public final ExpectedException expectedEx = ExpectedException.none();
 
   public TestBQL() {
     super();
@@ -48,7 +60,7 @@ public class TestBQL extends TestCase {
     System.out.println("testBasic1");
     System.out.println("==================================================");
     // No where clause
-    JSONObject json = _compiler.compile("select category /* BLOCK COMMENTS *//* "
+    JSONObject json = _compiler.compile("select category /* BLOCK COMMENTS */ "
         + "from cars       -- LINE COMMENTS");
     JSONObject expected = new JSONObject("{\"meta\":{\"select_list\":[\"category\"]}}");
     assertTrue(_comp.isEquals(json, expected));
@@ -215,22 +227,18 @@ public class TestBQL extends TestCase {
 
   @SuppressWarnings("unused")
   @Test
-  public void testInPred3() throws Exception {
+  public void testInPred3() throws Throwable {
     System.out.println("testInPred3");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Range facet \"year\" cannot be used in IN predicates.");
     try {
       JSONObject json = _compiler.compile("SELECT category \n" + "FROM cars \n"
           + "WHERE year IN (1995,2000) " + "  AND color = 'red'");
-    } catch (RecognitionException err) {
-      // System.out.println(">>> hit FailedPredicateException = " + err);
-      // System.out.println(">>> err.line = " + err.line);
-      // System.out.println(">>> err.charPositionInLine = " + err.charPositionInLine);
-      // System.out.println(">>> err.token = " + err.token.getText());
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @Test
@@ -271,18 +279,18 @@ public class TestBQL extends TestCase {
 
   @SuppressWarnings("unused")
   @Test
-  public void testPathPred2() throws Exception {
+  public void testPathPred2() throws Throwable {
     System.out.println("testPathPred2");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Unsupported property was found in an EQUAL predicate for path facet column \"city\": ddd.");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
           + "WHERE city = 'china/hongkong' WITH ('strict':false, 'ddd':1)");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @Test
@@ -461,18 +469,18 @@ public class TestBQL extends TestCase {
 
   @SuppressWarnings("unused")
   @Test
-  public void testRangePred5() throws Exception {
+  public void testRangePred5() throws Throwable {
     System.out.println("testRangePred5");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Inconsistent ranges detected for column: year");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
           + "WHERE year > 1999 AND year < 1995");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @Test
@@ -586,17 +594,17 @@ public class TestBQL extends TestCase {
 
   @SuppressWarnings("unused")
   @Test
-  public void testLikePredicate3() throws Exception {
+  public void testLikePredicate3() throws Throwable {
     System.out.println("testLikePredicate3");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Non-string type column \"price\" cannot be used in LIKE predicates.");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE price LIKE '123%'");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @Test
@@ -625,65 +633,65 @@ public class TestBQL extends TestCase {
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType1() throws Exception {
+  public void testColumnType1() throws Throwable {
     System.out.println("testColumnType1");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Incompatible data type was found in an EQUAL predicate for column \"color\".");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE color = 1");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType2() throws Exception {
+  public void testColumnType2() throws Throwable {
     System.out.println("testColumnType2");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Incompatible data type was found in a RANGE predicate for column \"year\".");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars " + "WHERE mileage = 111 "
           + "  OR (color IN ('red', 'blue') AND year > 'bbb')");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType3() throws Exception {
+  public void testColumnType3() throws Throwable {
     System.out.println("testColumnType3");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Value list for IN predicate of facet \"color\" contains incompatible value(s).");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
           + "WHERE color IN ('red', 123)");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @SuppressWarnings("unused")
   @Test
-  public void testColumnType4() throws Exception {
+  public void testColumnType4() throws Throwable {
     System.out.println("testColumnType4");
     System.out.println("==================================================");
 
-    int result = 0;
+    expectedEx.expect(SemanticException.class);
+    expectedEx.expectMessage("Value list for CONTAINS ALL predicate of facet \"tags\" contains incompatible value(s).");
     try {
       JSONObject json = _compiler.compile("SELECT * " + "FROM cars "
           + "WHERE tags CONTAINS ALL ('cool', 123)");
-    } catch (RecognitionException err) {
-      result = 1;
+    } catch (ParseCancellationException ex) {
+      throw ex.getCause();
     }
-    assertEquals(result, 1);
   }
 
   @Test
