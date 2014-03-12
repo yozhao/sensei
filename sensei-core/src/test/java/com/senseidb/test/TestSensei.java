@@ -1404,6 +1404,42 @@ public class TestSensei extends TestCase {
     assertEquals("numhits is wrong", 14990, res.getInt("numhits"));
   }
 
+  public void testBqlEmptyStringFilter() throws Exception {
+    logger.info("Executing test case testBqlEmptyStringFilter");
+    String req = "{  \"bql\": \"select * FROM sensei WHERE color > '' limit 0, 500\"}";
+    JSONObject res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 15000, res.getInt("numhits"));
+    req = "{  \"bql\": \"select * FROM sensei WHERE color < '' limit 0, 500\"}";
+    res = search(new JSONObject(req));
+    assertEquals("numhits is wrong", 0, res.getInt("numhits"));
+  }
+
+  public void testBqlRelevanceModel() throws Exception {
+    logger.info("executing test case testBqlRelevanceModel");
+
+    String bql = "SELECT * FROM cars  WHERE QUERY IS 'electric' AND mileage < 11000 AND category = 'compact' "
+        + "USING RELEVANCE MODEL search_car_model(my_price:3200) "
+        + "DEFINED AS(double my_price) "
+        + "BEGIN "
+        + "float boost = 0.0f;  if (price < my_price) boost += 30; "
+        + "if (year > 2001) boost += 20; if (color.equals(\"red\")) boost += 20; "
+        + "return _INNER_SCORE * boost;  END ORDER BY RELEVANCE LIMIT 0, 20";
+
+    JSONObject res = search(new JSONObject().put("bql", bql));
+    int numhits = res.getInt("numhits");
+    assertTrue("numhits is wrong. get " + numhits, res.getInt("numhits") == 522);
+    logger.info("request:" + bql + "\nresult:" + res);
+
+    JSONArray hits = res.getJSONArray("hits");
+    JSONObject firstHit = hits.getJSONObject(0);
+    JSONObject secondHit = hits.getJSONObject(1);
+
+    double firstScore = firstHit.getDouble("_score");
+    double secondScore = secondHit.getDouble("_score");
+    assertEquals("inner score for first is not correct.", true, Math.abs(firstScore - 49) < 1);
+    assertEquals("inner score for second is not correct.", true, Math.abs(secondScore - 35) < 1);
+  }
+
   public void testSelectionDynamicTimeRange() throws Exception {
     logger.info("executing test case testSelection");
 
@@ -1411,10 +1447,7 @@ public class TestSensei extends TestCase {
     DefaultFacetHandlerInitializerParam initParam = new DefaultFacetHandlerInitializerParam();
     initParam.putLongParam("time", new long[] { 15000L });
     req.setFacetHandlerInitializerParam("timeRange", initParam);
-    // req.setFacetHandlerInitializerParam("timeRange_internal", new
-    // DefaultFacetHandlerInitializerParam());
     req.setCount(3);
-    // setspec(req, facetSpecall);
     BrowseSelection sel = new BrowseSelection("timeRange");
     String selVal = "000000013";
     sel.addValue(selVal);
