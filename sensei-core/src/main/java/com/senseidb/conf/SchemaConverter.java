@@ -95,6 +95,32 @@ public class SchemaConverter {
       }
     }
 
+    NodeList spatial = schemaDoc.getElementsByTagName("spatial");
+    if (spatial != null && spatial.getLength() > 0) {
+      JSONObject spatialObj = new FastJSONObject();
+      jsonObj.put("spatial", spatialObj);
+      Element tableElem = (Element) spatial.item(0);
+
+      String fieldName = tableElem.getAttribute("fieldName");
+      if (fieldName != null && fieldName.length() > 0) {
+        spatialObj.put("fieldName", fieldName);
+      }
+
+      String longitude = tableElem.getAttribute("longitude");
+      if (longitude != null && longitude.length() > 0) {
+        spatialObj.put("longitude", longitude);
+      }
+
+      String latitude = tableElem.getAttribute("latitude");
+      if (latitude != null && latitude.length() > 0) {
+        spatialObj.put("latitude", latitude);
+      }
+      String spatialPrefixTreeMaxLevels = tableElem.getAttribute("spatialPrefixTreeMaxLevels");
+      if (spatialPrefixTreeMaxLevels != null && spatialPrefixTreeMaxLevels.length() > 0) {
+        spatialObj.put("spatialPrefixTreeMaxLevels", spatialPrefixTreeMaxLevels);
+      }
+    }
+
     NodeList facets = schemaDoc.getElementsByTagName("facet");
     JSONArray facetArray = new FastJSONArray();
     jsonObj.put("facets", facetArray);

@@ -32,9 +32,9 @@ public class SenseiSchema {
 
   private static Logger logger = Logger.getLogger(SenseiSchema.class);
 
-  private String _uidField;
-  private String _srcDataField;
-  private boolean _compressSrcData;
+  private String uidField;
+  private String srcDataField;
+  private boolean compressSrcData;
   private final List<FacetDefinition> facets = new ArrayList<FacetDefinition>();
 
   public static class FieldDefinition {
@@ -83,46 +83,55 @@ public class SenseiSchema {
     }
   }
 
+  public static class SpatialDefinition {
+    public String fieldName;
+    public String latitude;
+    public String longitude;
+    public int spatialPrefixTreeMaxLevels = 11;
+  }
+
   private SenseiSchema() {
   }
 
   public String getUidField() {
-    return _uidField;
+    return uidField;
   }
 
   public String getSrcDataField() {
-    return _srcDataField;
+    return srcDataField;
   }
 
   public boolean isCompressSrcData() {
-    return _compressSrcData;
+    return compressSrcData;
   }
 
-  public void setCompressSrcData(boolean _compressSrcData) {
-    this._compressSrcData = _compressSrcData;
+  public void setCompressSrcData(boolean compressSrcData) {
+    this.compressSrcData = compressSrcData;
   }
 
   public Map<String, FieldDefinition> getFieldDefMap() {
-    return _fieldDefMap;
+    return fieldDefMap;
   }
 
-  private Map<String, FieldDefinition> _fieldDefMap;
+  private Map<String, FieldDefinition> fieldDefMap;
   private static JSONObject schemaObj;
+
+  private SpatialDefinition spatialDefinition;
 
   public static SenseiSchema build(JSONObject schemaObj) throws JSONException,
       ConfigurationException {
 
     SenseiSchema schema = new SenseiSchema();
     schema.setSchemaObj(schemaObj);
-    schema._fieldDefMap = new HashMap<String, FieldDefinition>();
+    schema.fieldDefMap = new HashMap<String, FieldDefinition>();
     JSONObject tableElem = schemaObj.optJSONObject("table");
     if (tableElem == null) {
       throw new ConfigurationException("empty schema");
     }
 
-    schema._uidField = tableElem.getString("uid");
-    schema._srcDataField = tableElem.optString("src-data-field", "src_data");
-    schema._compressSrcData = tableElem.optBoolean("compress-src-data", true);
+    schema.uidField = tableElem.getString("uid");
+    schema.srcDataField = tableElem.optString("src-data-field", "src_data");
+    schema.compressSrcData = tableElem.optBoolean("compress-src-data", true);
 
     JSONArray columns = tableElem.optJSONArray("columns");
 
@@ -161,7 +170,7 @@ public class SenseiSchema {
           fdef.delim = delimString;
         }
 
-        schema._fieldDefMap.put(n, fdef);
+        schema.fieldDefMap.put(n, fdef);
 
         if (t.equals("int")) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(int.class);
@@ -276,6 +285,17 @@ public class SenseiSchema {
         throw new ConfigurationException("Error parsing schema: " + column, e);
       }
     }
+
+
+    JSONObject spatialElem = schemaObj.optJSONObject("spatial");
+    if (spatialElem != null) {
+      schema.spatialDefinition = new SpatialDefinition();
+      schema.spatialDefinition.fieldName = spatialElem.getString("fieldName");
+      schema.spatialDefinition.longitude = spatialElem.getString("longitude");
+      schema.spatialDefinition.latitude = spatialElem.getString("latitude");
+      schema.spatialDefinition.spatialPrefixTreeMaxLevels = spatialElem.optInt("spatialPrefixTreeMaxLevels", 11);
+    }
+
     JSONArray facetsList = schemaObj.optJSONArray("facets");
     if (facetsList != null) {
       for (int i = 0; i < facetsList.length(); i++) {
@@ -290,6 +310,10 @@ public class SenseiSchema {
 
   public List<FacetDefinition> getFacets() {
     return facets;
+  }
+
+  public SpatialDefinition getSpatialDefinition() {
+    return spatialDefinition;
   }
 
   public JSONObject getSchemaObj() {

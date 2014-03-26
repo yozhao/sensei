@@ -42,6 +42,8 @@ class PluginHolder {
             if (pluginName.equalsIgnoreCase("analyzer")) {
               instance = Class.forName(pluginCLass).getConstructor(Version.class)
                   .newInstance(Version.LUCENE_43);
+            } else {
+              throw ex;
             }
           }
           if (instance instanceof SenseiPlugin) {
