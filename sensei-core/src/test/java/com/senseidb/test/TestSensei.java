@@ -29,20 +29,16 @@ import com.senseidb.search.node.SenseiBroker;
 import com.senseidb.search.req.SenseiHit;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.svc.api.SenseiService;
 
 public class TestSensei extends TestCase {
 
   private static final Logger logger = Logger.getLogger(TestSensei.class);
 
   private static SenseiBroker broker;
-  private static SenseiService httpRestSenseiService;
 
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
     broker = SenseiStarter.broker;
-    httpRestSenseiService = SenseiStarter.httpRestSenseiService;
-
   }
 
   public void testTotalCount() throws Exception {
@@ -138,13 +134,6 @@ public class TestSensei extends TestCase {
     SenseiResult res = broker.browse(req);
     logger.info("request:" + req + "\nresult:" + res);
     SenseiHit hit = res.getSenseiHits()[0];
-    assertTrue(hit.getGroupHitsCount() > 0);
-    assertTrue(hit.getSenseiGroupHits().length > 0);
-
-    // use httpRestSenseiService
-    res = httpRestSenseiService.doQuery(req);
-    logger.info("request:" + req + "\nresult:" + res);
-    hit = res.getSenseiHits()[0];
     assertTrue(hit.getGroupHitsCount() > 0);
     assertTrue(hit.getSenseiGroupHits().length > 0);
   }

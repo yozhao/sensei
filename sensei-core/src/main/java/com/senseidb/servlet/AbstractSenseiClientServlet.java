@@ -21,9 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import org.apache.commons.configuration.DataConfiguration;
-import org.apache.commons.configuration.MapConfiguration;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,7 +46,6 @@ import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.svc.api.SenseiException;
-import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.JsonTemplateProcessor;
@@ -182,8 +178,6 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     return facetInfoMap;
   }
 
-  protected abstract SenseiRequest buildSenseiRequest(HttpServletRequest req) throws Exception;
-
   public static Map<String, String> getParameters(String query) throws Exception {
     Map<String, String> params = new HashMap<String, String>();
     for (String param : query.split("&")) {
@@ -219,40 +213,37 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
       } else {
         requestContext = initContextBasedOnGetParams(req, resp);
       }
-      if (requestContext == null) {
+      if (requestContext == null || requestContext.jsonObj == null) {
         // the error has been already logged
         return;
       }
-      if (requestContext.jsonObj != null) {
-        requestContext.bqlStmt = requestContext.jsonObj.optString(BQL_STMT);
-        requestContext.templatesJson = requestContext.jsonObj
-            .optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
-        requestContext.compiledJson = null;
+      requestContext.bqlStmt = requestContext.jsonObj.optString(BQL_STMT);
+      requestContext.templatesJson = requestContext.jsonObj
+          .optJSONObject(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM);
+      requestContext.compiledJson = null;
 
-        if (requestContext.bqlStmt.length() > 0) {
-          boolean successfull = handleBqlRequest(req, resp, requestContext);
-          if (!successfull) {
-            return;
-          }
-        } else {
-          // This is NOT a BQL statement
-          requestContext.query = "json=" + requestContext.content;
-          requestContext.compiledJson = requestContext.jsonObj;
+      if (requestContext.bqlStmt.length() > 0) {
+        boolean successfull = handleBqlRequest(req, resp, requestContext);
+        if (!successfull) {
+          return;
         }
-        if (requestContext.templatesJson != null) {
-          requestContext.compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM,
-            requestContext.templatesJson);
-        }
-        List<SenseiError> errors = null;
-        if (postProcessor != null) {
-          errors = postProcessor.process(requestContext.compiledJson);
-        }
-        requestContext.senseiReq = SenseiRequest.fromJSON(requestContext.compiledJson,
-          _facetInfoMap);
-        if (errors != null) {
-          for (SenseiError error : errors) {
-            requestContext.senseiReq.addError(error);
-          }
+      } else {
+        // This is NOT a BQL statement
+        requestContext.query = "json=" + requestContext.content;
+        requestContext.compiledJson = requestContext.jsonObj;
+      }
+      if (requestContext.templatesJson != null) {
+        requestContext.compiledJson.put(JsonTemplateProcessor.TEMPLATE_MAPPING_PARAM,
+          requestContext.templatesJson);
+      }
+      List<SenseiError> errors = null;
+      if (postProcessor != null) {
+        errors = postProcessor.process(requestContext.compiledJson);
+      }
+      requestContext.senseiReq = SenseiRequest.fromJSON(requestContext.compiledJson, _facetInfoMap);
+      if (errors != null) {
+        for (SenseiError error : errors) {
+          requestContext.senseiReq.addError(error);
         }
       }
       SenseiResult res = broker.browse(requestContext.senseiReq);
@@ -291,7 +282,9 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     requestContext = new RequestContext();
     requestContext.content = req.getParameter("json");
     if (requestContext.content != null) {
-      if (requestContext.content.length() == 0) requestContext.content = "{}";
+      if (requestContext.content.length() == 0) {
+        requestContext.content = "{}";
+      }
       try {
         requestContext.jsonObj = new FastJSONObject(requestContext.content);
       } catch (JSONException jse) {
@@ -299,12 +292,11 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
         writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
         return null;
       }
-    } else {
-      requestContext.senseiReq = buildSenseiRequest(req);
-      requestContext.query = URLEncodedUtils.format(
-        HttpRestSenseiServiceImpl.convertRequestToQueryParams(requestContext.senseiReq), "UTF-8");
+      return requestContext;
     }
-    return requestContext;
+    logger.error("Not a JSON request");
+    writeEmptyResponse(req, resp, new SenseiError("Not a JSON request", ErrorType.JsonParsingError));
+    return null;
   }
 
   public RequestContext initializeRequestContextBasedOnPostParams(HttpServletRequest req,
@@ -313,25 +305,15 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
     requestContext = new RequestContext();
     BufferedReader reader = req.getReader();
     requestContext.content = readContent(reader);
-    if (requestContext.content == null || requestContext.content.length() == 0) requestContext.content = "{}";
+    if (requestContext.content == null || requestContext.content.length() == 0) {
+      requestContext.content = "{}";
+    }
     try {
       requestContext.jsonObj = new FastJSONObject(requestContext.content);
     } catch (JSONException jse) {
-      String contentType = req.getHeader("Content-Type");
-      if (contentType != null && contentType.indexOf("json") >= 0) {
-        logger.error("JSON parsing error", jse);
-        writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
-        return null;
-      }
-
-      logger.warn("Old client or json error", jse);
-
-      // Fall back to the old REST API. In the future, we should
-      // consider reporting JSON exceptions here.
-      requestContext.senseiReq = DefaultSenseiJSONServlet
-          .convertSenseiRequest(new DataConfiguration(new MapConfiguration(
-              getParameters(requestContext.content))));
-      requestContext.query = requestContext.content;
+      logger.error("JSON parsing error", jse);
+      writeEmptyResponse(req, resp, new SenseiError(jse.getMessage(), ErrorType.JsonParsingError));
+      return null;
     }
     return requestContext;
   }

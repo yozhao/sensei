@@ -174,12 +174,6 @@ public class SenseiServerBuilder {
     WebAppContext senseiApp = new WebAppContext();
     senseiApp.addFilter(GzipFilter.class, "/" + SENSEI_CONTEXT_PATH + "/*", 1);
 
-    // HashMap<String, String> initParam = new HashMap<String, String>();
-    // if (_senseiConfFile != null) {
-    // logger.info("Broker Configuration file: "+_senseiConfFile.getAbsolutePath());
-    // initParam.put("config.file", _senseiConfFile.getAbsolutePath());
-    // }
-    // senseiApp.setInitParams(initParam);
     senseiApp.setAttribute("sensei.search.configuration", _senseiConf);
     senseiApp.setAttribute(SenseiConfigServletContextListener.SENSEI_CONF_PLUGIN_REGISTRY,
       pluginRegistry);

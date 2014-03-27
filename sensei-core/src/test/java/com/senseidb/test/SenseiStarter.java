@@ -23,8 +23,6 @@ import com.senseidb.search.node.SenseiServer;
 import com.senseidb.search.node.SenseiZoieFactory;
 import com.senseidb.search.req.SenseiRequest;
 import com.senseidb.search.req.SenseiResult;
-import com.senseidb.svc.api.SenseiService;
-import com.senseidb.svc.impl.HttpRestSenseiServiceImpl;
 import com.twitter.common.application.ShutdownRegistry.ShutdownRegistryImpl;
 import com.twitter.common.zookeeper.testing.ZooKeeperTestServer;
 
@@ -41,7 +39,6 @@ public class SenseiStarter {
   public static File IndexDir = new File("sensei-index-test");
   public static URL SenseiUrl = null;
   public static SenseiBroker broker = null;
-  public static SenseiService httpRestSenseiService = null;
   public static SenseiServer node1;
   public static SenseiServer node2;
   public static Server httpServer1;
@@ -118,7 +115,6 @@ public class SenseiStarter {
         clusterClient.shutdown();
         throw ne;
       }
-      httpRestSenseiService = new HttpRestSenseiServiceImpl("http", "localhost", 8079, "/sensei");
 
       logger.info("Cluster client started");
       Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -189,10 +185,6 @@ public class SenseiStarter {
   public static void shutdownSensei() {
     try {
       broker.shutdown();
-    } catch (Throwable t) {
-    }
-    try {
-      httpRestSenseiService.shutdown();
     } catch (Throwable t) {
     }
     try {
