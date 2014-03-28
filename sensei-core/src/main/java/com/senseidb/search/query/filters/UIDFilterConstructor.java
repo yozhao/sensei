@@ -13,7 +13,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.senseidb.conf.SenseiFacetHandlerBuilder;
 import com.senseidb.search.facet.UIDFacetHandler;
-import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.RequestConverter;
 
 public class UIDFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "ids";
@@ -32,8 +32,8 @@ public class UIDFilterConstructor extends FilterConstructor {
           if (uidHandler != null && uidHandler instanceof UIDFacetHandler) {
             UIDFacetHandler uidFacet = (UIDFacetHandler) uidHandler;
             try {
-              String[] vals = RequestConverter2.getStrings(json.optJSONArray(VALUES_PARAM));
-              String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
+              String[] vals = RequestConverter.getStrings(json.optJSONArray(VALUES_PARAM));
+              String[] nots = RequestConverter.getStrings(json.optJSONArray(EXCLUDES_PARAM));
               BrowseSelection uidSel = new BrowseSelection(SenseiFacetHandlerBuilder.UID_FACET_NAME);
               if (vals != null) {
                 uidSel.setValues(vals);

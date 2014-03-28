@@ -19,9 +19,9 @@ import org.junit.Test;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.senseidb.search.req.SenseiRequest;
-import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.RequestConverter;
 
-public class TestRequestConverter2 {
+public class TestRequestConverter {
 
   static JSONObject senseiRequestJson = null;
   static JSONObject queryJson = null;
@@ -76,7 +76,7 @@ public class TestRequestConverter2 {
 
   @Test
   public void test() throws Exception {
-    SenseiRequest req = RequestConverter2.fromJSON(senseiRequestJson, null);
+    SenseiRequest req = RequestConverter.fromJSON(senseiRequestJson, null);
 
     // testquery;
     // assertTrue("query_string is not equal",

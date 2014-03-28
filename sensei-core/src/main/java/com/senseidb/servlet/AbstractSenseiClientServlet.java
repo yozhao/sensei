@@ -49,7 +49,7 @@ import com.senseidb.svc.api.SenseiException;
 import com.senseidb.util.JSONUtil.FastJSONArray;
 import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.JsonTemplateProcessor;
-import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.RequestConverter;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
@@ -435,7 +435,7 @@ public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableS
 
       query = "get=" + String.valueOf(ids);
 
-      String[] vals = RequestConverter2.getStrings(ids);
+      String[] vals = RequestConverter.getStrings(ids);
       if (vals != null && vals.length != 0) {
         senseiReq = new SenseiRequest();
         senseiReq.setFetchStoredFields(true);

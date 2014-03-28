@@ -16,15 +16,15 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.docidset.AndDocIdSet;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.RequestConverter;
 
 public class FacetSelectionFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "selection";
 
   public static BrowseSelection buildFacetSelection(String name, JSONObject json) throws Exception {
     BrowseSelection sel = new BrowseSelection(name);
-    String[] vals = RequestConverter2.getStrings(json.optJSONArray(VALUES_PARAM));
-    String[] nots = RequestConverter2.getStrings(json.optJSONArray(EXCLUDES_PARAM));
+    String[] vals = RequestConverter.getStrings(json.optJSONArray(VALUES_PARAM));
+    String[] nots = RequestConverter.getStrings(json.optJSONArray(EXCLUDES_PARAM));
     sel.setValues(vals);
     sel.setNotValues(nots);
     String op = json.optString(OPERATOR_PARAM, OR_PARAM);

@@ -6,7 +6,7 @@ import org.apache.lucene.search.Filter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.RequestConverter;
 
 public class TermsFilterConstructor extends FilterConstructor {
   public static final String FILTER_TYPE = "terms";
@@ -29,12 +29,12 @@ public class TermsFilterConstructor extends FilterConstructor {
     }
     if (obj instanceof JSONArray) {
       JSONArray jsonArray = (JSONArray) obj;
-      String[] vals = RequestConverter2.getStrings(jsonArray);
+      String[] vals = RequestConverter.getStrings(jsonArray);
       return new SenseiTermFilter(field, vals, null, false, noOptimize);
     } else if (obj instanceof JSONObject) {
       JSONObject jsonObj = (JSONObject) obj;
-      String[] vals = RequestConverter2.getStrings(jsonObj, VALUES_PARAM);
-      String[] notVals = RequestConverter2.getStrings(jsonObj, EXCLUDES_PARAM);
+      String[] vals = RequestConverter.getStrings(jsonObj, VALUES_PARAM);
+      String[] notVals = RequestConverter.getStrings(jsonObj, EXCLUDES_PARAM);
       String op = jsonObj.optString(OPERATOR_PARAM, OR_PARAM);
       noOptimize = jsonObj.optBoolean(NOOPTIMIZE_PARAM, false);
       boolean isAnd = false;

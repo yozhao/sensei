@@ -18,7 +18,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.senseidb.search.req.mapred.SenseiMapReduce;
-import com.senseidb.util.RequestConverter2;
+import com.senseidb.util.RequestConverter;
 
 public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
   /**
@@ -667,7 +667,7 @@ public class SenseiRequest implements AbstractSenseiRequest, Cloneable {
    */
   public static SenseiRequest fromJSON(final JSONObject json,
       final Map<String, String[]> facetInfoMap) throws Exception {
-    return RequestConverter2.fromJSON(json, facetInfoMap);
+    return RequestConverter.fromJSON(json, facetInfoMap);
   }
 
 }

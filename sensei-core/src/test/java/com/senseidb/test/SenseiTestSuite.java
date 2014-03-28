@@ -1,10 +1,10 @@
 package com.senseidb.test;
 
-import org.junit.Ignore;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.textui.TestRunner;
+
+import org.junit.Ignore;
 
 @Ignore
 public class SenseiTestSuite extends TestSuite {
@@ -12,7 +12,6 @@ public class SenseiTestSuite extends TestSuite {
     TestSuite suite = new TestSuite();
     suite.addTestSuite(TestSensei.class);
     suite.addTestSuite(TestIndexingAPI.class);
-    suite.addTestSuite(TestRestServer.class);
     return suite;
   }
 
