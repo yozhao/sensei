@@ -831,7 +831,6 @@ public class ResultMerger {
       FacetDataCache<?>[] dataCaches = new FacetDataCache[sortCollector.groupByMulti.length];
       while (contextIter.hasNext()) {
         currentContext = contextIter.next();
-        currentContext.restoreRuntimeFacets();
         contextLeft = currentContext.length;
         if (contextLeft > 0) {
           for (int j = 0; j < sortCollector.groupByMulti.length; ++j)
@@ -928,7 +927,6 @@ public class ResultMerger {
             if (contextLeft <= 0) {
               while (contextIter.hasNext()) {
                 currentContext = contextIter.next();
-                currentContext.restoreRuntimeFacets();
                 contextLeft = currentContext.length;
                 if (contextLeft > 0) {
                   for (j = 0; j < sortCollector.groupByMulti.length; ++j)
@@ -1126,7 +1124,6 @@ public class ResultMerger {
           FacetDataCache<?>[] distinctDataCaches = new FacetDataCache[distinctLength];
           while (contextIter.hasNext()) {
             currentContext = contextIter.next();
-            currentContext.restoreRuntimeFacets();
             contextLeft = currentContext.length;
             if (contextLeft > 0) {
               for (j = 0; j < sortCollector.groupByMulti.length; ++j) {
@@ -1226,7 +1223,6 @@ public class ResultMerger {
                 if (contextLeft <= 0) {
                   while (contextIter.hasNext()) {
                     currentContext = contextIter.next();
-                    currentContext.restoreRuntimeFacets();
                     contextLeft = currentContext.length;
                     if (contextLeft > 0) {
                       for (j = 0; j < sortCollector.groupByMulti.length; ++j) {
