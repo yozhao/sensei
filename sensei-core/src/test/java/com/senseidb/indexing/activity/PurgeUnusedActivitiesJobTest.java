@@ -74,7 +74,7 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     int valueCount = 100000;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(i, String.format("%08d", i),
-        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -102,17 +102,16 @@ public class PurgeUnusedActivitiesJobTest extends TestCase {
     assertEquals(100000, compositeActivityValues.metadata.count);
     assertEquals(0, purgeUnusedActivitiesJob.purgeUnusedActivityIndexes());
     compositeActivityValues.flush();
-    compositeActivityValues.executor.shutdown();
+    Thread.sleep(2000);
     assertEquals(100000, compositeActivityValues.metadata.count);
     compositeActivityValues.executor.awaitTermination(10, TimeUnit.SECONDS);
     for (int i = 0; i < 10; i++) {
       compositeActivityValues.update(i, String.format("%08d", valueCount + i),
-        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+=1")));
     }
     assertEquals(12, compositeActivityValues.uidToArrayIndex.size());
     assertEquals(99988, compositeActivityValues.deletedIndexes.size());
     assertEquals(100000, compositeActivityValues.metadata.count);
-
   }
 
   public static FieldDefinition getLikesFieldDefinition() {

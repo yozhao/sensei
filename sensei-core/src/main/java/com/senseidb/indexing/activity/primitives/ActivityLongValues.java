@@ -3,14 +3,17 @@ package com.senseidb.indexing.activity.primitives;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
+import java.util.Arrays;
 
 import com.senseidb.indexing.activity.AtomicFieldUpdate;
 
 public class ActivityLongValues extends ActivityPrimitiveValues {
   public long[] fieldValues;
 
+  @Override
   public void init(int capacity) {
     fieldValues = new long[capacity];
+    Arrays.fill(fieldValues, Long.MIN_VALUE);
   }
 
   /*
@@ -20,9 +23,6 @@ public class ActivityLongValues extends ActivityPrimitiveValues {
   @Override
   public boolean update(int index, Object value) {
     ensureCapacity(index);
-    if (fieldValues[index] == Long.MIN_VALUE) {
-      fieldValues[index] = 0;
-    }
     setValue(fieldValues, value, index);
     return updateBatch.addFieldUpdate(AtomicFieldUpdate.valueOf(index, fieldValues[index]));
   }
@@ -40,14 +40,14 @@ public class ActivityLongValues extends ActivityPrimitiveValues {
   }
 
   private synchronized void ensureCapacity(int currentArraySize) {
-    if (fieldValues.length == 0) {
-      this.fieldValues = new long[50000];
-      return;
+    if (fieldValues == null || fieldValues.length == 0) {
+      init(50000);
     }
     if (fieldValues.length - currentArraySize < 2) {
       int newSize = fieldValues.length < 10000000 ? fieldValues.length * 2
           : (int) (fieldValues.length * 1.5);
       long[] newFieldValues = new long[newSize];
+      Arrays.fill(newFieldValues, Long.MIN_VALUE);
       System.arraycopy(fieldValues, 0, newFieldValues, 0, fieldValues.length);
       this.fieldValues = newFieldValues;
     }
@@ -70,15 +70,29 @@ public class ActivityLongValues extends ActivityPrimitiveValues {
       if (valStr.isEmpty()) {
         return;
       }
-      if (valStr.startsWith("+")) {
-        fieldValues[index] = fieldValues[index] + Long.parseLong(valStr.substring(1));
-      } else if (valStr.startsWith("-")) {
-        fieldValues[index] = fieldValues[index] + Long.parseLong(valStr);
+      long number = 0;
+      boolean delta = true;
+      if (valStr.startsWith("+=")) {
+        number = Long.parseLong(valStr.substring(2));
+      } else if (valStr.startsWith("-=")) {
+        number = -Long.parseLong(valStr.substring(2));
       } else {
-        fieldValues[index] = Long.parseLong(valStr);
+        delta = false;
+        number = Long.parseLong(valStr);
+      }
+      // parseLong is successful
+      // Long.MIN_VALUE means not initialized
+      if (fieldValues[index] == Long.MIN_VALUE) {
+        fieldValues[index] = number;
+        return;
+      }
+      if (delta) {
+        fieldValues[index] += number;
+      } else {
+        fieldValues[index] = number;
       }
     } else {
-      throw new UnsupportedOperationException("Only longs, ints and String are supported");
+      throw new UnsupportedOperationException("Only Number and String are supported");
     }
   }
 
@@ -126,7 +140,6 @@ public class ActivityLongValues extends ActivityPrimitiveValues {
 
   @Override
   public Number getValue(int index) {
-
     return getLongValue(index);
   }
 

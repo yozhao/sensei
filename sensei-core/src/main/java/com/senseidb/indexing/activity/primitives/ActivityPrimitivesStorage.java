@@ -35,7 +35,7 @@ public class ActivityPrimitivesStorage {
   private volatile boolean closed = false;
   private MappedByteBuffer buffer;
   private long fileLength;
-  private boolean activateMemoryMappedBuffers = true;
+  private final boolean activateMemoryMappedBuffers = true;
   private static Timer timer;
   private String fileName;
 
@@ -45,7 +45,6 @@ public class ActivityPrimitivesStorage {
     timer = Metrics.newTimer(new MetricName(MetricsConstants.Domain, "timer",
         "initIntActivities-time-" + fieldName.replaceAll(":", "-"), "initIntActivities"),
       TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-
   }
 
   public synchronized void init() {

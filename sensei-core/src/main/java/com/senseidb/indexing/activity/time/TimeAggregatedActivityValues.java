@@ -6,14 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.ActivityPersistenceFactory.AggregatesMetadata;
+import com.senseidb.indexing.activity.ActivityValues;
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
-import com.senseidb.indexing.activity.ActivityPersistenceFactory;
-import com.senseidb.indexing.activity.ActivityValues;
 
 /**
- * This is the composite that correspond to such schema configuration 
+ * This is the composite that correspond to such schema configuration
  *
  * <pre>{@code  <facet name="aggregated-likes" column="likes" type="aggregated-range">
  *    <params>
@@ -31,7 +31,7 @@ import com.senseidb.indexing.activity.ActivityValues;
  * intActivityValues will contain all the aggregated fields, eg likes:5m, likes:15m, likes:1h etc. <br>
  * Basically this class is a composite, containing intActivityValue for each aggregate period specified in the config plus a default non time trimmed  values
  * Each of  underlying activityIntValues will be persisting themselves to the disk.<br>
- * When the TimeAggregatedActivityValues is constructed from file, it will init all the aggregated activity int values from the disk. 
+ * When the TimeAggregatedActivityValues is constructed from file, it will init all the aggregated activity int values from the disk.
  * And it will try to estimate timeHits - {@link TimeHitsHolder}
  *
  */
@@ -41,7 +41,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   protected IntValueHolder[] intActivityValues;
   protected TimeHitsHolder timeActivities;
   public volatile int maxIndex;
-  private AggregatesMetadata aggregatesMetadata;
+  private final AggregatesMetadata aggregatesMetadata;
   private AggregatesUpdateJob aggregatesUpdateJob;
   protected ActivityIntValues defaultIntValues;
 
@@ -169,7 +169,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
       maxIndex = index;
     }
     int valueInt = getIntValue(value);
-    String valueStr = valueInt > 0 ? "+" + valueInt : String.valueOf(valueInt);
+    String valueStr = valueInt > 0 ? "+=" + valueInt : "-=" + (-valueInt);
     int currentTime = Clock.getCurrentTimeInMinutes();
     synchronized (defaultIntValues) {
       needToFlush = needToFlush | defaultIntValues.update(index, value);
@@ -198,12 +198,14 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   }
 
   private int getIntValue(Object value) {
-    int valueInt;
+    int valueInt = 0;
     if (value instanceof Number) {
       valueInt = ((Number) value).intValue();
     } else if (value instanceof String) {
-      if (value.toString().startsWith("+")) {
-        valueInt = Integer.parseInt(value.toString().substring(1));
+      if (value.toString().startsWith("+=")) {
+        valueInt = Integer.parseInt(value.toString().substring(2));
+      } else if (value.toString().startsWith("-=")) {
+        valueInt = -Integer.parseInt(value.toString().substring(2));
       } else {
         valueInt = Integer.parseInt(value.toString());
       }
@@ -236,6 +238,7 @@ public class TimeAggregatedActivityValues implements ActivityValues {
       flushes.add(intValueHolder.activityIntValues.prepareFlush());
     }
     return new Runnable() {
+      @Override
       public void run() {
         for (Runnable runnable : flushes) {
           runnable.run();
@@ -247,6 +250,16 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   @Override
   public String getFieldName() {
     return fieldName;
+  }
+
+  @Override
+  public boolean flushNeeded() {
+    for (IntValueHolder intValueHolder : intActivityValues) {
+      if (intValueHolder.activityIntValues.flushNeeded()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -289,10 +302,10 @@ public class TimeAggregatedActivityValues implements ActivityValues {
   }
 
   /**
-   * Contains the time and values of all the relevant updates, that came to the system in the past. The value will be deleted when the 
+   * Contains the time and values of all the relevant updates, that came to the system in the past. The value will be deleted when the
    * <pre>
    * {@code
-   * longestTimeAgregate = max(valuesMap.keySet); 
+   * longestTimeAgregate = max(valuesMap.keySet);
    * update.time < Clock.getCurrentTimeInMinutes - longestTimeAgregate;
    *}</pre>
    */
@@ -340,10 +353,9 @@ public class TimeAggregatedActivityValues implements ActivityValues {
     }
 
     public void ensureCapacity(int currentArraySize) {
-      if (times.length == 0) {
+      if (times == null || times.length == 0) {
         times = new IntContainer[50000];
         activities = new IntContainer[50000];
-        return;
       }
       if (times.length - currentArraySize < 2) {
         int newSize = times.length < 10000000 ? times.length * 2 : (int) (times.length * 1.5);

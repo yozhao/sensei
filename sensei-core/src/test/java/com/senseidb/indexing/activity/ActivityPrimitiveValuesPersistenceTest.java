@@ -33,7 +33,6 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     SenseiStarter.rmrf(new File("sensei-test"));
     dir = new File(pathname);
     dir.mkdirs();
-
   }
 
   public static String getDirPath() {
@@ -58,7 +57,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -67,7 +66,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
       compositeActivityValues.uidToArrayIndex.size());
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+" + i)));
+        toMap(new JSONObject().put("likes", "+=" + i)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
@@ -86,7 +85,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     int valueCount = 100000;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -101,7 +100,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals((int) (valueCount * 1.5), getFieldValues(compositeActivityValues).length);
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+" + i)));
+        toMap(new JSONObject().put("likes", "+=" + i)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
@@ -133,7 +132,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     int valueCount = 10000;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i),
-        toMap(new JSONObject().put("reputation", "+1.0")));
+        toMap(new JSONObject().put("reputation", "+=1.0")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -148,7 +147,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals((int) (valueCount * 1.5), getFloatFieldValues(compositeActivityValues).length);
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("reputation", "+" + (0.0 + i))));
+        toMap(new JSONObject().put("reputation", "+=" + (0.0 + i))));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
@@ -179,7 +178,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     long testUpdateValue = 5000000000L;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", i),
-        toMap(new JSONObject().put("modifiedDate", "+" + testUpdateValue)));
+        toMap(new JSONObject().put("modifiedDate", "+=" + testUpdateValue)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -194,7 +193,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals((int) (valueCount * 1.5), getLongValues(compositeActivityValues).length);
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(10000000000L + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("modifiedDate", "+" + i)));
+        toMap(new JSONObject().put("modifiedDate", "+=" + i)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 2 - 1));
@@ -246,7 +245,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     final int valueCount = 100000;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount - 1));
@@ -300,7 +299,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals((int) (valueCount * 1.5), getFieldValues(compositeActivityValues).length);
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount * 2 + i),
-        toMap(new JSONObject().put("likes", "+" + i)));
+        toMap(new JSONObject().put("likes", "+=" + i)));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", valueCount * 3 - 1));
@@ -323,7 +322,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     final int valueCount = 100;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", 2 * valueCount - 1));
@@ -351,7 +350,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     final int valueCount = 700000;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", 2 * valueCount - 1));
@@ -380,9 +379,9 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     final int valueCount = 100;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
-    assertEquals(0, compositeActivityValues.getIntValueByUID(UID_BASE + valueCount / 2, "comments"));
+    assertEquals(Integer.MIN_VALUE, compositeActivityValues.getIntValueByUID(UID_BASE + valueCount / 2, "comments"));
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", 2 * valueCount - 1));
     compositeActivityValues.close();
@@ -400,7 +399,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     final int valueCount = 100;
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", valueCount + i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     compositeActivityValues.flush();
     compositeActivityValues.syncWithPersistentVersion(String.format("%08d", 2 * valueCount - 1));
@@ -419,7 +418,7 @@ public class ActivityPrimitiveValuesPersistenceTest extends TestCase {
     assertEquals(2, compositeActivityValues.metadata.count);
     for (int i = 0; i < valueCount; i++) {
       compositeActivityValues.update(UID_BASE + i, String.format("%08d", 2 * valueCount + i),
-        toMap(new JSONObject().put("likes", "+1")));
+        toMap(new JSONObject().put("likes", "+=1")));
     }
     assertEquals(2, compositeActivityValues.getIntValueByUID(UID_BASE, "likes"));
     assertEquals(2, compositeActivityValues.getIntValueByUID(UID_BASE + 1, "likes"));

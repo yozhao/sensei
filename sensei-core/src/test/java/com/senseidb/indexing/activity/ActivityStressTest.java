@@ -57,12 +57,12 @@ public class ActivityStressTest extends TestCase {
       }
       for (int i = 0; i < 15000; i++) {
         compositeActivityValues.update(i, String.format("%08d", version),
-          ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+          ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+=1")));
         version++;
       }
       compositeActivityValues.update(1000000 + (numberOfUniqueDocuments++),
         String.format("%08d", version++),
-        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+1")));
+        ActivityPrimitiveValuesPersistenceTest.toMap(new JSONObject().put("likes", "+=1")));
       long[] arr = new long[5000];
       for (int j = 0; j < arr.length; j++) {
         arr[j] = j + 10000;

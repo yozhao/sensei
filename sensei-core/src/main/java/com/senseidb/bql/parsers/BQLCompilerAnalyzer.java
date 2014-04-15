@@ -169,10 +169,10 @@ public class BQLCompilerAnalyzer extends BQLBaseListener {
       return true;
     }
 
-    if (columnType.equals("long") || columnType.equals("aint") || columnType.equals("int")
-        || columnType.equals("short")) {
+    if (columnType.equals("long") || columnType.equals("along") || columnType.equals("int")
+        || columnType.equals("aint") || columnType.equals("short")) {
       return !(value instanceof Float || value instanceof String || value instanceof Boolean);
-    } else if (columnType.equals("float") || columnType.equals("int")
+    } else if (columnType.equals("float") || columnType.equals("afloat")
         || columnType.equals("double")) {
       return !(value instanceof String || value instanceof Boolean);
     } else if (columnType.equals("string") || columnType.equals("char")) {

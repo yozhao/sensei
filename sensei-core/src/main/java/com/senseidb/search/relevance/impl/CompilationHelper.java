@@ -411,6 +411,8 @@ public class CompilationHelper {
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_STRING, new int[] { 32, 10 });
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_WM_SHORT, new int[] { 33, 11 });
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_A_INT, new int[] { 0, 0 });
+    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_A_LONG, new int[] { 1, 1 });
+    PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_FACET_A_FLOAT, new int[] { 3, 3 });
     PARAM_INIT_MAP.put(RelevanceJSONConstants.TYPENUMBER_CUSTOM_OBJ, new int[] { 34, 15 });
   }
 
@@ -815,7 +817,7 @@ public class CompilationHelper {
       String symbol = dataTable.lls_params.get(i);
       Integer typeNum = dataTable.hm_type.get(symbol);
       if (typeNum < RelevanceJSONConstants.TYPENUMBER_FACET_INT
-          || typeNum > RelevanceJSONConstants.TYPENUMBER_FACET_A_INT) {
+          || typeNum > RelevanceJSONConstants.TYPENUMBER_FACET_A_FLOAT) {
         if (!dataTable.hm_var.containsKey(symbol)) throw new JSONException("function parameter: "
             + symbol + " was not initialized.");
       }
@@ -1053,10 +1055,10 @@ public class CompilationHelper {
       hm_type = new HashMap<String, Integer>();
       hm_symbol_facet = new HashMap<String, String>();
       hm_facet_index = new HashMap<String, Integer>();
-      hm_symbol_mfacet = new HashMap<String, String>(); // multi-facet
-      hm_mfacet_index = new HashMap<String, Integer>(); // multi-facet
-      hm_symbol_afacet = new HashMap<String, String>(); // multi-facet
-      hm_afacet_index = new HashMap<String, Integer>(); // multi-facet
+      hm_symbol_mfacet = new HashMap<String, String>();
+      hm_mfacet_index = new HashMap<String, Integer>();
+      hm_symbol_afacet = new HashMap<String, String>();
+      hm_afacet_index = new HashMap<String, Integer>();
       lls_params = new LinkedList<String>();
       useInnerScore = true;
     }

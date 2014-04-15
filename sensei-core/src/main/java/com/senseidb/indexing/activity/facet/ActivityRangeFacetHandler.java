@@ -1,7 +1,6 @@
 package com.senseidb.indexing.activity.facet;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -36,15 +35,7 @@ import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   private static final String[] EMPTY_STRING_ARR = new String[0];
   private static final Object[] EMPTY_OBJ_ARR = new Object[0];
-  private static final String DEFAULT_FORMATTING_STRING = "0000000000";
   public static volatile boolean isSynchronized = false;
-
-  protected ThreadLocal<DecimalFormat> formatter = new ThreadLocal<DecimalFormat>() {
-    @Override
-    protected DecimalFormat initialValue() {
-      return new DecimalFormat(DEFAULT_FORMATTING_STRING);
-    }
-  };
 
   private final ActivityPrimitiveValues activityValues;
 
@@ -88,12 +79,13 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         }
         final int[] intArray = activityValues instanceof ActivityIntValues ? ((ActivityIntValues) activityValues)
             .getFieldValues() : null;
-        final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues)
-            .getFieldValues() : null;
         final long[] longArray = activityValues instanceof ActivityLongValues ? ((ActivityLongValues) activityValues)
             .getFieldValues() : null;
-        if (longArray == null) {
-          int[] range = parseRaw(value);
+        final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues)
+            .getFieldValues() : null;
+
+        if (intArray != null) {
+          final int[] range = parseIntRange(value);
           final int startValue = range[0];
           final int endValue = range[1];
           if (startValue >= endValue) {
@@ -102,28 +94,20 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
           return new RandomAccessDocIdSet() {
             @Override
             public DocIdSetIterator iterator() throws IOException {
-              if (intArray != null) {
-                return new ActivityRangeIntFilterIterator(intArray, indexes, startValue, endValue);
-              } else {
-                return new ActivityRangeFloatFilterIterator(floatArray, indexes, startValue,
-                    endValue);
-              }
+              return new ActivityRangeIntFilterIterator(intArray, indexes, startValue, endValue);
             }
 
             @Override
             public boolean get(int docId) {
-              if (indexes[docId] == -1) return false;
-              if (intArray != null) {
-                int val = intArray[indexes[docId]];
-                return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
+              if (indexes[docId] == -1) {
+                return false;
               }
-              float val = floatArray[indexes[docId]];
+              int val = intArray[indexes[docId]];
               return val >= startValue && val < endValue && val != Integer.MIN_VALUE;
-
             }
           };
-        } else {
-          final long[] longRange = longArray != null ? parseRawLong(value) : null;
+        } else if (longArray != null) {
+          final long[] longRange = parseLongRange(value);
           final long startValue = longRange[0];
           final long endValue = longRange[1];
           if (startValue >= endValue) {
@@ -137,13 +121,38 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
 
             @Override
             public boolean get(int docId) {
-              if (indexes[docId] == -1) return false;
+              if (indexes[docId] == -1) {
+                return false;
+              }
               long val = longArray[indexes[docId]];
               return val >= startValue && val < endValue && val != Long.MIN_VALUE;
             }
           };
+        } else if (floatArray != null) {
+          float[] range = parseFloatRange(value);
+          final float startValue = range[0];
+          final float endValue = range[1];
+          if (startValue >= endValue) {
+            return EmptyDocIdSet.getInstance();
+          }
+          return new RandomAccessDocIdSet() {
+            @Override
+            public DocIdSetIterator iterator() throws IOException {
+              return new ActivityRangeFloatFilterIterator(floatArray, indexes, startValue, endValue);
+            }
+
+            @Override
+            public boolean get(int docId) {
+              if (indexes[docId] == -1) {
+                return false;
+              }
+              float val = floatArray[indexes[docId]];
+              return val >= startValue && val < endValue && val != -Float.MAX_VALUE;
+            }
+          };
         }
-      }
+        return null;
+      };
     };
   }
 
@@ -160,7 +169,6 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   }
 
   public int getIntActivityValue(int[] facetData, int id) {
-
     if (id < 0 || id >= facetData.length) {
       return Integer.MIN_VALUE;
     }
@@ -169,7 +177,6 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
   }
 
   public long getLongActivityValue(int[] facetData, int id) {
-
     if (id < 0 || id >= facetData.length) {
       return Long.MIN_VALUE;
     }
@@ -179,32 +186,33 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
 
   public float getFloatActivityValue(int[] facetData, int id) {
     if (id < 0 || id >= facetData.length) {
-      return Integer.MIN_VALUE;
+      return -Float.MAX_VALUE;
     }
-
     return facetData[id] != -1 ? ((ActivityFloatValues) activityValues).fieldValues[facetData[id]]
-        : Float.MIN_VALUE;
+        : -Float.MAX_VALUE;
   }
 
   @Override
   public String[] getFieldValues(BoboSegmentReader reader, int id) {
     final int[] indexes = (int[]) reader.getFacetData(_name);
-    if (indexes[id] == -1) return EMPTY_STRING_ARR;
-    Number value = activityValues.getValue(indexes[id]);
-    if (value.intValue() == Integer.MIN_VALUE || value.floatValue() == Float.MIN_VALUE
-        || value.longValue() == Long.MIN_VALUE) {
+    if (indexes[id] == -1) {
       return EMPTY_STRING_ARR;
     }
-    return new String[] { formatter.get().format(value) };
+    Number value = activityValues.getValue(indexes[id]);
+    if (value.intValue() == Integer.MIN_VALUE || value.longValue() == Long.MIN_VALUE
+        || value.floatValue() == -Float.MAX_VALUE) {
+      return EMPTY_STRING_ARR;
+    }
+    return new String[] { value.toString() };
   }
 
   @Override
   public DocComparatorSource getDocComparatorSource() {
     final int[] intArray = activityValues instanceof ActivityIntValues ? ((ActivityIntValues) activityValues)
         .getFieldValues() : null;
-    final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues)
-        .getFieldValues() : null;
     final long[] longArray = activityValues instanceof ActivityLongValues ? ((ActivityLongValues) activityValues)
+        .getFieldValues() : null;
+    final float[] floatArray = activityValues instanceof ActivityFloatValues ? ((ActivityFloatValues) activityValues)
         .getFieldValues() : null;
 
     if (intArray != null) return new DocComparatorSource() {
@@ -226,6 +234,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         };
       }
     };
+
     if (longArray != null) return new DocComparatorSource() {
       @Override
       public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
@@ -246,7 +255,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
       }
     };
 
-    return new DocComparatorSource() {
+    if (floatArray != null) return new DocComparatorSource() {
       @Override
       public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
         final int[] indexes = (int[]) ((BoboSegmentReader) reader).getFacetData(_name);
@@ -265,9 +274,10 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
         };
       }
     };
+    return null;
   }
 
-  public static int[] parseRaw(String rangeString) {
+  private static int[] parseIntRange(String rangeString) {
     String[] ranges = FacetRangeFilter.getRangeStrings(rangeString);
     String lower = ranges[0];
     String upper = ranges[1];
@@ -276,7 +286,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     int start = 0;
     int end = 0;
     if ("*".equals(lower)) {
-      start = Integer.MIN_VALUE;
+      start = Integer.MIN_VALUE + 1;
     } else {
       start = Integer.parseInt(lower);
       if ("false".equals(includeLower)) {
@@ -294,7 +304,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     return new int[] { start, end };
   }
 
-  public static long[] parseRawLong(String rangeString) {
+  private static long[] parseLongRange(String rangeString) {
     String[] ranges = FacetRangeFilter.getRangeStrings(rangeString);
     String lower = ranges[0];
     String upper = ranges[1];
@@ -303,7 +313,7 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
     long start = 0;
     long end = 0;
     if ("*".equals(lower)) {
-      start = Long.MIN_VALUE;
+      start = Long.MIN_VALUE + 1;
     } else {
       start = Long.parseLong(lower);
       if ("false".equals(includeLower)) {
@@ -319,5 +329,33 @@ public class ActivityRangeFacetHandler extends FacetHandler<int[]> {
       }
     }
     return new long[] { start, end };
+  }
+
+  private static float[] parseFloatRange(String rangeString) {
+    String[] ranges = FacetRangeFilter.getRangeStrings(rangeString);
+    String lower = ranges[0];
+    String upper = ranges[1];
+    String includeLower = ranges[2];
+    String includeUpper = ranges[3];
+    float start = 0;
+    float end = 0;
+    final float eps = (float) 1E-6;
+    if ("*".equals(lower)) {
+      start = -(Float.MAX_VALUE / 2);
+    } else {
+      start = Float.parseFloat(lower);
+      if ("false".equals(includeLower)) {
+        start += eps;
+      }
+    }
+    if ("*".equals(upper)) {
+      end = Float.MAX_VALUE;
+    } else {
+      end = Float.parseFloat(upper);
+      if ("true".equals(includeUpper)) {
+        end += eps;
+      }
+    }
+    return new float[] { start, end };
   }
 }

@@ -191,6 +191,7 @@ public class SenseiSchema {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(float.class);
           String formatString = DefaultSenseiInterpreter.DEFAULT_FORMAT_STRING_MAP.get(metaType);
           fdef.formatter = new DecimalFormat(formatString, new DecimalFormatSymbols(Locale.US));
+          // Use double JsonValExtractor for float
           fdef.type = double.class;
         } else if (t.equals("double")) {
           MetaType metaType = DefaultSenseiInterpreter.CLASS_METATYPE_MAP.get(double.class);
@@ -286,14 +287,14 @@ public class SenseiSchema {
       }
     }
 
-
     JSONObject spatialElem = schemaObj.optJSONObject("spatial");
     if (spatialElem != null) {
       schema.spatialDefinition = new SpatialDefinition();
       schema.spatialDefinition.fieldName = spatialElem.getString("fieldName");
       schema.spatialDefinition.longitude = spatialElem.getString("longitude");
       schema.spatialDefinition.latitude = spatialElem.getString("latitude");
-      schema.spatialDefinition.spatialPrefixTreeMaxLevels = spatialElem.optInt("spatialPrefixTreeMaxLevels", 11);
+      schema.spatialDefinition.spatialPrefixTreeMaxLevels = spatialElem.optInt(
+        "spatialPrefixTreeMaxLevels", 11);
     }
 
     JSONArray facetsList = schemaObj.optJSONArray("facets");

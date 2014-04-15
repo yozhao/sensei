@@ -400,7 +400,6 @@ public class ResultMerger {
         } else if (_sortFields[i].getType() == SortField.Type.DOC) {
           return o1.getDocid() - o2.getDocid();
         } else {
-          // A regular sort field
           String value1 = o1.getField(field);
           String value2 = o2.getField(field);
           if (value1 == null && value2 == null) {
@@ -409,7 +408,33 @@ public class ResultMerger {
             return -reverse;
           } else if (value2 == null) {
             return reverse;
+          }
+          if (_sortFields[i].getType() == SortField.Type.INT) {
+            int number1 = Integer.parseInt(value1);
+            int number2 = Integer.parseInt(value2);
+            if (number1 == number2) {
+              continue;
+            } else {
+              return (number1 < number2) ? -reverse : reverse;
+            }
+          } else if (_sortFields[i].getType() == SortField.Type.LONG) {
+            long number1 = Long.parseLong(value1);
+            long number2 = Long.parseLong(value2);
+            if (number1 == number2) {
+              continue;
+            } else {
+              return (number1 < number2) ? -reverse : reverse;
+            }
+          } else if (_sortFields[i].getType() == SortField.Type.FLOAT) {
+            float number1 = Float.parseFloat(value1);
+            float number2 = Float.parseFloat(value2);
+            if (number1 == number2) {
+              continue;
+            } else {
+              return (number1 < number2) ? -reverse : reverse;
+            }
           } else {
+            // A regular sort field
             int comp = value1.compareTo(value2);
             if (value1.startsWith("-") && value2.startsWith("-")) {
               comp *= -1;
@@ -597,7 +622,6 @@ public class ResultMerger {
       if (!hasSortCollector) {
         hitsList = buildHitsListNoSortCollector(req, topHits, rawGroupValueType, mergedIter,
           req.getOffset());
-        // numGroups = (int)(numGroups*(groupHitMap.size()/(float)preGroups));
       } else {
         int offsetLeft = req.getOffset();
 
@@ -608,8 +632,6 @@ public class ResultMerger {
           hitsList = buildHitsListNoGroupAccessibles(req, topHits, rawGroupValueType,
             primitiveLongArrayWrapperTmp, mergedIter, offsetLeft);
         }
-        // for (int i=0; i<combinedFacetAccessibles.length; ++i)
-        // combinedFacetAccessibles[i].close();
       }
       hits = hitsList.toArray(new SenseiHit[hitsList.size()]);
 

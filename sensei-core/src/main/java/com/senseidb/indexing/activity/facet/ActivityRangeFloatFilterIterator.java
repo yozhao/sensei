@@ -12,12 +12,12 @@ import org.apache.lucene.search.DocIdSetIterator;
 public class ActivityRangeFloatFilterIterator extends DocIdSetIterator {
   private int _doc;
   protected final float[] fieldValues;
-  private final int start;
-  private final int end;
+  private final float start;
+  private final float end;
   private final int arrLength;
   private final int[] indexes;
 
-  public ActivityRangeFloatFilterIterator(float[] fieldValues, int[] indexes, int start, int end) {
+  public ActivityRangeFloatFilterIterator(float[] fieldValues, int[] indexes, float start, float end) {
     this.fieldValues = fieldValues;
     this.start = start;
     this.end = end;
@@ -38,7 +38,7 @@ public class ActivityRangeFloatFilterIterator extends DocIdSetIterator {
         continue;
       }
       float value = fieldValues[indexes[_doc]];
-      if (value >= start && value < end && value != Float.MIN_VALUE) {
+      if (value >= start && value < end && value != -Float.MAX_VALUE) {
         return _doc;
       }
     }

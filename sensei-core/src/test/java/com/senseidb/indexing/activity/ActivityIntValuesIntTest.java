@@ -2,21 +2,21 @@ package com.senseidb.indexing.activity;
 
 import java.io.File;
 
+import junit.framework.TestCase;
+
 import com.senseidb.indexing.activity.primitives.ActivityIntValues;
 import com.senseidb.indexing.activity.primitives.ActivityPrimitiveValues;
 import com.senseidb.test.SenseiStarter;
 
-import junit.framework.TestCase;
-
 public class ActivityIntValuesIntTest extends TestCase {
   private File dir;
 
+  @Override
   public void setUp() {
     String pathname = getDirPath();
     SenseiStarter.rmrf(new File("sensei-test"));
     dir = new File(pathname);
     dir.mkdirs();
-
   }
 
   public static String getDirPath() {
@@ -39,7 +39,7 @@ public class ActivityIntValuesIntTest extends TestCase {
 
     long time = System.currentTimeMillis();
     for (int i = 0; i < 1000000; i++) {
-      boolean update = intValues.update(i, "+1");
+      boolean update = intValues.update(i, "+=1");
       if (update) {
         intValues.prepareFlush().run();
       }

@@ -27,6 +27,8 @@ public interface ActivityValues {
 
   public String getFieldName();
 
+  public boolean flushNeeded();
+
   /**
    * Closes the corresponding persistence connection
    */

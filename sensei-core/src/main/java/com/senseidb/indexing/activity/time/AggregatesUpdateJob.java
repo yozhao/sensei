@@ -15,10 +15,10 @@ import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
 
 /**
- * Operates on top of TimeAggregatedActivityValues. 
- * It is executed every 30 seceonds. 
- * Updates the activity values for the time aggregates based on the current time. For example is the activity 5m count is 10, 
- * and one of the activity updates came into the system more than 5 mins ago, 
+ * Operates on top of TimeAggregatedActivityValues.
+ * It is executed every 30 seceonds.
+ * Updates the activity values for the time aggregates based on the current time. For example is the activity 5m count is 10,
+ * and one of the activity updates came into the system more than 5 mins ago,
  * it will substract the stale activity value from ten and assign the result to the  5m time aggregated count
  * @author vzhabiuk
  *
@@ -134,8 +134,10 @@ public class AggregatesUpdateJob implements Runnable {
       int updateValue = updateTempValues[i];
       if (updateValue != 0) {
         synchronized (intActivityValues[i].activityIntValues.getFieldValues()) {
-          intActivityValues[i].activityIntValues.update(index,
-            updateValue > 0 ? String.valueOf(-updateValue) : "+" + String.valueOf(updateValue));
+          intActivityValues[i].activityIntValues.update(
+            index,
+            updateValue > 0 ? "-=" + String.valueOf(updateValue) : "+="
+                + String.valueOf(-updateValue));
         }
         updateTempValues[i] = 0;
       }

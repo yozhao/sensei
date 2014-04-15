@@ -3,18 +3,21 @@ package com.senseidb.indexing.activity.primitives;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
+import java.util.Arrays;
 
 import com.senseidb.indexing.activity.AtomicFieldUpdate;
 
 /**
- * Wraps an int array. Also provides the persistence support. The changes are kept accumulating in the batch.   
+ * Wraps an int array. Also provides the persistence support. The changes are kept accumulating in the batch.
  *
  */
 public class ActivityIntValues extends ActivityPrimitiveValues {
   public int[] fieldValues;
 
+  @Override
   public void init(int capacity) {
     fieldValues = new int[capacity];
+    Arrays.fill(fieldValues, Integer.MIN_VALUE);
   }
 
   /*
@@ -24,15 +27,11 @@ public class ActivityIntValues extends ActivityPrimitiveValues {
   @Override
   public boolean update(int index, Object value) {
     ensureCapacity(index);
-    if (fieldValues[index] == Integer.MIN_VALUE) {
-      fieldValues[index] = 0;
-    }
     setValue(fieldValues, value, index);
     return updateBatch.addFieldUpdate(AtomicFieldUpdate.valueOf(index, fieldValues[index]));
   }
 
   protected ActivityIntValues() {
-
   }
 
   public ActivityIntValues(int capacity) {
@@ -44,14 +43,14 @@ public class ActivityIntValues extends ActivityPrimitiveValues {
   }
 
   private synchronized void ensureCapacity(int currentArraySize) {
-    if (fieldValues.length == 0) {
-      this.fieldValues = new int[50000];
-      return;
+    if (fieldValues == null || fieldValues.length == 0) {
+      init(50000);
     }
     if (fieldValues.length - currentArraySize < 2) {
       int newSize = fieldValues.length < 10000000 ? fieldValues.length * 2
           : (int) (fieldValues.length * 1.5);
       int[] newFieldValues = new int[newSize];
+      Arrays.fill(newFieldValues, Integer.MIN_VALUE);
       System.arraycopy(fieldValues, 0, newFieldValues, 0, fieldValues.length);
       this.fieldValues = newFieldValues;
     }
@@ -67,24 +66,36 @@ public class ActivityIntValues extends ActivityPrimitiveValues {
     if (value == null) {
       return;
     }
-    if (value instanceof Integer) {
-      fieldValues[index] = (Integer) value;
-    } else if (value instanceof Long) {
-      fieldValues[index] = ((Long) value).intValue();
+    if (value instanceof Number) {
+      fieldValues[index] = ((Number) value).intValue();
     } else if (value instanceof String) {
       String valStr = (String) value;
       if (valStr.isEmpty()) {
         return;
       }
-      if (valStr.startsWith("+")) {
-        fieldValues[index] = fieldValues[index] + Integer.parseInt(valStr.substring(1));
-      } else if (valStr.startsWith("-")) {
-        fieldValues[index] = fieldValues[index] + Integer.parseInt(valStr);
+      int number = 0;
+      boolean delta = true;
+      if (valStr.startsWith("+=")) {
+        number = Integer.parseInt(valStr.substring(2));
+      } else if (valStr.startsWith("-=")) {
+        number = -Integer.parseInt(valStr.substring(2));
       } else {
-        fieldValues[index] = Integer.parseInt(valStr);
+        delta = false;
+        number = Integer.parseInt(valStr);
+      }
+      // parseInt is successful
+      // Integer.MIN_VALUE means not initialized
+      if (fieldValues[index] == Integer.MIN_VALUE) {
+        fieldValues[index] = number;
+        return;
+      }
+      if (delta) {
+        fieldValues[index] += number;
+      } else {
+        fieldValues[index] = number;
       }
     } else {
-      throw new UnsupportedOperationException("Only longs, ints and String are supported");
+      throw new UnsupportedOperationException("Only Number and String are supported");
     }
   }
 
@@ -127,7 +138,6 @@ public class ActivityIntValues extends ActivityPrimitiveValues {
 
   @Override
   public int getFieldSizeInBytes() {
-
     return 4;
   }
 

@@ -1,7 +1,7 @@
 package com.senseidb.search.relevance.impl;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class RelevanceJSONConstants {
   /* JSON keywords */
@@ -75,8 +75,10 @@ public class RelevanceJSONConstants {
   public static final String KW_TYPE_FACET_WM_LONG = "wmlong";
   public static final String KW_TYPE_FACET_WM_SHORT = "wmshort";
 
-  // activity engine facet type support: [aint]
+  // activity engine facet type support
   public static final String KW_TYPE_FACET_A_INT = "aint";
+  public static final String KW_TYPE_FACET_A_LONG = "along";
+  public static final String KW_TYPE_FACET_A_FLOAT = "afloat";
 
   // constant type:
   public static final String KW_INNER_SCORE = "_INNER_SCORE";
@@ -148,6 +150,8 @@ public class RelevanceJSONConstants {
 
   // (6) activity engine facet type numbers;
   public static final int TYPENUMBER_FACET_A_INT = 400;
+  public static final int TYPENUMBER_FACET_A_LONG = 401;
+  public static final int TYPENUMBER_FACET_A_FLOAT = 402;
 
   // A map from facet type names to an integer array whose first element
   // is the facet type number and the second element indicates whether
@@ -177,6 +181,8 @@ public class RelevanceJSONConstants {
     FACET_INFO_MAP.put(KW_TYPE_FACET_WM_LONG, new Integer[] { TYPENUMBER_FACET_WM_LONG, 1 });
     FACET_INFO_MAP.put(KW_TYPE_FACET_WM_STRING, new Integer[] { TYPENUMBER_FACET_WM_STRING, 1 });
     FACET_INFO_MAP.put(KW_TYPE_FACET_A_INT, new Integer[] { TYPENUMBER_FACET_A_INT, 2 });
+    FACET_INFO_MAP.put(KW_TYPE_FACET_A_LONG, new Integer[] { TYPENUMBER_FACET_A_LONG, 2 });
+    FACET_INFO_MAP.put(KW_TYPE_FACET_A_FLOAT, new Integer[] { TYPENUMBER_FACET_A_FLOAT, 2 });
 
     VARIABLE_INFO_MAP.put(KW_TYPE_INT, TYPENUMBER_INT);
     VARIABLE_INFO_MAP.put(KW_TYPE_LONG, TYPENUMBER_LONG);

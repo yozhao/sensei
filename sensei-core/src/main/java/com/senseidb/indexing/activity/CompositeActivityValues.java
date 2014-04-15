@@ -91,7 +91,8 @@ public class CompositeActivityValues {
   }
 
   CompositeActivityValues() {
-
+    Thread housekeepingThread = new Thread(housekeeping());
+    housekeepingThread.start();
   }
 
   public void init() {
@@ -176,12 +177,10 @@ public class CompositeActivityValues {
 
   private boolean updateActivities(Map<String, Object> map, int index) {
     boolean needToFlush = false;
-    for (ActivityValues activityIntValues : valuesMap.values()) {
-      Object value = map.get(activityIntValues.getFieldName());
+    for (ActivityValues activityValues : valuesMap.values()) {
+      Object value = map.get(activityValues.getFieldName());
       if (value != null) {
-        needToFlush = needToFlush | activityIntValues.update(index, value);
-      } else {
-        needToFlush = needToFlush | activityIntValues.update(index, "+0");
+        needToFlush = needToFlush | activityValues.update(index, value);
       }
     }
     return needToFlush;
@@ -210,8 +209,8 @@ public class CompositeActivityValues {
         }
         deletedDocumentsCounter.inc();
         int index = uidToArrayIndex.remove(uid);
-        for (ActivityValues activityIntValues : valuesMap.values()) {
-          activityIntValues.delete(index);
+        for (ActivityValues activityValues : valuesMap.values()) {
+          activityValues.delete(index);
         }
         needToFlush = needToFlush
             | pendingDeletes.addFieldUpdate(new Update(index, Long.MIN_VALUE));
@@ -252,40 +251,80 @@ public class CompositeActivityValues {
     return lastVersion;
   }
 
+  public Runnable housekeeping() {
+    return new Runnable() {
+      @Override
+      public void run() {
+        while (!closed) {
+          boolean needFlush = false;
+          try {
+            globalLock.readLock().lock();
+            if (pendingDeletes != null) {
+              needFlush = pendingDeletes.flushNeeded();
+            }
+            if (!needFlush && updateBatch != null) {
+              needFlush = updateBatch.flushNeeded();
+            }
+            if (!needFlush) {
+              for (ActivityValues activityValues : valuesMap.values()) {
+                needFlush = activityValues.flushNeeded();
+                if (needFlush) {
+                  break;
+                }
+              }
+            }
+          } finally {
+            globalLock.readLock().unlock();
+          }
+          if (needFlush) {
+            flush();
+            logger.info("Flushed in housekeeping thread");
+          }
+          try {
+            Thread.sleep(15 * 1000);
+          } catch (InterruptedException e) {
+          }
+        }
+      }
+    };
+  }
+
   /**
    * flushes pending updates to disk
    */
   public synchronized void flush() {
-
-    if (closed || activityStorage == null) {
+    if (activityStorage == null) {
       return;
     }
     final boolean flushDeletesNeeded = pendingDeletes.updates.size() > 0;
-    final UpdateBatch<Update> batchToDelete = (flushDeletesNeeded) ? pendingDeletes : null;
-    if (flushDeletesNeeded) {
-      pendingDeletes = new UpdateBatch<Update>(activityConfig);
-    }
-    final boolean flushUpdatesNeeded = updateBatch.updates.size() > 0
-        || versionComparator.compare(lastVersion, metadata.version) != 0;
-    if (!flushUpdatesNeeded && !flushDeletesNeeded) {
-      return;
-    }
+    final boolean flushUpdatesNeeded = updateBatch.updates.size() > 0;
+
+    final UpdateBatch<Update> batchToDelete = flushDeletesNeeded ? pendingDeletes : null;
     final UpdateBatch<Update> batchToPersist = flushUpdatesNeeded ? updateBatch : null;
-    final List<Runnable> underlyingFlushes = new ArrayList<Runnable>(valuesMap.size());
-    // IF WE DON'T NEED TO FLUSH UPDATES,let's keep the persistent version as it is
-    final String version = flushUpdatesNeeded ? lastVersion : metadata.version;
-    if (flushUpdatesNeeded) {
-      updateBatch = new UpdateBatch<CompositeActivityStorage.Update>(activityConfig);
+
+    Lock writeLock = globalLock.writeLock();
+    String version = null;
+    try {
+      writeLock.lock();
+      if (flushDeletesNeeded) {
+        pendingDeletes = new UpdateBatch<Update>(activityConfig);
+      }
+      if (flushUpdatesNeeded) {
+        updateBatch = new UpdateBatch<CompositeActivityStorage.Update>(activityConfig);
+      }
+      version = lastVersion;
+    } finally {
+      writeLock.unlock();
     }
-    for (ActivityValues activityIntValues : valuesMap.values()) {
-      underlyingFlushes.add(activityIntValues.prepareFlush());
+
+    final String finalVersion = version;
+    final List<Runnable> underlyingFlushes = new ArrayList<Runnable>(valuesMap.size());
+    for (ActivityValues activityValues : valuesMap.values()) {
+      underlyingFlushes.add(activityValues.prepareFlush());
     }
     executor.submit(new Runnable() {
       @Override
       public void run() {
-        if (closed) {
-          return;
-        }
         if (flushUpdatesNeeded) {
           activityStorage.flush(batchToPersist.updates);
         }
@@ -316,7 +355,7 @@ public class CompositeActivityValues {
         for (Runnable runnable : underlyingFlushes) {
           runnable.run();
         }
-        metadata.update(version, count);
+        metadata.update(finalVersion, count);
       }
     });
 
@@ -324,6 +363,7 @@ public class CompositeActivityValues {
 
   public void close() {
     closed = true;
+    flush();
     executor.shutdown();
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS);
@@ -333,10 +373,9 @@ public class CompositeActivityValues {
     if (activityStorage != null) {
       activityStorage.close();
     }
-    for (ActivityValues activityIntValues : valuesMap.values()) {
-      activityIntValues.close();
+    for (ActivityValues activityValues : valuesMap.values()) {
+      activityValues.close();
     }
-
   }
 
   public int[] precomputeArrayIndexes(long[] uids) {
@@ -385,7 +424,7 @@ public class CompositeActivityValues {
     try {
       lock.lock();
       if (!uidToArrayIndex.containsKey(uid)) {
-        return Float.MIN_VALUE;
+        return -Float.MAX_VALUE;
       }
       return ((ActivityFloatValues) getActivityValues(column)).getFloatValue(uidToArrayIndex
           .get(uid));

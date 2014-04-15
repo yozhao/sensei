@@ -405,6 +405,20 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
         arrayIndex[i] = int_index;
         int_index++;
         break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_LONG:
+        facetName = _dt.hm_symbol_afacet.get(symbol);
+        index = _dt.hm_afacet_index.get(facetName);
+        aFacetIndex[i] = index; // record the activity engine facet index;
+        arrayIndex[i] = long_index;
+        long_index++;
+        break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_FLOAT:
+        facetName = _dt.hm_symbol_afacet.get(symbol);
+        index = _dt.hm_afacet_index.get(facetName);
+        aFacetIndex[i] = index; // record the activity engine facet index;
+        arrayIndex[i] = float_index;
+        float_index++;
+        break;
       case RelevanceJSONConstants.TYPENUMBER_FACET_M_INT:
       case RelevanceJSONConstants.TYPENUMBER_FACET_WM_INT:
         facetName = _dt.hm_symbol_mfacet.get(symbol);
@@ -592,6 +606,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
         ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
             .getIntActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
         break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_LONG:
+        longs[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
+            .getLongActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
+        break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_FLOAT:
+        floats[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
+            .getFloatActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
+        break;
 
       default:
         break;
@@ -680,6 +702,14 @@ public class RuntimeRelevanceFunction extends CustomRelevanceFunction {
       case RelevanceJSONConstants.TYPENUMBER_FACET_A_INT:
         ints[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
             .getIntActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
+        break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_LONG:
+        longs[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
+            .getLongActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
+        break;
+      case RelevanceJSONConstants.TYPENUMBER_FACET_A_FLOAT:
+        floats[_arrayIndex[dynamicAR[j]]] = _aHandlers[_aFacetIndex[dynamicAR[j]]]
+            .getFloatActivityValue(_aData[_aFacetIndex[dynamicAR[j]]], docID);
         break;
       default:
         break;

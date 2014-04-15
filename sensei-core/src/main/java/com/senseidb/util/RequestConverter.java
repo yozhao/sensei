@@ -380,12 +380,12 @@ public class RequestConverter {
                 convertJSONToIntArray(jsonValues));
               else if (type.equals(RequestConverter.FACETINIT_TYPE_STRING)) param.putStringParam(
                 paramName, convertJSONToStringArray(jsonValues));
-              else if (type.equals(RequestConverter.FACETINIT_TYPE_BOOLEAN)) param
-                  .putBooleanParam(paramName, convertJSONToBoolArray(jsonValues));
+              else if (type.equals(RequestConverter.FACETINIT_TYPE_BOOLEAN)) param.putBooleanParam(
+                paramName, convertJSONToBoolArray(jsonValues));
               else if (type.equals(RequestConverter.FACETINIT_TYPE_LONG)) param.putLongParam(
                 paramName, convertJSONToLongArray(jsonValues));
-              else if (type.equals(RequestConverter.FACETINIT_TYPE_BYTES)) param
-                  .putByteArrayParam(paramName, convertJSONToByteArray(jsonValues));
+              else if (type.equals(RequestConverter.FACETINIT_TYPE_BYTES)) param.putByteArrayParam(
+                paramName, convertJSONToByteArray(jsonValues));
               else if (type.equals(RequestConverter.FACETINIT_TYPE_DOUBLE)) param.putDoubleParam(
                 paramName, convertJSONToDoubleArray(jsonValues));
             }
@@ -408,12 +408,28 @@ public class RequestConverter {
           if (field == null || field.length() == 0) {
             continue;
           }
+          SortField.Type fieldTye = SortField.Type.CUSTOM;
+          if (facetInfoMap != null) {
+            // get field type, split(":") for aggregate facet like: aggregated-likes:2w
+            String facetName = field.split(":")[0];
+            String[] facetInfo = facetInfoMap.get(facetName);
+            if (facetInfo == null || facetInfo.length < 2) {
+              continue;
+            }
+            if (facetInfo[1].equalsIgnoreCase("aint")) {
+              fieldTye = SortField.Type.INT;
+            } else if (facetInfo[1].equalsIgnoreCase("along")) {
+              fieldTye = SortField.Type.LONG;
+            } else if (facetInfo[1].equalsIgnoreCase("afloat")) {
+              fieldTye = SortField.Type.FLOAT;
+            }
+          }
           String order = ((JSONObject) obj).optString(field);
           boolean rev = false;
           if (RequestConverter.SORT_DESC.equals(order)) {
             rev = true;
           }
-          sortFieldList.add(new SortField(field, SortField.Type.CUSTOM, rev));
+          sortFieldList.add(new SortField(field, fieldTye, rev));
           continue;
         } else if (obj instanceof String) {
           String field = (String) obj;

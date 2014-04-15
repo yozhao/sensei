@@ -334,7 +334,13 @@ public class SenseiFacetHandlerBuilder {
         JSONObject column = columnMap.get(fieldName);
         String columnType = (column == null) ? "" : column.optString("type", "");
         if (column != null && column.opt("activity") != null && column.optBoolean("activity")) {
-          columnType = "aint";
+          if (columnType.equalsIgnoreCase("int")) {
+            columnType = "aint";
+          } else if (columnType.equalsIgnoreCase("long")) {
+            columnType = "along";
+          } else if (columnType.equalsIgnoreCase("float")) {
+            columnType = "afloat";
+          }
         }
         facetProps.put("column_type", columnType);
         facetProps.put("depends", dependSet.toString());

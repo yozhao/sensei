@@ -54,7 +54,7 @@ public class ActivityIntegrationTest extends TestCase {
     for (int i = 0; i < 10; i++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", 10L + i)
           .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-          .put("likes", "+" + (10 + i)));
+          .put("likes", "+=" + (10 + i)));
       expectedVersion++;
     }
     syncWithVersion(expectedVersion);
@@ -94,11 +94,12 @@ public class ActivityIntegrationTest extends TestCase {
     String req = "{ \"sort\":[{\"reputation\":\"desc\"}]}";
     JSONObject res = TestSensei.search(new JSONObject(req));
     JSONArray hits = res.getJSONArray("hits");
-    assertEquals(Integer.parseInt(hits.getJSONObject(0).getJSONArray("reputation").getString(0)), 0);
+    // reputation data is null initially
+    assertEquals(0, hits.getJSONObject(0).getJSONArray("reputation").length());
     for (int i = 0; i < 10; i++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", 10L + i)
           .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-          .put("reputation", "+" + (10f + i)));
+          .put("reputation", "+=" + (10f + i)));
       expectedVersion++;
     }
     syncWithVersion(expectedVersion);
@@ -114,7 +115,44 @@ public class ActivityIntegrationTest extends TestCase {
       18, "reputation"), 18f);
     assertEquals(Float.parseFloat(hits.getJSONObject(1).getJSONArray("reputation").getString(0)),
       18f);
-
+    for (int i = 0; i < 10; i++) {
+      FileDataProviderWithMocks.add(new JSONObject().put("id", 10L + i)
+          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
+          .put("reputation", "+=" + (10f + i)));
+      expectedVersion++;
+    }
+    syncWithVersion(expectedVersion);
+    req = "{\"selections\": [{\"range\": {\"reputation\": {\"from\": 36, \"include_lower\": true}}}], \"sort\":[{\"reputation\":\"desc\"}]}";
+    System.out.println("!!!search");
+    res = TestSensei.search(new JSONObject(req));
+    hits = res.getJSONArray("hits");
+    assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getFloatValueByUID(
+      19, "reputation"), 38f);
+    assertEquals(Float.parseFloat(hits.getJSONObject(0).getJSONArray("reputation").getString(0)),
+      38f);
+    assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getFloatValueByUID(
+      18, "reputation"), 36f);
+    assertEquals(Float.parseFloat(hits.getJSONObject(1).getJSONArray("reputation").getString(0)),
+      36f);
+    for (int i = 0; i < 10; i++) {
+      FileDataProviderWithMocks.add(new JSONObject().put("id", 10L + i)
+          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
+          .put("reputation", "-=" + (10f + i)));
+      expectedVersion++;
+    }
+    syncWithVersion(expectedVersion);
+    req = "{\"selections\": [{\"range\": {\"reputation\": {\"from\": 18, \"include_lower\": true}}}], \"sort\":[{\"reputation\":\"desc\"}]}";
+    System.out.println("!!!search");
+    res = TestSensei.search(new JSONObject(req));
+    hits = res.getJSONArray("hits");
+    assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getFloatValueByUID(
+      19, "reputation"), 19f);
+    assertEquals(Float.parseFloat(hits.getJSONObject(0).getJSONArray("reputation").getString(0)),
+      19f);
+    assertEquals(CompositeActivityManager.cachedInstances.get(1).activityValues.getFloatValueByUID(
+      18, "reputation"), 18f);
+    assertEquals(Float.parseFloat(hits.getJSONObject(1).getJSONArray("reputation").getString(0)),
+      18f);
   }
 
   public void ntest1DSendUpdatesAndSortLong() throws Exception {
@@ -163,7 +201,7 @@ public class ActivityIntegrationTest extends TestCase {
   public void test2SendUpdateAndCheckIfItsPersisted() throws Exception {
     for (int i = 0; i < 5; i++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", 1L)
-          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+5"));
+          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+=5"));
       expectedVersion++;
     }
     final CompositeActivityValues inMemoryColumnData1 = CompositeActivityManager.cachedInstances
@@ -179,7 +217,7 @@ public class ActivityIntegrationTest extends TestCase {
     });
     for (int i = 0; i < 5; i++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", 1L)
-          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+5"));
+          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+=5"));
       expectedVersion++;
     }
     Wait.until(10000, "The activity value wasn't updated", new Wait.Condition() {
@@ -202,7 +240,7 @@ public class ActivityIntegrationTest extends TestCase {
     for (int i = 0; i < 10; i++) {
       FileDataProviderWithMocks.add(new JSONObject().put("id", i)
           .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-          .put("modifiedDate", "+1"));
+          .put("modifiedDate", "+=1"));
       expectedVersion++;
     }
     syncWithVersion(expectedVersion);
@@ -218,7 +256,6 @@ public class ActivityIntegrationTest extends TestCase {
     req = "{\"selections\": [{\"range\": {\"modifiedDate\": {\"from\": 5000000002, \"include_lower\": true}}}], \"sort\":[{\"modifiedDate\":\"desc\"}]}";
     System.out.println("!!!search");
     res = TestSensei.search(new JSONObject(req));
-    // System.out.println("!!!"+ res.toString(1));
     assertEquals(res.getInt("numhits"), 1);
   }
 
@@ -231,11 +268,13 @@ public class ActivityIntegrationTest extends TestCase {
     final TimeAggregatedActivityValues timeAggregatedActivityValues2 = clear(inMemoryColumnData2);
     for (ActivityIntValues activityIntValues : timeAggregatedActivityValues1.getValuesMap()
         .values()) {
-      assertEquals(0, activityIntValues.getIntValue(0));
+      for (int i = 0; i < timeAggregatedActivityValues1.maxIndex; i++) {
+        assertEquals("" + i, 0, activityIntValues.getFieldValues()[i]);
+      }
     }
     for (ActivityIntValues activityIntValues : timeAggregatedActivityValues2.getValuesMap()
         .values()) {
-      for (int i = 0; i < activityIntValues.getFieldValues().length; i++) {
+      for (int i = 0; i < timeAggregatedActivityValues2.maxIndex; i++) {
         assertEquals("" + i, 0, activityIntValues.getFieldValues()[i]);
       }
     }
@@ -243,8 +282,10 @@ public class ActivityIntegrationTest extends TestCase {
     for (int i = 0; i < 10; i++) {
       Clock.setPredefinedTimeInMinutes(Clock.getCurrentTimeInMinutes() + 1);
       for (int j = 0; j < 10 - i; j++) {
-        FileDataProviderWithMocks.add(new JSONObject().put("id", j)
-            .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE).put("likes", "+1"));
+        FileDataProviderWithMocks
+            .add(new JSONObject().put("id", j)
+                .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
+                .put("likes", "+=1"));
         expectedVersion++;
       }
       syncWithVersion(expectedVersion);
@@ -320,10 +361,9 @@ public class ActivityIntegrationTest extends TestCase {
     clear(inMemoryColumnData1);
     clear(inMemoryColumnData2);
     for (int i = 0; i < 10; i++) {
-      FileDataProviderWithMocks
-          .add(new JSONObject().put("id", i)
-              .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-              .put("likes", "+" + i));
+      FileDataProviderWithMocks.add(new JSONObject().put("id", i)
+          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
+          .put("likes", "+=" + i));
       expectedVersion++;
     }
 
@@ -352,10 +392,9 @@ public class ActivityIntegrationTest extends TestCase {
     inMemoryColumnData1.flush();
     Thread.sleep(1000);
     for (int i = 0; i < 10; i++) {
-      FileDataProviderWithMocks
-          .add(new JSONObject().put("id", i)
-              .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-              .put("likes", "+" + i));
+      FileDataProviderWithMocks.add(new JSONObject().put("id", i)
+          .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
+          .put("likes", "+=" + i));
       expectedVersion++;
     }
     inMemoryColumnData1.syncWithVersion(String.valueOf(expectedVersion));
@@ -368,17 +407,14 @@ public class ActivityIntegrationTest extends TestCase {
   }
 
   public void test5bIncreaseNonExistingActivityValue() throws Exception {
-    CompositeActivityManager.cachedInstances
-        .get(1);
     final CompositeActivityManager inMemoryColumnData2 = CompositeActivityManager.cachedInstances
         .get(2);
 
     String req = "{\"query\": {\"ids\": {\"values\": [\"14999\"], \"excludes\": [\"2\"]}}}";
     JSONObject res = TestSensei.search(new JSONObject(req));
-    FileDataProviderWithMocks
-        .add(new JSONObject().put("id", 14999)
-            .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-            .put("likes", "+" + 100));
+    FileDataProviderWithMocks.add(new JSONObject().put("id", 14999)
+        .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
+        .put("likes", "+=" + 100));
     expectedVersion++;
     // inMemoryColumnData1.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
     inMemoryColumnData2.getActivityValues().syncWithVersion(String.valueOf(expectedVersion));
@@ -453,11 +489,11 @@ public class ActivityIntegrationTest extends TestCase {
       inMemoryColumnData1.acceptEvent(
         new JSONObject().put("id", j + 30000)
             .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-            .put("likes", "+" + 1), String.valueOf(expectedVersion + 1));
+            .put("likes", "+=" + 1), String.valueOf(expectedVersion + 1));
       inMemoryColumnData2.acceptEvent(
         new JSONObject().put("id", j + 30000)
             .put(SenseiSchema.EVENT_TYPE_FIELD, SenseiSchema.EVENT_TYPE_UPDATE)
-            .put("likes", "+" + 1), String.valueOf(expectedVersion + 1));
+            .put("likes", "+=" + 1), String.valueOf(expectedVersion + 1));
       expectedVersion++;
     }
     FileDataProviderWithMocks.resetOffset(expectedVersion);

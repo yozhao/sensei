@@ -6,9 +6,7 @@ import java.nio.MappedByteBuffer;
 import org.apache.log4j.Logger;
 
 import com.senseidb.conf.SenseiSchema;
-
 import com.senseidb.indexing.activity.ActivityConfig;
-
 import com.senseidb.indexing.activity.ActivityPersistenceFactory;
 import com.senseidb.indexing.activity.ActivityValues;
 import com.senseidb.indexing.activity.AtomicFieldUpdate;
@@ -31,12 +29,14 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
     init(50000);
   }
 
+  @Override
   public abstract void init(int count);
 
   @Override
   public Runnable prepareFlush() {
     if (activityFieldStore == null) {
       return new Runnable() {
+        @Override
         public void run() {
         }
       };
@@ -49,6 +49,7 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
     updateBatch = new UpdateBatch<AtomicFieldUpdate>(activityConfig);
 
     return new Runnable() {
+      @Override
       public void run() {
         try {
           if (activityFieldStore.isClosed()) {
@@ -72,6 +73,11 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
   @Override
   public String getFieldName() {
     return fieldName;
+  }
+
+  @Override
+  public boolean flushNeeded() {
+    return updateBatch.flushNeeded();
   }
 
   public abstract void initFieldValues(int count, RandomAccessFile storedFile);
