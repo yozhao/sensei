@@ -7,17 +7,17 @@ import org.apache.lucene.util.Version;
 
 class PluginHolder {
   private final SenseiPluginRegistry senseiPluginRegistry;
-  String pluginCLass;
+  String pluginClass;
   String pluginName;
   String fullPrefix;
   Object instance;
   private Object factoryCreatedInstance;
   Map<String, String> properties = new LinkedHashMap<String, String>();
 
-  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry, String pluginCLass,
+  public PluginHolder(SenseiPluginRegistry senseiPluginRegistry, String pluginClass,
       String pluginName, String fullPrefix) {
     this.senseiPluginRegistry = senseiPluginRegistry;
-    this.pluginCLass = pluginCLass;
+    this.pluginClass = pluginClass;
     this.pluginName = pluginName;
     this.fullPrefix = fullPrefix;
   }
@@ -36,11 +36,11 @@ class PluginHolder {
       synchronized (this) {
         try {
           try {
-            instance = Class.forName(pluginCLass).newInstance();
+            instance = Class.forName(pluginClass).newInstance();
           } catch (Exception ex) {
             // Special logic for analyzer
             if (pluginName.equalsIgnoreCase("analyzer")) {
-              instance = Class.forName(pluginCLass).getConstructor(Version.class)
+              instance = Class.forName(pluginClass).getConstructor(Version.class)
                   .newInstance(Version.LUCENE_43);
             } else {
               throw ex;

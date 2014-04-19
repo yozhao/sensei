@@ -1,7 +1,6 @@
 package com.senseidb.gateway.kafka;
 
 import java.util.Comparator;
-import java.util.Properties;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -19,30 +18,11 @@ public class KafkaDataProviderBuilder extends SenseiGateway<DataPacket> {
 
   private final Comparator<String> _versionComparator = ZoieConfig.DEFAULT_VERSION_COMPARATOR;
 
-  private void extractProperties(Properties props) {
-    for (String key : config.keySet()) {
-      if (key.startsWith("kafka.")) {
-        props.put(key.substring("kafka.".length()), config.get(key));
-      }
-    }
-
-  }
-
   @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public StreamDataProvider<JSONObject> buildDataProvider(DataSourceFilter<DataPacket> dataFilter,
       String oldSinceKey, ShardingStrategy shardingStrategy, Set<Integer> partitions)
       throws Exception {
-    String zookeeperUrl = config.get("kafka.zookeeperUrl");
-    String consumerGroupId = config.get("kafka.consumerGroupId");
-    String topic = config.get("kafka.topic");
-    String timeoutStr = config.get("kafka.timeout");
-    int timeout = timeoutStr != null ? Integer.parseInt(timeoutStr) : 10000;
-    int batchsize = config.get("kafka.batchsize") != null ? Integer.parseInt(config
-        .get("kafka.batchsize")) : 500;
-
-    Properties props = new Properties();
-    extractProperties(props);
 
     long offset = oldSinceKey == null ? 0L : Long.parseLong(oldSinceKey);
 
@@ -62,22 +42,20 @@ public class KafkaDataProviderBuilder extends SenseiGateway<DataPacket> {
         DataSourceFilter dataMapper = (DataSourceFilter) dataMapperClass.newInstance();
         dataFilter = new AvroDataSourceFilter(cls, dataMapper);
       } else {
-        throw new IllegalArgumentException("invalid msg type: " + type);
+        throw new IllegalArgumentException("Invalid msg type: " + type);
       }
     }
     String persistentManagerName = config.get("kafka.persistentManager");
     if (persistentManagerName == null) {
-      KafkaStreamDataProvider provider = new KafkaStreamDataProvider(_versionComparator,
-          zookeeperUrl, timeout, batchsize, consumerGroupId, topic, offset, dataFilter, props);
+      KafkaStreamDataProvider provider = new KafkaStreamDataProvider(_versionComparator, config,
+          dataFilter);
       return provider;
     } else {
       PersistentKafkaStreamDataProvider wrappedKafkaStreamProvider = new PersistentKafkaStreamDataProvider(
-          _versionComparator, zookeeperUrl, timeout, batchsize, consumerGroupId, topic, offset,
-          dataFilter, pluginRegistry.getBeanByName(persistentManagerName,
-            PersistentCacheManager.class));
+          _versionComparator, config, offset, dataFilter, pluginRegistry.getBeanByName(
+            persistentManagerName, PersistentCacheManager.class));
       return wrappedKafkaStreamProvider;
     }
-
   }
 
   @Override

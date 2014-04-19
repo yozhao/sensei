@@ -3,6 +3,7 @@ package com.senseidb.gateway.kafka.persistent;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -19,22 +20,20 @@ import com.senseidb.util.Pair;
 public class PersistentKafkaStreamDataProvider extends KafkaStreamDataProvider {
   private static final Logger log = Logger.getLogger(PersistentKafkaStreamDataProvider.class);
   private final PersistentCacheManager cacheManager;
-  private int batchSize;
-  private AtomicInteger currentBatchCounter = new AtomicInteger(0);
+  private final int batchSize;
+  private final AtomicInteger currentBatchCounter = new AtomicInteger(0);
   private final long startingOffset;
-  private AtomicLong versionCounter = new AtomicLong();
+  private final AtomicLong versionCounter = new AtomicLong();
   private volatile Iterator<Pair<String, String>> eventsFromPersistentCache;
 
   public PersistentKafkaStreamDataProvider(Comparator<String> versionComparator,
-      String zookeeperUrl, int soTimeout, int batchSize, String consumerGroupId, String topic,
-      long startingOffset, DataSourceFilter<DataPacket> dataConverter,
+      Map<String, String> config, long offset, DataSourceFilter<DataPacket> dataConverter,
       PersistentCacheManager cacheManager) {
-    super(versionComparator, zookeeperUrl, soTimeout, batchSize, consumerGroupId, topic,
-        startingOffset, dataConverter);
-    this.startingOffset = startingOffset;
+    super(versionComparator, config, dataConverter);
+    batchSize = Integer.parseInt(config.get("provider.batchSize"));
+    startingOffset = offset;
     versionCounter.set(startingOffset);
     this.cacheManager = cacheManager;
-    this.batchSize = batchSize;
   }
 
   @Override

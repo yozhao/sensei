@@ -1,6 +1,5 @@
 package com.senseidb.gateway.kafka;
 
-import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -18,9 +17,9 @@ import java.util.concurrent.TimeUnit;
 
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaMessageStream;
+import kafka.consumer.ConsumerIterator;
+import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.Message;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -35,10 +34,9 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
   private static Logger logger = Logger.getLogger(KafkaStreamDataProvider.class);
 
   private final Set<String> _topics;
-  private String _consumerGroupId;
   private Properties _kafkaConfig;
   protected ConsumerConnector _consumerConnector;
-  private Iterator<Message> _consumerIterator;
+  private Iterator<byte[]> _consumerIterator;
   private final ThreadLocal<DecimalFormat> formatter = new ThreadLocal<DecimalFormat>() {
     @Override
     protected DecimalFormat initialValue() {
@@ -48,29 +46,24 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
 
   private ExecutorService _executorService;
 
-  private String _zookeeperUrl;
   private volatile boolean _started = false;
   private DataSourceFilter<DataPacket> _dataConverter;
-
-  public KafkaStreamDataProvider(Comparator<String> versionComparator, String zookeeperUrl,
-      int soTimeout, int batchSize, String consumerGroupId, String topic, long startingOffset,
-      DataSourceFilter<DataPacket> dataConverter) {
-    this(versionComparator, zookeeperUrl, soTimeout, batchSize, consumerGroupId, topic,
-        startingOffset, dataConverter, new Properties());
-
-  }
 
   public KafkaStreamDataProvider() {
     super(ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     _topics = new HashSet<String>();
-
   }
 
-  public KafkaStreamDataProvider(Comparator<String> versionComparator, String zookeeperUrl,
-      int soTimeout, int batchSize, String consumerGroupId, String topic, long startingOffset,
-      DataSourceFilter<DataPacket> dataConverter, Properties kafkaConfig) {
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public KafkaStreamDataProvider(Comparator<String> versionComparator, Map<String, String> config,
+      DataSourceFilter<DataPacket> dataFilter) {
     super(versionComparator);
-    _consumerGroupId = consumerGroupId;
+
+    int batchSize = config.get("provider.batchSize") != null ? Integer.parseInt(config
+        .get("provider.batchSize")) : 500;
+    super.setBatchSize(batchSize);
+
+    String topic = config.get("kafka.topic");
     _topics = new HashSet<String>();
     for (String raw : topic.split("[, ;]+")) {
       String t = raw.trim();
@@ -78,20 +71,41 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
         _topics.add(t);
       }
     }
-    super.setBatchSize(batchSize);
-    _zookeeperUrl = zookeeperUrl;
-    _consumerConnector = null;
-    _consumerIterator = null;
 
-    _kafkaConfig = kafkaConfig;
-    if (kafkaConfig == null) {
-      kafkaConfig = new Properties();
+    Properties props = new Properties();
+    for (String key : config.keySet()) {
+      if (key.equalsIgnoreCase("kafka.topic")) {
+        continue;
+      }
+      if (key.startsWith("kafka.")) {
+        props.put(key.substring("kafka.".length()), config.get(key));
+      }
     }
+    _kafkaConfig = props;
 
-    _dataConverter = dataConverter;
-    if (_dataConverter == null) {
-      throw new IllegalArgumentException("kafka data converter is null");
+    if (dataFilter == null) {
+      String type = config.get("kafka.msg.type");
+      if (type == null) {
+        type = "json";
+      }
+      if ("json".equals(type)) {
+        dataFilter = new DefaultJsonDataSourceFilter();
+      } else if ("avro".equals(type)) {
+        try {
+          String msgClsString = config.get("kafka.msg.avro.class");
+          String dataMapperClassString = config.get("kafka.msg.avro.datamapper");
+          Class<?> cls = Class.forName(msgClsString);
+          Class<?> dataMapperClass = Class.forName(dataMapperClassString);
+          DataSourceFilter dataMapper = (DataSourceFilter) dataMapperClass.newInstance();
+          dataFilter = new AvroDataSourceFilter(cls, dataMapper);
+        } catch (Exception e) {
+          throw new IllegalArgumentException("Unable to construct avro data filter", e);
+        }
+      } else {
+        throw new IllegalArgumentException("Invalid msg type: " + type);
+      }
     }
+    _dataConverter = dataFilter;
   }
 
   public void commit() {
@@ -104,29 +118,25 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
 
   @Override
   public DataEvent<JSONObject> next() {
-    if (!_started) return null;
+    if (!_started) {
+      return null;
+    }
 
     try {
-      if (!_consumerIterator.hasNext()) return null;
+      if (!_consumerIterator.hasNext()) {
+        return null;
+      }
     } catch (Exception e) {
       // Most likely timeout exception - ok to ignore
       return null;
     }
 
-    Message msg = _consumerIterator.next();
-    if (logger.isDebugEnabled()) {
-      logger.debug("got new message: " + msg);
-    }
+    byte[] msg = _consumerIterator.next();
     long version = getNextVersion();
 
     JSONObject data;
     try {
-      int size = msg.payloadSize();
-      ByteBuffer byteBuffer = msg.payload();
-      byte[] bytes = new byte[size];
-      byteBuffer.get(bytes, 0, size);
-      data = _dataConverter.filter(new DataPacket(bytes, 0, size));
-
+      data = _dataConverter.filter(new DataPacket(msg, 0, msg.length));
       if (logger.isDebugEnabled()) {
         logger.debug("message converted: " + data);
       }
@@ -151,44 +161,36 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
 
   @Override
   public void start() {
-    Properties props = new Properties();
-    props.put("zk.connect", _zookeeperUrl);
-    props.put("groupid", _consumerGroupId);
-
-    for (String key : _kafkaConfig.stringPropertyNames()) {
-      props.put(key, _kafkaConfig.getProperty(key));
-    }
-
-    logger.info("Kafka properties: " + props);
-
-    ConsumerConfig consumerConfig = new ConsumerConfig(props);
+    logger.info("Kafka properties: " + _kafkaConfig);
+    ConsumerConfig consumerConfig = new ConsumerConfig(_kafkaConfig);
     _consumerConnector = Consumer.createJavaConsumerConnector(consumerConfig);
 
     Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
     for (String topic : _topics) {
       topicCountMap.put(topic, 1);
     }
-    Map<String, List<KafkaMessageStream<Message>>> topicMessageStreams = _consumerConnector
+    Map<String, List<KafkaStream<byte[], byte[]>>> topicMessageStreams = _consumerConnector
         .createMessageStreams(topicCountMap);
 
-    final ArrayBlockingQueue<Message> queue = new ArrayBlockingQueue<Message>(8, true);
+    final ArrayBlockingQueue<byte[]> queue = new ArrayBlockingQueue<byte[]>(8, true);
 
     int streamCount = 0;
-    for (List<KafkaMessageStream<Message>> streams : topicMessageStreams.values()) {
+    for (List<KafkaStream<byte[], byte[]>> streams : topicMessageStreams.values()) {
       streamCount += streams.size();
     }
     _executorService = Executors.newFixedThreadPool(streamCount);
 
-    for (List<KafkaMessageStream<Message>> streams : topicMessageStreams.values()) {
-      for (KafkaMessageStream<Message> stream : streams) {
-        final KafkaMessageStream<Message> messageStream = stream;
+    for (List<KafkaStream<byte[], byte[]>> streams : topicMessageStreams.values()) {
+      for (KafkaStream<byte[], byte[]> stream : streams) {
+        final KafkaStream<byte[], byte[]> messageStream = stream;
         _executorService.execute(new Runnable() {
           @Override
           public void run() {
             logger.info("Kafka consumer thread started: " + Thread.currentThread().getId());
             try {
-              for (Message message : messageStream) {
-                queue.put(message);
+              ConsumerIterator<byte[], byte[]> it = messageStream.iterator();
+              while (it.hasNext()) {
+                queue.put(it.next().message());
               }
             } catch (Exception e) {
               // normally it should the stop interupt exception.
@@ -200,12 +202,14 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
       }
     }
 
-    _consumerIterator = new Iterator<Message>() {
-      private Message message = null;
+    _consumerIterator = new Iterator<byte[]>() {
+      private byte[] message = null;
 
       @Override
       public boolean hasNext() {
-        if (message != null) return true;
+        if (message != null) {
+          return true;
+        }
 
         try {
           message = queue.poll(1, TimeUnit.SECONDS);
@@ -221,9 +225,9 @@ public class KafkaStreamDataProvider extends StreamDataProvider<JSONObject> {
       }
 
       @Override
-      public Message next() {
+      public byte[] next() {
         if (hasNext()) {
-          Message res = message;
+          byte[] res = message;
           message = null;
           return res;
         } else {
