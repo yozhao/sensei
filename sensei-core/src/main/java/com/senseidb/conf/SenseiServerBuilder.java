@@ -1,62 +1,5 @@
 package com.senseidb.conf;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.MapConfiguration;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
-import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.util.Version;
-import org.jolokia.http.AgentServlet;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.servlet.GzipFilter;
-import org.mortbay.thread.QueuedThreadPool;
-import org.springframework.core.io.Resource;
-import org.w3c.dom.Document;
-
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.IndexCopier;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
-import proj.zoie.impl.indexing.DefaultReaderCache;
-import proj.zoie.impl.indexing.ReaderCacheFactory;
-import proj.zoie.impl.indexing.SimpleReaderCache;
-import proj.zoie.impl.indexing.ZoieConfig;
-import zu.core.cluster.ZuCluster;
-
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.senseidb.gateway.SenseiGateway;
@@ -96,6 +39,63 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.NetUtil;
 import com.senseidb.util.SenseiUncaughtExceptionHandler;
 import com.twitter.common.net.pool.DynamicHostSet.MonitorException;
+
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.Filter;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.util.Version;
+import org.jolokia.http.AgentServlet;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.nio.SelectChannelConnector;
+import org.mortbay.jetty.servlet.ServletHolder;
+import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.servlet.GzipFilter;
+import org.mortbay.thread.QueuedThreadPool;
+import org.springframework.core.io.Resource;
+import org.w3c.dom.Document;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import proj.zoie.api.IndexCopier;
+import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
+import proj.zoie.impl.indexing.DefaultReaderCache;
+import proj.zoie.impl.indexing.ReaderCacheFactory;
+import proj.zoie.impl.indexing.SimpleReaderCache;
+import proj.zoie.impl.indexing.ZoieConfig;
+import zu.core.cluster.ZuCluster;
 
 public class SenseiServerBuilder {
 

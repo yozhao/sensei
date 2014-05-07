@@ -28,3 +28,4 @@ target
 *.ipr
 *.iws
 sensei-ba/src/test/resources/data/index/*
+.idea
