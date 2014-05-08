@@ -25,7 +25,6 @@
 		<module>sensei-core</module>
 		<module>sensei-gateways</module>
 		<module>sensei-hadoop-indexing</module>
-		<module>sensei-federated-broker</module>
 		<module>sensei-war</module>
 		<module>clients/java</module>
 	</modules>

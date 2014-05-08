@@ -56,9 +56,6 @@ import com.yammer.metrics.core.MetricName;
 
 public abstract class AbstractSenseiClientServlet extends ZookeeperConfigurableServlet {
 
-  public static final int JSON_PARSING_ERROR = 489;
-  public static final int BQL_EXTRA_FILTER_ERROR = 498;
-  public static final int BQL_PARSING_ERROR = 499;
   public static final String BQL_STMT = "bql";
   public static final String BQL_EXTRA_FILTER = "bql_extra_filter";
   public static final String TOTAL_DOCS = "totaldocs";
