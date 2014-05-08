@@ -21,10 +21,11 @@ import com.senseidb.util.RequestConverter;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
+import zu.finagle.serialize.JOSSSerializer;
+import zu.finagle.serialize.ZuSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,9 +35,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import zu.finagle.serialize.JOSSSerializer;
-import zu.finagle.serialize.ZuSerializer;
 
 import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
 
@@ -75,13 +73,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
       throw new IllegalArgumentException("both offset and count must be > 0: " + offset + "/"
           + count);
     }
-    // SortCollector collector =
-    // browser.getSortCollector(req.getSort(),req.getQuery(), offset, count,
-    // req.isFetchStoredFields(),false);
 
-    // Map<String, FacetAccessible> facetCollectors = new HashMap<String,
-    // FacetAccessible>();
-    // browser.browse(req, collector, facetCollectors);
     BrowseResult res = browser.browse(req);
     BrowseHit[] hits = res.getHits();
     if (req.getMapReduceWrapper() != null) {

@@ -9,19 +9,17 @@ import com.senseidb.jmx.JmxUtil;
 import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.search.req.mapred.impl.FieldAccessorFactory;
-
 import org.apache.log4j.Logger;
+import proj.zoie.api.DataProvider;
+import proj.zoie.api.IndexReaderFactory;
+import proj.zoie.api.Zoie;
+import proj.zoie.api.ZoieException;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import proj.zoie.api.DataProvider;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieException;
 
 public class SenseiCore {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);

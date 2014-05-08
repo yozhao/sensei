@@ -39,10 +39,8 @@ import com.senseidb.util.JSONUtil.FastJSONObject;
 import com.senseidb.util.NetUtil;
 import com.senseidb.util.SenseiUncaughtExceptionHandler;
 import com.twitter.common.net.pool.DynamicHostSet.MonitorException;
-
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.MapConfiguration;
@@ -67,7 +65,18 @@ import org.mortbay.servlet.GzipFilter;
 import org.mortbay.thread.QueuedThreadPool;
 import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
+import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
+import proj.zoie.api.IndexCopier;
+import proj.zoie.api.indexing.ZoieIndexableInterpreter;
+import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
+import proj.zoie.impl.indexing.DefaultReaderCache;
+import proj.zoie.impl.indexing.ReaderCacheFactory;
+import proj.zoie.impl.indexing.SimpleReaderCache;
+import proj.zoie.impl.indexing.ZoieConfig;
+import zu.core.cluster.ZuCluster;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -83,19 +92,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
-import proj.zoie.api.IndexCopier;
-import proj.zoie.api.indexing.ZoieIndexableInterpreter;
-import proj.zoie.hourglass.impl.HourGlassScheduler.FREQUENCY;
-import proj.zoie.impl.indexing.DefaultReaderCache;
-import proj.zoie.impl.indexing.ReaderCacheFactory;
-import proj.zoie.impl.indexing.SimpleReaderCache;
-import proj.zoie.impl.indexing.ZoieConfig;
-import zu.core.cluster.ZuCluster;
 
 public class SenseiServerBuilder {
 
