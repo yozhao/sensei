@@ -1,18 +1,17 @@
 package com.senseidb.search.query;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
+import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
+import com.senseidb.search.relevance.RelevanceFunctionBuilder;
+import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.senseidb.search.query.ScoreAugmentQuery.ScoreAugmentFunction;
-import com.senseidb.search.relevance.RelevanceFunctionBuilder;
-import com.senseidb.search.relevance.impl.RelevanceJSONConstants;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public abstract class QueryConstructor {
   public static final String VALUES_PARAM = "values";
@@ -75,7 +74,6 @@ public abstract class QueryConstructor {
   private static final Map<String, QueryConstructor> QUERY_CONSTRUCTOR_MAP = new HashMap<String, QueryConstructor>();
 
   static {
-    QUERY_CONSTRUCTOR_MAP.put(DistMaxQueryConstructor.QUERY_TYPE, new DistMaxQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(PrefixQueryConstructor.QUERY_TYPE, new PrefixQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(WildcardQueryConstructor.QUERY_TYPE, new WildcardQueryConstructor());
     QUERY_CONSTRUCTOR_MAP.put(RangeQueryConstructor.QUERY_TYPE, new RangeQueryConstructor());
@@ -104,6 +102,10 @@ public abstract class QueryConstructor {
       else if (BooleanQueryConstructor.QUERY_TYPE.equals(type)) queryConstructor = new BooleanQueryConstructor(
           qparser);
       else if (FilteredQueryConstructor.QUERY_TYPE.equals(type)) queryConstructor = new FilteredQueryConstructor(
+          qparser);
+      else if (FlexibleQueryConstructor.QUERY_TYPE.equals(type)) queryConstructor = new FlexibleQueryConstructor(
+          qparser.getAnalyzer());
+      else if (DistMaxQueryConstructor.QUERY_TYPE.equals(type)) queryConstructor = new DistMaxQueryConstructor(
           qparser);
     }
     return queryConstructor;

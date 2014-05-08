@@ -1,5 +1,7 @@
 package com.senseidb.search.node;
 
+import com.browseengine.bobo.api.BoboSegmentReader;
+
 import java.io.File;
 import java.util.Comparator;
 
@@ -7,8 +9,6 @@ import proj.zoie.api.DirectoryManager.DIRECTORY_MODE;
 import proj.zoie.api.Zoie;
 import proj.zoie.api.indexing.ZoieIndexableInterpreter;
 import proj.zoie.impl.indexing.ZoieConfig;
-
-import com.browseengine.bobo.api.BoboSegmentReader;
 
 public abstract class SenseiZoieFactory<D> {
 
@@ -49,4 +49,8 @@ public abstract class SenseiZoieFactory<D> {
 
   // TODO: change to getDirectoryManager
   public abstract File getPath(int nodeId, int partitionId);
+
+  public ZoieConfig getZoieConfig() {
+    return _zoieConfig;
+  }
 }

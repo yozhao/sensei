@@ -1,18 +1,5 @@
 package com.senseidb.search.node;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-
-import proj.zoie.api.DataProvider;
-import proj.zoie.api.IndexReaderFactory;
-import proj.zoie.api.Zoie;
-import proj.zoie.api.ZoieException;
-
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
@@ -23,10 +10,23 @@ import com.senseidb.search.plugin.PluggableSearchEngineManager;
 import com.senseidb.search.req.SenseiSystemInfo;
 import com.senseidb.search.req.mapred.impl.FieldAccessorFactory;
 
+import org.apache.log4j.Logger;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import proj.zoie.api.DataProvider;
+import proj.zoie.api.IndexReaderFactory;
+import proj.zoie.api.Zoie;
+import proj.zoie.api.ZoieException;
+
 public class SenseiCore {
   private static final Logger logger = Logger.getLogger(SenseiServer.class);
 
-  private final SenseiZoieFactory<?> _zoieFactory;
+  private SenseiZoieFactory<?> _zoieFactory;
   @SuppressWarnings("rawtypes")
   private final SenseiIndexingManager _indexManager;
   private final SenseiQueryBuilderFactory _queryBuilderFactory;
@@ -222,4 +222,5 @@ public class SenseiCore {
     return fieldAccessorFactory;
   }
 
+  public SenseiZoieFactory<?> getZoieFactory() { return _zoieFactory; }
 }

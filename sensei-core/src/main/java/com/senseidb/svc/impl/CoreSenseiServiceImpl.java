@@ -1,23 +1,5 @@
 package com.senseidb.svc.impl;
 
-import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
-import org.apache.lucene.search.Query;
-
-import zu.finagle.serialize.JOSSSerializer;
-import zu.finagle.serialize.ZuSerializer;
-
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseHit;
@@ -39,6 +21,24 @@ import com.senseidb.util.RequestConverter;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.Timer;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.log4j.Logger;
+import org.apache.lucene.search.Query;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import zu.finagle.serialize.JOSSSerializer;
+import zu.finagle.serialize.ZuSerializer;
+
+import static com.senseidb.servlet.SenseiSearchServletParams.PARAM_RESULT_HIT_UID;
 
 public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiRequest, SenseiResult> {
 
@@ -195,6 +195,7 @@ public class CoreSenseiServiceImpl extends AbstractSenseiCoreService<SenseiReque
 
         pruner.sort(validatedSegmentReaders);
         browser = new MultiBoboBrowser(validatedSegmentReaders);
+        browser.setSimilarity(_core.getZoieFactory().getZoieConfig().getSimilarity());
         BrowseRequest breq = RequestConverter.convert(request, queryBuilderFactory);
         if (request.getMapReduceFunction() != null) {
           SenseiMapFunctionWrapper mapWrapper = new SenseiMapFunctionWrapper(
