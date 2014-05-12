@@ -208,10 +208,6 @@ public class SenseiCore {
     this.pluggableSearchEngineManager = pluggableSearchEngineManager;
   }
 
-  public PluggableSearchEngineManager getPluggableSearchEngineManager() {
-    return pluggableSearchEngineManager;
-  }
-
   public SenseiIndexReaderDecorator getDecorator() {
     return decorator;
   }

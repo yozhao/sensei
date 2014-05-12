@@ -112,7 +112,6 @@ public class SenseiServer {
         server.leaveCluster(cluster);
         server.shutdown();
         cluster.shutdown();
-        _core.getPluggableSearchEngineManager().close();
       } catch (Exception e) {
         logger.warn(e.getMessage());
       }

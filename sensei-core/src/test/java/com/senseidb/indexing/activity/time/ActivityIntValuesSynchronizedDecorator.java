@@ -20,7 +20,6 @@ public class ActivityIntValuesSynchronizedDecorator extends ActivityIntValues {
   @Override
   public boolean update(int index, Object value) {
     synchronized (SynchronizedActivityRangeFacetHandler.GLOBAL_ACTIVITY_TEST_LOCK) {
-      // System.out.println("!!!Update" + value);
       return decorated.update(index, value);
     }
   }

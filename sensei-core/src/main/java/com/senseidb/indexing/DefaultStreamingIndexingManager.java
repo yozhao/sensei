@@ -203,11 +203,11 @@ public class DefaultStreamingIndexingManager implements SenseiIndexingManager<JS
 
   @Override
   public void shutdown() {
-    if (pluggableSearchEngineManager != null) {
-      pluggableSearchEngineManager.close();
-    }
     if (_dataProvider != null) {
       _dataProvider.stop();
+    }
+    if (pluggableSearchEngineManager != null) {
+      pluggableSearchEngineManager.close();
     }
   }
 
