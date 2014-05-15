@@ -146,7 +146,7 @@ public class FlexibleScorer extends Scorer {
   public int nextDoc() throws IOException {
     clear();
 
-    if (matchedEnumsList[0] == null || doc == NO_MORE_DOCS) return NO_MORE_DOCS;
+    if (matchedEnumsList.length == 0 || matchedEnumsList[0] == null || doc == NO_MORE_DOCS) return NO_MORE_DOCS;
 
     doc = matchedEnumsList[0].doc();
 
