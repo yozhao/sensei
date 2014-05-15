@@ -123,7 +123,6 @@ public class CustomMatchingStrategyBuilder {
 
       classPrinter.println("}");
 
-      System.out.println(classBody.toString());
       clazz = JavaCompilerHelper.createClass(className, classBody.toString());
       compiledClassMap.put(className, clazz);
       return (CustomMatchingStrategy) clazz.newInstance();

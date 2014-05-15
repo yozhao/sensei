@@ -79,7 +79,7 @@ public class FlexibleQueryConstructor extends QueryConstructor {
       try {
         strategy = CustomMatchingStrategyBuilder.buildStragegy(name, function, explain, paramsFields);
       } catch (Exception e) {
-        return null;
+        throw new IOException(e);
       }
       Query query = new FlexibleQuery(fieldsList, text, _analyzer, strategy);
       if (!Strings.isNullOrEmpty(boostStr)) {
