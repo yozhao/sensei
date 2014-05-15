@@ -95,14 +95,6 @@ public class SenseiServer {
     return buffer.toString();
   }
 
-  public DataProvider<?> getDataProvider() {
-    return _core.getDataProvider();
-  }
-
-  public SenseiCore getSenseiCore() {
-    return _core;
-  }
-
   public void shutdown() {
     try {
       logger.info("shutting down node...");

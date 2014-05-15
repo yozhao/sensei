@@ -19,6 +19,7 @@ import com.senseidb.search.req.SenseiResult;
 public class TestNegativeNumbers extends TestCase {
 
   private static SenseiBroker broker;
+
   static {
     SenseiStarter.start("test-conf/node1", "test-conf/node2");
     broker = SenseiStarter.broker;
@@ -32,9 +33,10 @@ public class TestNegativeNumbers extends TestCase {
     SenseiResult res = broker.browse(req);
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(
-      Arrays.toString(groupdIDs) + " is not the expected output",
-      Arrays.equals(new long[] { -15000L, -14000L, -13000L, -12000L, -11000L, -10000L, -9000L,
-          -8000L, -7000L, 0L, 10L }, groupdIDs));
+        Arrays.toString(groupdIDs) + " is not the expected output",
+        Arrays.equals(new long[] { -15000L, -14000L, -13000L, -12000L, -11000L, -10000L, -9000L,
+            -8000L, -7000L, 0L, 10L }, groupdIDs)
+    );
   }
 
   public void test2SortDesc() throws Exception {
@@ -46,9 +48,10 @@ public class TestNegativeNumbers extends TestCase {
     SenseiResult res = broker.browse(req);
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(
-      Arrays.toString(groupdIDs) + " is not the expected output",
-      Arrays.equals(new long[] { 10L, 0L, -7000L, -8000L, -9000L, -10000L, -11000L, -12000L,
-          -13000, -14000, -15000 }, groupdIDs));
+        Arrays.toString(groupdIDs) + " is not the expected output",
+        Arrays.equals(new long[] { 10L, 0L, -7000L, -8000L, -9000L, -10000L, -11000L, -12000L,
+            -13000, -14000, -15000 }, groupdIDs)
+    );
   }
 
   public void test3SortDescWithTerms() throws Exception {
@@ -57,14 +60,16 @@ public class TestNegativeNumbers extends TestCase {
     req.setCount(4);
 
     req.addSortField(new SortField("groupid", SortField.Type.LONG, false));
+
     req.addSelection(new BrowseSelection("groupid").addValue("10").addValue("0").addValue("-7000")
         .addValue("-8000").setSelectionOperation(ValueOperation.ValueOperationOr));
     req.setFacetSpec("groupid", new FacetSpec().setMaxCount(50).setMinHitCount(1));
     SenseiResult res = broker.browse(req);
-    System.out.println(res);
+
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(Arrays.toString(groupdIDs) + " is not the expected output",
-      Arrays.equals(new long[] { -8000L, -7000L, 0L, 10L }, groupdIDs));
+        Arrays.equals(new long[] { -8000L, -7000L, 0L, 10L }, groupdIDs));
+    assertEquals(res.getNumHits(), 13);
   }
 
   public void test4Facets() throws Exception {
@@ -107,9 +112,10 @@ public class TestNegativeNumbers extends TestCase {
     System.out.println(res);
     long[] groupdIDs = extractFieldValues(field, res);
     assertTrue(
-      Arrays.toString(groupdIDs) + " is not the expected output",
-      Arrays.equals(new long[] { -15000L, -14000L, -13000L, -12000L, -11000L, -10000L, -9000L,
-          -8000L, -7000L, 0L, 10L }, groupdIDs));
+        Arrays.toString(groupdIDs) + " is not the expected output",
+        Arrays.equals(new long[] { -15000L, -14000L, -13000L, -12000L, -11000L, -10000L, -9000L,
+            -8000L, -7000L, 0L, 10L }, groupdIDs)
+    );
   }
 
   public void test6RangeFacets() throws Exception {
@@ -168,7 +174,7 @@ public class TestNegativeNumbers extends TestCase {
         .addNotValue("-500").setSelectionOperation(ValueOperation.ValueOperationOr));
     req.addSortField(new SortField(fieldName, SortField.Type.LONG, false));
     req.setFacetSpec(fieldName,
-      new FacetSpec().setMaxCount(50).setMinHitCount(1).setOrderBy(FacetSortSpec.OrderValueAsc));
+        new FacetSpec().setMaxCount(50).setMinHitCount(1).setOrderBy(FacetSortSpec.OrderValueAsc));
     SenseiResult res = broker.browse(req);
     assertEquals(1, res.getNumHits());
 

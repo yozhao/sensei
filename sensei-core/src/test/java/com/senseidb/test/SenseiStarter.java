@@ -42,9 +42,6 @@ public class SenseiStarter {
   public static SenseiServer node1;
   public static SenseiServer node2;
   public static Server httpServer1;
-  public static Server httpServer2;
-  public static SenseiRequestScatterRewriter requestRewriter;
-  public static final String SENSEI_TEST_CONF_FILE = "sensei-test.spring";
   public static SenseiZoieFactory<?> _zoieFactory;
   public static boolean started = false;
 
@@ -104,7 +101,6 @@ public class SenseiStarter {
       senseiServerBuilder2 = new SenseiServerBuilder(ConfDir2, null);
       senseiServerBuilder2.setClusterClient(clusterClient);
       node2 = senseiServerBuilder2.buildServer();
-      httpServer2 = senseiServerBuilder2.buildHttpRestServer();
       logger.info("Node 2 created.");
       broker = null;
       try {
@@ -128,7 +124,6 @@ public class SenseiStarter {
       httpServer1.start();
       logger.info("Node 1 started");
       node2.start(true);
-      httpServer2.start();
       logger.info("Node 2 started");
       SenseiUrl = new URL("http://localhost:8079/sensei");
       federatedBrokerUrl = new URL("http://localhost:8079/sensei/federatedBroker/");
@@ -197,10 +192,6 @@ public class SenseiStarter {
     }
     try {
       node2.shutdown();
-    } catch (Throwable t) {
-    }
-    try {
-      httpServer2.stop();
     } catch (Throwable t) {
     }
     try {

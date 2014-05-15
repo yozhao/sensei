@@ -68,11 +68,6 @@ public class SenseiConfParams {
   public static final String SERVER_BROKER_TIMEOUT = "sensei.broker.timeout";
   public static final String SERVER_BROKER_FINAGLE_THREAD = "sensei.broker.finagle.thread";
 
-  public static final String SENSEI_BROKER_POLL_INTERVAL = "sensei.broker.pollInterval";
-  public static final String SENSEI_BROKER_MIN_RESPONSES = "sensei.broker.minResponses";
-  public static final String SENSEI_BROKER_MAX_TOTAL_WAIT = "sensei.broker.maxTotalWait";
-  public static final String SENSEI_ACTIVITY_CONFIG = "sensei.activity.config";
-
   public static final String SENSEI_INDEX_PRUNER = "sensei.index.pruner";
   public static final String SENSEI_REQUEST_POSTPROCESSOR = "sensei.request.postrocessor";
   public static final String SENSEI_ZOIE_RETENTION_DAYS = "sensei.indexing.retention.days";
@@ -80,8 +75,6 @@ public class SenseiConfParams {
 
   public static final String SENSEI_ZOIE_RETENTION_COLUMN = "sensei.indexing.retention.column";
   public static final String SENSEI_ZOIE_RETENTION_TIMEUNIT = "sensei.index.retention.column.timeunit";
-
-  public static final String SENSEI_MX4J_PORT = "sensei.mx4j.port";
 
   public static final String SENSEI_INDEX_ACTIVITY_FILTER = "sensei.index.activity.filter";
   public static final String SENSEI_INDEX_ACTIVITY_PURGE_FREQUENCY_HOURS = "sensei.index.activity.purge.hours";

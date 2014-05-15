@@ -41,9 +41,7 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
         }
       };
     }
-    if (activityFieldStore.isClosed()) {
-      throw new IllegalStateException("The activityFile is closed");
-    }
+
     final UpdateBatch<AtomicFieldUpdate> oldBatch = updateBatch;
 
     updateBatch = new UpdateBatch<AtomicFieldUpdate>(activityConfig);
@@ -53,7 +51,7 @@ public abstract class ActivityPrimitiveValues implements ActivityValues {
       public void run() {
         try {
           if (activityFieldStore.isClosed()) {
-            throw new IllegalStateException("The activityFile is closed");
+            return;
           }
           activityFieldStore.flush(oldBatch.getUpdates());
         } catch (Exception ex) {
