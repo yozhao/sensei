@@ -1,23 +1,18 @@
 package com.senseidb.search.query;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Iterator;
-
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MultiPhraseQuery;
-import org.apache.lucene.search.PhraseQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Iterator;
 
 public class TextQueryConstructor extends QueryConstructor {
   private static final Logger logger = Logger.getLogger(TextQueryConstructor.class);
@@ -45,9 +40,13 @@ public class TextQueryConstructor extends QueryConstructor {
     String text = null;
 
     Iterator<String> iter = json.keys();
-    if (!iter.hasNext()) throw new IllegalArgumentException("text field not fould");
+    if (!iter.hasNext()) throw new IllegalArgumentException("text field not found");
 
-    field = iter.next();
+    while (iter.hasNext()) {
+      field = iter.next();
+      if (!field.equalsIgnoreCase(RELEVANCE))
+        break;
+    }
 
     Object obj = json.get(field);
     if (obj instanceof JSONObject) {
